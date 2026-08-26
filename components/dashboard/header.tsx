@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Bell, Search } from "lucide-react";
+import { Bell, Search, PanelLeft } from "lucide-react";
 import { getInitials } from "@/lib/utils";
 import type { User } from "@supabase/supabase-js";
 
@@ -23,9 +23,23 @@ export function DashboardHeader({ profile, user }: HeaderProps) {
     else setGreeting("Good evening");
   }, []);
 
+  const triggerSidebarToggle = () => {
+    window.dispatchEvent(new CustomEvent("adviza:toggle-sidebar"));
+  };
+
   return (
-    <header className="h-16 flex-shrink-0 flex items-center justify-between pl-16 pr-4 sm:px-6 lg:px-8 border-b border-[#EADBCE] bg-[#FAF5F0]/80 backdrop-blur-sm">
-      <div className="min-w-0 pr-2">
+    <header className="h-16 flex-shrink-0 flex items-center justify-between pl-16 md:pl-6 pr-4 sm:px-6 lg:px-8 border-b border-[#EADBCE] bg-[#FAF5F0]/80 backdrop-blur-sm">
+      <div className="flex items-center gap-3 min-w-0 pr-2">
+        {/* Desktop Sidebar Collapse Toggle Button */}
+        <button
+          onClick={triggerSidebarToggle}
+          className="hidden md:flex items-center justify-center p-2 rounded-xl text-[#7A726A] hover:text-[#121217] hover:bg-white border border-transparent hover:border-[#EADBCE] transition-all shadow-xs"
+          title="Toggle sidebar (Ctrl+B)"
+          aria-label="Toggle sidebar"
+        >
+          <PanelLeft className="w-4 h-4" />
+        </button>
+
         <p className="text-xs sm:text-sm text-[#7A726A] truncate" suppressHydrationWarning>
           {greeting},{" "}
           <span className="text-[#121217] font-heading font-bold">
