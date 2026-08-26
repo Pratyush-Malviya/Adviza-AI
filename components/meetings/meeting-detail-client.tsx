@@ -163,7 +163,7 @@ export function MeetingDetailClient({ meeting, actionItems }: MeetingDetailClien
               </span>
             )}
           </div>
-          <div className="flex items-center gap-4 text-sm text-[#7A726A]">
+          <div className="flex items-center gap-4 text-sm text-[#7A726A]" suppressHydrationWarning>
             <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4 text-rose-500" />{new Date(meeting.scheduled_at).toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
             <span className="flex items-center gap-1.5"><User className="w-4 h-4 text-rose-500" />{client?.full_name}</span>
           </div>
