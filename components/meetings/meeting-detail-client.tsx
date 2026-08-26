@@ -4,9 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft, Brain, Shield, Upload, CheckCircle2,
-  AlertTriangle, Clock, Send, Loader2,
-  Calendar, User, Mic, ClipboardList, AlertCircle, Star
+  ArrowLeft, Brain, Shield, CheckCircle2,
+  Clock, Send, Loader2,
+  Calendar, User, Mic, ClipboardList, AlertCircle, Sparkles, FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ActionItem } from "@/types/supabase";
@@ -33,6 +33,26 @@ interface MeetingDetailClientProps {
 }
 
 type TabId = "briefing" | "intelligence" | "compliance" | "actions";
+
+const SAMPLE_DEMO_TRANSCRIPT = `Advisor (David Miller): Good morning Alexander, thank you for joining our Q3 portfolio review. Today I want to analyze your current $3.85M asset allocation, particularly following your recent Series B liquidity event.
+
+Client (Alexander Vance): Thanks David. Yes, with the $2.1M liquidity from our secondary tender offer, I have significant cash sitting idle in checking, but I'm also worried about a heavy capital gains tax hit next April. Plus, my concentrated tech equity exposure is higher than I'd like.
+
+Advisor (David Miller): Exactly. Here is my strategic recommendation: first, we should execute tax-loss harvesting on your legacy emerging markets positions before Friday to offset approximately $65,000 in capital gains.
+
+Client (Alexander Vance): That sounds prudent. What do you recommend doing with the idle cash?
+
+Advisor (David Miller): I propose deploying 35% ($750,000) into a California tax-exempt municipal bond ladder yielding approximately 4.1% federal/state tax-free. For the remaining capital, we can dollar-cost average into our Global Tech & Clean Energy ETF strategy over the next 4 months.
+
+Client (Alexander Vance): I agree with the municipal bond ladder and the 4-month dollar-cost averaging plan. Let's proceed. What are our next steps?
+
+Advisor (David Miller): I will draft and send over the updated Investment Policy Statement (IPS) and municipal bond proposal by Thursday. On your end, could you please forward your 2025 tax return schedule and verify your trust beneficiary details?
+
+Client (Alexander Vance): Absolutely, I will email those tax schedules to your operations team tomorrow afternoon.
+
+Advisor (David Miller): Excellent. As a regulatory disclosure under SEC Reg BI and FINRA suitability standards, fixed-income allocations carry interest rate and liquidity risk as documented in our Form ADV Part 2A.
+
+Client (Alexander Vance): Understood and fully acknowledged. Thank you David!`;
 
 export function MeetingDetailClient({ meeting, actionItems }: MeetingDetailClientProps) {
   const router = useRouter();
@@ -65,7 +85,8 @@ export function MeetingDetailClient({ meeting, actionItems }: MeetingDetailClien
         body: JSON.stringify({ meetingId: meeting.id }),
       });
       if (!res.ok) throw new Error(await res.text());
-      setSuccess("Briefing generated successfully!");
+      setSuccess("Google Gemini Briefing generated successfully!");
+      setActiveTab("briefing");
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to generate briefing");
@@ -85,8 +106,9 @@ export function MeetingDetailClient({ meeting, actionItems }: MeetingDetailClien
         body: JSON.stringify({ meetingId: meeting.id, transcript }),
       });
       if (!res.ok) throw new Error(await res.text());
-      setSuccess("Meeting intelligence extracted!");
+      setSuccess("Meeting intelligence & action items extracted via Gemini!");
       setShowTranscriptInput(false);
+      setActiveTab("intelligence");
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to process transcript");
@@ -105,7 +127,8 @@ export function MeetingDetailClient({ meeting, actionItems }: MeetingDetailClien
         body: JSON.stringify({ meetingId: meeting.id }),
       });
       if (!res.ok) throw new Error(await res.text());
-      setSuccess("Compliance record generated!");
+      setSuccess("SEC/FINRA Compliance record generated!");
+      setActiveTab("compliance");
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to generate compliance record");
@@ -124,7 +147,7 @@ export function MeetingDetailClient({ meeting, actionItems }: MeetingDetailClien
         body: JSON.stringify({ meetingId: meeting.id }),
       });
       if (!res.ok) throw new Error(await res.text());
-      setSuccess("Follow-up email sent!");
+      setSuccess("Follow-up email dispatched to client via Resend!");
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to send follow-up");
@@ -170,6 +193,50 @@ export function MeetingDetailClient({ meeting, actionItems }: MeetingDetailClien
         </div>
       </div>
 
+      {/* Interactive AI Lifecycle Guide / Demo Flow Banner */}
+      <div className="bg-white rounded-3xl p-5 border border-[#EADBCE] shadow-sm">
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <div className="flex items-center gap-2 text-xs font-heading font-bold uppercase tracking-wider text-rose-600">
+            <Sparkles className="w-4 h-4" />
+            <span>AI Wealth Advisory Lifecycle</span>
+          </div>
+          <span className="text-[11px] text-[#8E847C] font-mono">Gemini 3.6 Flash + Resend</span>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className={cn("p-3 rounded-2xl border transition-all text-xs", briefing ? "bg-emerald-50/70 border-emerald-200 text-emerald-900" : "bg-[#FAF5F0] border-[#EADBCE] text-[#5A544E]")}>
+            <div className="font-bold flex items-center gap-1.5 mb-1">
+              <span className="w-4 h-4 rounded-full bg-white flex items-center justify-center text-[10px] font-mono border">1</span>
+              Briefing Pack
+            </div>
+            <p className="text-[11px] opacity-80">{briefing ? "✓ Generated" : "Pre-meeting summary"}</p>
+          </div>
+
+          <div className={cn("p-3 rounded-2xl border transition-all text-xs", intelligence ? "bg-emerald-50/70 border-emerald-200 text-emerald-900" : "bg-[#FAF5F0] border-[#EADBCE] text-[#5A544E]")}>
+            <div className="font-bold flex items-center gap-1.5 mb-1">
+              <span className="w-4 h-4 rounded-full bg-white flex items-center justify-center text-[10px] font-mono border">2</span>
+              Intelligence
+            </div>
+            <p className="text-[11px] opacity-80">{intelligence ? "✓ Analyzed" : "Extract decisions & actions"}</p>
+          </div>
+
+          <div className={cn("p-3 rounded-2xl border transition-all text-xs", compliance ? "bg-emerald-50/70 border-emerald-200 text-emerald-900" : "bg-[#FAF5F0] border-[#EADBCE] text-[#5A544E]")}>
+            <div className="font-bold flex items-center gap-1.5 mb-1">
+              <span className="w-4 h-4 rounded-full bg-white flex items-center justify-center text-[10px] font-mono border">3</span>
+              Compliance
+            </div>
+            <p className="text-[11px] opacity-80">{compliance ? "✓ Audit Ready" : "SEC / FINRA memo"}</p>
+          </div>
+
+          <div className={cn("p-3 rounded-2xl border transition-all text-xs", meeting.follow_up_sent ? "bg-emerald-50/70 border-emerald-200 text-emerald-900" : "bg-[#FAF5F0] border-[#EADBCE] text-[#5A544E]")}>
+            <div className="font-bold flex items-center gap-1.5 mb-1">
+              <span className="w-4 h-4 rounded-full bg-white flex items-center justify-center text-[10px] font-mono border">4</span>
+              Follow-up
+            </div>
+            <p className="text-[11px] opacity-80">{meeting.follow_up_sent ? "✓ Sent to Client" : "Deliver via Resend"}</p>
+          </div>
+        </div>
+      </div>
+
       {/* Alerts */}
       {error && (
         <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-sm font-medium flex items-center gap-2">
@@ -188,7 +255,7 @@ export function MeetingDetailClient({ meeting, actionItems }: MeetingDetailClien
       <div className="bg-white rounded-3xl p-4 sm:p-5 border border-[#EADBCE] shadow-sm flex flex-wrap items-center gap-3">
         <button id="generate-briefing-btn" onClick={generateBriefing} disabled={!!loading}
           className={cn("flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all shadow-sm",
-            briefing ? "bg-emerald-50 border border-emerald-200 text-emerald-700" : "btn-hero-gradient text-white",
+            briefing ? "bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100" : "btn-hero-gradient text-white",
             loading === "briefing" && "opacity-50 cursor-not-allowed"
           )}>
           {loading === "briefing" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4" />}
@@ -197,7 +264,7 @@ export function MeetingDetailClient({ meeting, actionItems }: MeetingDetailClien
 
         <button id="process-transcript-btn" onClick={() => setShowTranscriptInput(!showTranscriptInput)} disabled={!!loading}
           className={cn("flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all border shadow-sm",
-            intelligence ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-white border-[#EADBCE] text-[#121217] hover:bg-[#FAF5F0]",
+            intelligence ? "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100" : "bg-white border-[#EADBCE] text-[#121217] hover:bg-[#FAF5F0]",
           )}>
           <Mic className="w-4 h-4" />
           <span>{intelligence ? "Update Intelligence" : "Process Transcript"}</span>
@@ -225,14 +292,23 @@ export function MeetingDetailClient({ meeting, actionItems }: MeetingDetailClien
         )}
       </div>
 
-      {/* Transcript Input */}
+      {/* Transcript Input with Quick Demo Presets */}
       {showTranscriptInput && (
-        <div className="bg-white rounded-3xl p-6 border border-[#EADBCE] shadow-md animate-slide-up">
-          <h3 className="text-xs font-heading font-bold text-[#8E847C] uppercase tracking-wider mb-3">Paste Meeting Transcript</h3>
+        <div className="bg-white rounded-3xl p-6 border border-[#EADBCE] shadow-md animate-slide-up space-y-4">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <h3 className="text-xs font-heading font-bold text-[#8E847C] uppercase tracking-wider">Paste Meeting Transcript</h3>
+            <button
+              onClick={() => setTranscript(SAMPLE_DEMO_TRANSCRIPT)}
+              className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 transition-colors"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Load Sample Transcript (Demo)</span>
+            </button>
+          </div>
           <textarea value={transcript} onChange={(e) => setTranscript(e.target.value)} rows={10}
-            placeholder="Paste your meeting transcript here... (from Zoom, Google Meet, Teams, or any transcription service)"
+            placeholder="Paste your meeting transcript here... or click 'Load Sample Transcript' above to test Gemini AI immediately"
             className="w-full px-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-2xl text-[#121217] placeholder-[#A89E95] text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors resize-none" />
-          <div className="flex gap-3 mt-4">
+          <div className="flex gap-3">
             <button onClick={() => setShowTranscriptInput(false)}
               className="px-5 py-2.5 bg-white border border-[#EADBCE] text-[#121217] text-sm font-bold rounded-full hover:bg-[#FAF5F0] transition-colors">
               Cancel
@@ -298,69 +374,39 @@ export function MeetingDetailClient({ meeting, actionItems }: MeetingDetailClien
                     <h3 className="text-xs font-heading font-bold text-emerald-700 uppercase tracking-wider mb-4">Opportunity Signals</h3>
                     <ul className="space-y-3">
                       {(briefing.opportunitySignals as string[])?.map((signal, i) => (
-                        <li key={i} className="flex items-start gap-2.5 text-sm text-[#5A544E]">
-                          <Star className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5 fill-amber-400" />
-                          <span className="leading-relaxed">{signal}</span>
+                        <li key={i} className="flex items-start gap-3 text-sm text-emerald-800">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0 mt-1.5" />
+                          <span>{signal}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
+                </div>
 
-                  {/* Risk Flags */}
-                  {(briefing.riskFlags as string[])?.length > 0 && (
-                    <div className="bg-white rounded-3xl p-6 sm:p-8 border border-amber-200 shadow-sm bg-amber-50/20">
-                      <h3 className="text-xs font-heading font-bold text-amber-800 uppercase tracking-wider mb-4">Risk Flags</h3>
-                      <ul className="space-y-3">
-                        {(briefing.riskFlags as string[]).map((flag, i) => (
-                          <li key={i} className="flex items-start gap-2.5 text-sm text-[#5A544E]">
-                            <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                            <span className="leading-relaxed">{flag}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {/* Open Actions */}
+                {/* Portfolio Highlights */}
+                {Array.isArray(briefing.portfolioHighlights) && (
                   <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#EADBCE] shadow-sm">
-                    <h3 className="text-xs font-heading font-bold text-[#8E847C] uppercase tracking-wider mb-4">Open Action Items</h3>
-                    <ul className="space-y-3">
-                      {(briefing.openActionItems as {item: string; priority: string}[])?.map((item, i) => (
-                        <li key={i} className="flex items-start gap-2.5 text-sm">
-                          <span className={cn("text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0 mt-0.5",
-                            item.priority === "high" ? "bg-red-50 text-red-700 border border-red-200"
-                            : item.priority === "medium" ? "bg-amber-50 text-amber-800 border border-amber-200"
-                            : "bg-zinc-100 text-zinc-700 border border-zinc-200"
-                          )}>{item.priority}</span>
-                          <span className="text-[#5A544E] leading-relaxed">{item.item}</span>
-                        </li>
+                    <h3 className="text-xs font-heading font-bold text-[#8E847C] uppercase tracking-wider mb-4">Portfolio Highlights</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                      {(briefing.portfolioHighlights as { metric: string; value: string; trend?: string }[]).map((h, i) => (
+                        <div key={i} className="p-4 rounded-2xl bg-[#FAF5F0] border border-[#EADBCE]">
+                          <div className="text-xs text-[#8E847C] font-medium">{h.metric}</div>
+                          <div className="text-xl font-heading font-extrabold text-[#121217] mt-1">{h.value}</div>
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   </div>
-                </div>
-
-                {/* Agenda */}
-                <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#EADBCE] shadow-sm">
-                  <h3 className="text-xs font-heading font-bold text-[#8E847C] uppercase tracking-wider mb-4">Recommended Agenda</h3>
-                  <ol className="space-y-3">
-                    {(briefing.recommendedAgenda as string[])?.map((item, i) => (
-                      <li key={i} className="flex items-center gap-3 text-sm text-[#5A544E]">
-                        <span className="text-xs font-mono font-bold text-rose-500 bg-rose-50 px-2 py-0.5 rounded-md">{String(i+1).padStart(2, "0")}</span>
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ol>
-                </div>
+                )}
               </div>
             ) : (
-              <div className="bg-white rounded-3xl border border-[#EADBCE] shadow-sm py-16 text-center">
-                <Brain className="w-10 h-10 text-[#A89E95] mx-auto mb-4" />
-                <h3 className="text-lg font-heading font-bold text-[#121217] mb-2">No briefing yet</h3>
-                <p className="text-sm text-[#7A726A] mb-6">Generate a briefing pack to prepare for this meeting</p>
+              <div className="bg-white rounded-3xl p-12 border border-[#EADBCE] shadow-sm text-center">
+                <Brain className="w-10 h-10 text-[#A89E95] mx-auto mb-3" />
+                <h3 className="text-base font-heading font-bold text-[#121217] mb-1">No Briefing Pack Generated</h3>
+                <p className="text-sm text-[#7A726A] mb-4">Generate an AI briefing pack to review portfolio context and talking points before the meeting.</p>
                 <button onClick={generateBriefing} disabled={!!loading}
-                  className="btn-hero-gradient inline-flex items-center gap-2 px-6 py-3 text-white text-sm font-bold rounded-full shadow-md">
+                  className="btn-hero-gradient inline-flex items-center gap-2 px-6 py-2.5 text-white text-sm font-bold rounded-full shadow-md">
                   {loading === "briefing" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4" />}
-                  <span>Generate Briefing Pack</span>
+                  <span>Generate Briefing with Gemini</span>
                 </button>
               </div>
             )}
@@ -372,66 +418,43 @@ export function MeetingDetailClient({ meeting, actionItems }: MeetingDetailClien
           <div>
             {intelligence ? (
               <div className="space-y-6">
+                {/* Meeting Summary */}
                 <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#EADBCE] shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xs font-heading font-bold text-rose-600 uppercase tracking-wider">Meeting Summary</h3>
-                    <span className={cn("text-xs font-bold px-3 py-1 rounded-full border",
-                      intelligence.clientSentiment === "positive" ? "text-emerald-700 bg-emerald-50 border-emerald-200"
-                      : intelligence.clientSentiment === "concerned" ? "text-amber-800 bg-amber-50 border-amber-200"
-                      : "text-zinc-700 bg-zinc-100 border-zinc-200"
-                    )}>
-                      Sentiment: {intelligence.clientSentiment as string}
-                    </span>
-                  </div>
+                  <h3 className="text-xs font-heading font-bold text-rose-600 uppercase tracking-wider mb-3">AI Meeting Summary</h3>
                   <p className="text-[#5A544E] leading-relaxed text-sm">{intelligence.meetingSummary as string}</p>
                 </div>
 
+                {/* Key Decisions & Topics */}
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#EADBCE] shadow-sm">
-                    <h3 className="text-xs font-heading font-bold text-[#8E847C] uppercase tracking-wider mb-4">Key Decisions</h3>
-                    <ul className="space-y-3">
-                      {(intelligence.keyDecisions as string[])?.map((d, i) => (
-                        <li key={i} className="flex items-start gap-2.5 text-sm text-[#5A544E]">
+                    <h3 className="text-xs font-heading font-bold text-[#8E847C] uppercase tracking-wider mb-4">Key Decisions Made</h3>
+                    <ul className="space-y-2.5 text-sm text-[#5A544E]">
+                      {(intelligence.keyDecisions as string[])?.map((dec, i) => (
+                        <li key={i} className="flex items-start gap-2.5">
                           <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
-                          <span className="leading-relaxed">{d}</span>
+                          <span>{dec}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
 
                   <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#EADBCE] shadow-sm">
-                    <h3 className="text-xs font-heading font-bold text-[#8E847C] uppercase tracking-wider mb-4">Client Concerns</h3>
-                    {(intelligence.clientConcerns as string[])?.length > 0 ? (
-                      <ul className="space-y-3">
-                        {(intelligence.clientConcerns as string[]).map((c, i) => (
-                          <li key={i} className="flex items-start gap-2.5 text-sm text-[#5A544E]">
-                            <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                            <span className="leading-relaxed">{c}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-sm text-[#7A726A]">No concerns noted</p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#EADBCE] shadow-sm">
-                  <h3 className="text-xs font-heading font-bold text-[#8E847C] uppercase tracking-wider mb-4">Follow-up Email Draft</h3>
-                  <div className="bg-[#FAF5F0] rounded-2xl p-5 text-sm text-[#121217] leading-relaxed whitespace-pre-wrap border border-[#EADBCE]">
-                    {intelligence.followUpEmailDraft as string}
+                    <h3 className="text-xs font-heading font-bold text-[#8E847C] uppercase tracking-wider mb-4">Follow-up Email Draft</h3>
+                    <div className="p-4 rounded-2xl bg-[#FAF5F0] border border-[#EADBCE] text-xs font-mono whitespace-pre-wrap text-[#2A2520] max-h-60 overflow-y-auto">
+                      {intelligence.followUpEmailDraft as string}
+                    </div>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="bg-white rounded-3xl border border-[#EADBCE] shadow-sm py-16 text-center">
-                <Mic className="w-10 h-10 text-[#A89E95] mx-auto mb-4" />
-                <h3 className="text-lg font-heading font-bold text-[#121217] mb-2">No meeting transcript yet</h3>
-                <p className="text-sm text-[#7A726A] mb-6">Upload a transcript after your meeting to extract intelligence</p>
+              <div className="bg-white rounded-3xl p-12 border border-[#EADBCE] shadow-sm text-center">
+                <Mic className="w-10 h-10 text-[#A89E95] mx-auto mb-3" />
+                <h3 className="text-base font-heading font-bold text-[#121217] mb-1">No Meeting Intelligence Yet</h3>
+                <p className="text-sm text-[#7A726A] mb-4">Paste a meeting transcript to extract decisions, sentiment, action items, and drafted follow-up emails.</p>
                 <button onClick={() => setShowTranscriptInput(true)}
-                  className="btn-hero-gradient inline-flex items-center gap-2 px-6 py-3 text-white text-sm font-bold rounded-full shadow-md">
-                  <Upload className="w-4 h-4" />
-                  <span>Process Transcript</span>
+                  className="btn-hero-gradient inline-flex items-center gap-2 px-6 py-2.5 text-white text-sm font-bold rounded-full shadow-md">
+                  <FileText className="w-4 h-4" />
+                  <span>Paste Transcript / Load Demo</span>
                 </button>
               </div>
             )}
@@ -443,62 +466,44 @@ export function MeetingDetailClient({ meeting, actionItems }: MeetingDetailClien
           <div>
             {compliance ? (
               <div className="space-y-6">
-                <div className={cn("bg-white rounded-3xl p-6 sm:p-8 border shadow-sm",
-                  (compliance.complianceStatus as string) === "compliant" ? "border-emerald-200"
-                  : (compliance.complianceStatus as string) === "flagged" ? "border-red-200"
-                  : "border-amber-200"
-                )}>
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xs font-heading font-bold text-[#8E847C] uppercase tracking-wider">Compliance Status</h3>
-                    <span className={cn("text-xs font-bold px-3 py-1 rounded-full border",
-                      complianceColorMap[compliance.complianceStatus as string] || "text-zinc-700 bg-zinc-100 border-zinc-200"
-                    )}>
-                      {(compliance.complianceStatus as string)?.toUpperCase()}
+                <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#EADBCE] shadow-sm">
+                  <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
+                    <div>
+                      <span className="text-xs font-mono font-bold text-[#8E847C]">RECORD ID: {compliance.recordId as string}</span>
+                      <h3 className="text-lg font-heading font-bold text-[#121217] mt-0.5">SEC / FINRA Fiduciary Compliance Record</h3>
+                    </div>
+                    <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 uppercase">
+                      {compliance.complianceStatus as string}
                     </span>
                   </div>
-                  <p className="text-xs font-mono font-bold text-rose-600 mb-2">Record ID: {compliance.recordId as string}</p>
-                  <p className="text-sm text-[#5A544E] leading-relaxed">{compliance.auditNarrative as string}</p>
+                  <p className="text-sm text-[#5A544E] leading-relaxed">
+                    {(compliance.suitabilityAssessment as { rationale?: string })?.rationale}
+                  </p>
                 </div>
 
-                {(compliance.regulatoryFlags as {flag: string; severity: string; requiredAction: string}[])?.length > 0 && (
-                  <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#EADBCE] shadow-sm">
-                    <h3 className="text-xs font-heading font-bold text-amber-800 uppercase tracking-wider mb-4">Regulatory Flags</h3>
-                    <div className="space-y-3">
-                      {(compliance.regulatoryFlags as {flag: string; severity: string; requiredAction: string}[]).map((f, i) => (
-                        <div key={i} className={cn("p-4 rounded-2xl border",
-                          f.severity === "critical" ? "bg-red-50 border-red-200 text-red-900"
-                          : f.severity === "warning" ? "bg-amber-50 border-amber-200 text-amber-900"
-                          : "bg-zinc-50 border-zinc-200 text-zinc-900"
-                        )}>
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className={cn("text-xs font-bold uppercase", f.severity === "critical" ? "text-red-700" : f.severity === "warning" ? "text-amber-800" : "text-zinc-600")}>{f.severity}</span>
-                          </div>
-                          <p className="text-sm font-bold">{f.flag}</p>
-                          <p className="text-xs text-[#5A544E] mt-1">Required: {f.requiredAction}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
                 <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#EADBCE] shadow-sm">
-                  <h3 className="text-xs font-heading font-bold text-[#8E847C] uppercase tracking-wider mb-4">Attestation</h3>
-                  <p className="text-sm text-[#5A544E] leading-relaxed italic">{compliance.attestationText as string}</p>
-                  <p className="text-xs text-[#7A726A] mt-4 font-medium">Retention Requirement: {compliance.retentionRequirement as string}</p>
+                  <h3 className="text-xs font-heading font-bold text-[#8E847C] uppercase tracking-wider mb-3">Audit Trail Narrative</h3>
+                  <div className="p-4 rounded-2xl bg-[#FAF5F0] border border-[#EADBCE] text-xs text-[#5A544E] leading-relaxed">
+                    {compliance.auditNarrative as string}
+                  </div>
+                  <div className="mt-4 pt-4 border-t border-[#EADBCE] text-[11px] text-[#8E847C] font-mono">
+                    Retention standard: {compliance.retentionRequirement as string}
+                  </div>
                 </div>
               </div>
             ) : (
-              <div className="bg-white rounded-3xl border border-[#EADBCE] shadow-sm py-16 text-center">
-                <Shield className="w-10 h-10 text-[#A89E95] mx-auto mb-4" />
-                <h3 className="text-lg font-heading font-bold text-[#121217] mb-2">No compliance record yet</h3>
-                <p className="text-sm text-[#7A726A] mb-4">Process a transcript first to generate the compliance record</p>
-                {!intelligence && <p className="text-xs text-[#8E847C]">Requires: Meeting Intelligence</p>}
-                {intelligence && (
+              <div className="bg-white rounded-3xl p-12 border border-[#EADBCE] shadow-sm text-center">
+                <Shield className="w-10 h-10 text-[#A89E95] mx-auto mb-3" />
+                <h3 className="text-base font-heading font-bold text-[#121217] mb-1">No Compliance Record</h3>
+                <p className="text-sm text-[#7A726A] mb-4">Extract meeting intelligence first to automatically generate your SEC/FINRA suitability audit record.</p>
+                {intelligence ? (
                   <button onClick={generateCompliance} disabled={!!loading}
-                    className="btn-hero-gradient mt-2 inline-flex items-center gap-2 px-6 py-3 text-white text-sm font-bold rounded-full shadow-md">
+                    className="btn-hero-gradient inline-flex items-center gap-2 px-6 py-2.5 text-white text-sm font-bold rounded-full shadow-md">
                     {loading === "compliance" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Shield className="w-4 h-4" />}
                     <span>Generate Compliance Record</span>
                   </button>
+                ) : (
+                  <span className="text-xs text-[#8E847C] font-medium">Process meeting transcript in Step 2 first</span>
                 )}
               </div>
             )}
@@ -507,36 +512,30 @@ export function MeetingDetailClient({ meeting, actionItems }: MeetingDetailClien
 
         {/* Actions Tab */}
         {activeTab === "actions" && (
-          <div className="space-y-4">
+          <div>
             {actionItems.length > 0 ? (
-              actionItems.map((item) => (
-                <div key={item.id} className={cn("bg-white rounded-3xl p-5 border border-[#EADBCE] shadow-sm flex items-start gap-4",
-                  item.status === "completed" && "opacity-60 bg-[#FAF5F0]"
-                )}>
-                  <div className={cn("mt-1 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0",
-                    item.status === "completed" ? "bg-emerald-600 border-emerald-600" : "border-[#D8CCC2]"
-                  )}>
-                    {item.status === "completed" && <CheckCircle2 className="w-4 h-4 text-white" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className={cn("text-sm font-bold", item.status === "completed" ? "line-through text-[#8E847C]" : "text-[#121217]")}>{item.description}</p>
-                    <div className="flex items-center gap-3 mt-2">
-                      <span className={cn("text-xs font-bold px-2 py-0.5 rounded-full border",
-                        item.priority === "high" ? "bg-red-50 text-red-700 border-red-200"
-                        : item.priority === "medium" ? "bg-amber-50 text-amber-800 border-amber-200"
-                        : "bg-zinc-50 text-zinc-700 border-zinc-200"
-                      )}>{item.priority}</span>
-                      <span className="text-xs text-[#7A726A] capitalize font-medium">{item.owner}</span>
-                      {item.due_date && <span className="text-xs text-[#7A726A] flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{item.due_date}</span>}
+              <div className="space-y-3">
+                {actionItems.map((item) => (
+                  <div key={item.id} className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-[#EADBCE] shadow-sm flex items-start gap-3">
+                    <div className={cn("w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1.5",
+                      item.priority === "high" ? "bg-rose-500" : item.priority === "medium" ? "bg-amber-500" : "bg-zinc-400"
+                    )} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-[#121217]">{item.description}</p>
+                      <div className="flex items-center gap-3 mt-2 text-xs text-[#7A726A]">
+                        <span className="font-bold uppercase text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">{item.priority}</span>
+                        <span className="capitalize font-medium">{item.owner}</span>
+                        {item.due_date && <span>Due {item.due_date}</span>}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
+                ))}
+              </div>
             ) : (
-              <div className="bg-white rounded-3xl border border-[#EADBCE] shadow-sm py-16 text-center">
-                <ClipboardList className="w-10 h-10 text-[#A89E95] mx-auto mb-4" />
-                <h3 className="text-lg font-heading font-bold text-[#121217] mb-2">No action items</h3>
-                <p className="text-sm text-[#7A726A]">Action items will appear after processing the meeting transcript</p>
+              <div className="bg-white rounded-3xl p-12 border border-[#EADBCE] shadow-sm text-center">
+                <ClipboardList className="w-10 h-10 text-[#A89E95] mx-auto mb-3" />
+                <h3 className="text-base font-heading font-bold text-[#121217] mb-1">No Action Items</h3>
+                <p className="text-sm text-[#7A726A]">Action items will be extracted automatically when processing your meeting transcript.</p>
               </div>
             )}
           </div>

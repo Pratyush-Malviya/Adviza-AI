@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Calendar, Plus, Clock, CheckCircle2, AlertCircle, Brain, ChevronRight, Shield } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { SyncCalendarButton } from "@/components/meetings/sync-calendar-button";
+import { SeedDemoButton } from "@/components/dashboard/seed-demo-button";
 import type { Meeting } from "@/types/supabase";
 
 type MeetingRow = Meeting & { clients: { full_name: string } | null };
@@ -34,7 +35,8 @@ export default async function MeetingsPage() {
           <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#121217] tracking-tight">Meetings</h1>
           <p className="text-sm text-[#7A726A] mt-1">{meetings?.length ?? 0} total · {upcoming.length} upcoming</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center flex-wrap gap-2.5 sm:gap-3">
+          <SeedDemoButton />
           <SyncCalendarButton />
           <Link href="/dashboard/meetings/new" id="new-meeting-btn"
             className="btn-hero-gradient flex items-center gap-2 px-5 py-2.5 text-white text-sm font-bold rounded-full shadow-md shadow-rose-500/20 transition-transform hover:scale-105">

@@ -13,6 +13,7 @@ import {
   Plus,
 } from "lucide-react";
 import { formatRelativeTime } from "@/lib/utils";
+import { SeedDemoButton } from "@/components/dashboard/seed-demo-button";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -137,6 +138,9 @@ export default async function DashboardPage() {
           )}
         </div>
       )}
+
+      {/* Interactive AI Demo Seeder Banner */}
+      <SeedDemoButton variant="banner" />
 
       {/* Stats grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
