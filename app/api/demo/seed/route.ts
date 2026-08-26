@@ -1,4 +1,4 @@
-import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
 export async function POST() {
@@ -6,26 +6,25 @@ export async function POST() {
     const supabase = await createClient();
     const {
       data: { user },
+      error: userErr,
     } = await supabase.auth.getUser();
 
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (userErr || !user) {
+      return NextResponse.json({ error: "Unauthorized. Please log in first." }, { status: 401 });
     }
 
-    const { data: profile } = await supabase
+    const { data: profile, error: profileErr } = await supabase
       .from("profiles")
       .select("id, firm_id, full_name")
       .eq("id", user.id)
       .single();
 
-    if (!profile || !profile.firm_id) {
-      return NextResponse.json({ error: "Profile not found" }, { status: 404 });
+    if (profileErr || !profile?.firm_id) {
+      return NextResponse.json({ error: "Advisor profile or firm record not found." }, { status: 404 });
     }
 
-    const serviceClient = await createServiceClient();
-
-    // 1. Create Demo Clients
-    const { data: client1, error: c1Err } = await serviceClient
+    // 1. Create Demo Client 1 (Fintech Founder)
+    const { data: client1, error: c1Err } = await supabase
       .from("clients")
       .insert({
         firm_id: profile.firm_id,
@@ -45,7 +44,8 @@ export async function POST() {
       console.error("[demo-seed] Client 1 insert error:", c1Err);
     }
 
-    const { data: client2 } = await serviceClient
+    // 2. Create Demo Client 2 (Biotech VP)
+    const { data: client2, error: c2Err } = await supabase
       .from("clients")
       .insert({
         firm_id: profile.firm_id,
@@ -61,15 +61,19 @@ export async function POST() {
       .select()
       .single();
 
+    if (c2Err && !client2) {
+      console.error("[demo-seed] Client 2 insert error:", c2Err);
+    }
+
     const targetClientId = client1?.id || client2?.id;
 
     if (!targetClientId) {
-      return NextResponse.json({ error: "Failed to create demo clients" }, { status: 500 });
+      return NextResponse.json({ error: "Failed to create demo clients. Check database permissions." }, { status: 500 });
     }
 
-    // 2. Create Demo Scheduled Meeting
+    // 3. Create Demo Scheduled Meeting
     const scheduledDate = new Date(Date.now() + 1000 * 60 * 60 * 24 * 2).toISOString(); // 2 days from now
-    const { data: meeting, error: mErr } = await serviceClient
+    const { data: meeting, error: mErr } = await supabase
       .from("meetings")
       .insert({
         firm_id: profile.firm_id,
@@ -88,9 +92,9 @@ export async function POST() {
       console.error("[demo-seed] Meeting insert error:", mErr);
     }
 
-    // 3. Create Sample Action Items
+    // 4. Create Sample Action Items
     if (meeting) {
-      await serviceClient.from("action_items").insert([
+      await supabase.from("action_items").insert([
         {
           firm_id: profile.firm_id,
           meeting_id: meeting.id,
