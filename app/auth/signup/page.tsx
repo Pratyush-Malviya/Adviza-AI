@@ -33,7 +33,7 @@ export default function SignupPage() {
       .replace(/(^-|-$)/g, "")
       .slice(0, 40);
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: formData.email,
       password: formData.password,
       options: {
@@ -48,6 +48,8 @@ export default function SignupPage() {
     if (error) {
       setError(error.message);
       setLoading(false);
+    } else if (data?.session) {
+      window.location.href = "/dashboard";
     } else {
       setSuccess(true);
     }
@@ -66,13 +68,15 @@ export default function SignupPage() {
             <span className="text-[#121217] font-bold">{formData.email}</span>.
             Click the link to activate your workspace.
           </p>
-          <Link
-            href="/auth/login"
-            className="btn-hero-gradient inline-flex items-center gap-2 px-6 py-3 text-white text-sm font-bold rounded-full shadow-md"
-          >
-            <span>Back to Sign In</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
+          <div className="space-y-3">
+            <Link
+              href="/auth/login"
+              className="btn-hero-gradient inline-flex items-center justify-center gap-2 w-full py-3.5 text-white text-sm font-bold rounded-full shadow-md"
+            >
+              <span>Back to Sign In</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
       </div>
     );
