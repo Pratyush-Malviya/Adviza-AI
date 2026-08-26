@@ -66,7 +66,7 @@ export default async function MeetingsPage() {
                         {config.label}
                       </span>
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-[#7A726A]">
+                    <div className="flex items-center gap-3 text-xs text-[#7A726A]" suppressHydrationWarning>
                       <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{new Date(meeting.scheduled_at).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
                       <span className="text-[#D8CCC2]">·</span>
                       <span className="capitalize">{meeting.meeting_type}</span>

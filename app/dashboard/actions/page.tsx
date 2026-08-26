@@ -61,7 +61,7 @@ export default async function ActionsPage() {
             )}
           </div>
           {meeting && (
-            <p className="text-xs text-[#8E847C] mt-2">
+            <p className="text-xs text-[#8E847C] mt-2" suppressHydrationWarning>
               From: {meeting.title} · {new Date(meeting.scheduled_at).toLocaleDateString()}
             </p>
           )}

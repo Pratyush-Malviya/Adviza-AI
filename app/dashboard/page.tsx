@@ -197,7 +197,7 @@ export default async function DashboardPage() {
                     <div className="font-heading font-bold text-[#121217] text-sm truncate">
                       {(meeting as { clients?: { full_name: string } }).clients?.full_name}
                     </div>
-                    <div className="text-xs text-[#7A726A] flex items-center gap-1.5 mt-0.5">
+                    <div className="text-xs text-[#7A726A] flex items-center gap-1.5 mt-0.5" suppressHydrationWarning>
                       <Clock className="w-3 h-3" />
                       {new Date(meeting.scheduled_at).toLocaleDateString(
                         "en-US",
