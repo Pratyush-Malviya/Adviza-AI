@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import {
   Brain,
@@ -14,6 +17,8 @@ import {
   Video,
   Pause,
   Check,
+  Menu,
+  X,
 } from "lucide-react";
 
 const FEATURES = [
@@ -116,26 +121,28 @@ const LOGOS = [
 ];
 
 export default function LandingPage() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
-    <div className="min-h-screen bg-[#FAF5F0] text-[#121217] selection:bg-rose-200 selection:text-rose-900">
+    <div className="min-h-screen bg-[#FAF5F0] text-[#121217] selection:bg-rose-200 selection:text-rose-900 overflow-x-hidden">
       {/* Navigation matching reference */}
       <nav className="sticky top-0 left-0 right-0 z-50 bg-[#FAF5F0]/90 backdrop-blur-md border-b border-[#EADBCE]/50 transition-all">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
-          <div className="flex items-center justify-between h-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-12">
+          <div className="flex items-center justify-between h-16 sm:h-20">
             {/* Logo Squircle */}
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-10 h-10 rounded-2xl bg-[#121217] flex items-center justify-center shadow-md transition-transform group-hover:scale-105">
-                <div className="w-4 h-4 rounded-full border-2 border-white flex items-center justify-center">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-[#121217] flex items-center justify-center shadow-md transition-transform group-hover:scale-105">
+                <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border-2 border-white flex items-center justify-center">
                   <div className="w-1.5 h-1.5 rounded-full bg-white" />
                 </div>
               </div>
-              <span className="font-heading font-extrabold text-xl tracking-tight text-[#121217]">
+              <span className="font-heading font-extrabold text-xl sm:text-2xl tracking-tight text-[#121217]">
                 Adviza<span className="text-rose-500">.</span>
               </span>
             </Link>
 
-            {/* Navigation Links */}
-            <div className="hidden md:flex items-center gap-9 text-[15px] font-medium text-[#4A4540]">
+            {/* Navigation Links Desktop */}
+            <div className="hidden md:flex items-center gap-8 lg:gap-9 text-[15px] font-medium text-[#4A4540]">
               <Link href="#how-it-works" className="hover:text-[#121217] transition-colors">
                 How it works
               </Link>
@@ -154,34 +161,100 @@ export default function LandingPage() {
             </div>
 
             {/* Right Action Icons */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5 sm:gap-3">
               <Link
                 href="/auth/login"
-                className="w-10 h-10 rounded-full border border-[#D8CCC2] hover:border-[#121217] bg-white flex items-center justify-center text-[#121217] transition-all hover:scale-105"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-[#D8CCC2] hover:border-[#121217] bg-white flex items-center justify-center text-[#121217] transition-all hover:scale-105 shadow-sm"
                 title="Sign In"
               >
                 <LogIn className="w-4 h-4" />
               </Link>
               <Link
                 href="/auth/signup"
-                className="w-10 h-10 rounded-full border border-[#D8CCC2] hover:border-[#121217] bg-white flex items-center justify-center text-[#121217] transition-all hover:scale-105"
+                className="hidden sm:flex w-10 h-10 rounded-full border border-[#D8CCC2] hover:border-[#121217] bg-white items-center justify-center text-[#121217] transition-all hover:scale-105 shadow-sm"
                 title="Account"
               >
                 <User className="w-4 h-4" />
               </Link>
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="md:hidden p-2 rounded-xl text-[#121217] hover:bg-[#FAF5F0] transition-colors"
+                aria-label="Toggle mobile menu"
+              >
+                {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </button>
             </div>
           </div>
         </div>
+
+        {/* Mobile Dropdown Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-white border-b border-[#EADBCE] px-6 py-5 space-y-4 shadow-xl animate-in slide-in-from-top-2 duration-150">
+            <div className="flex flex-col space-y-3 font-medium text-sm text-[#4A4540]">
+              <Link
+                href="#how-it-works"
+                onClick={() => setMobileMenuOpen(false)}
+                className="hover:text-[#121217] py-1.5"
+              >
+                How it works
+              </Link>
+              <Link
+                href="#use-cases"
+                onClick={() => setMobileMenuOpen(false)}
+                className="hover:text-[#121217] py-1.5"
+              >
+                Use cases
+              </Link>
+              <Link
+                href="#features"
+                onClick={() => setMobileMenuOpen(false)}
+                className="hover:text-[#121217] py-1.5"
+              >
+                Features
+              </Link>
+              <Link
+                href="#pricing"
+                onClick={() => setMobileMenuOpen(false)}
+                className="hover:text-[#121217] py-1.5"
+              >
+                Pricing
+              </Link>
+              <Link
+                href="#faq"
+                onClick={() => setMobileMenuOpen(false)}
+                className="hover:text-[#121217] py-1.5"
+              >
+                FAQ
+              </Link>
+            </div>
+            <div className="pt-3 border-t border-[#EADBCE] flex gap-3">
+              <Link
+                href="/auth/signup"
+                onClick={() => setMobileMenuOpen(false)}
+                className="btn-hero-gradient flex-1 py-3 text-center text-white text-xs font-bold rounded-full shadow-sm"
+              >
+                Start for Free
+              </Link>
+              <Link
+                href="/auth/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-5 py-3 text-center text-[#121217] bg-[#FAF5F0] border border-[#EADBCE] text-xs font-bold rounded-full"
+              >
+                Sign In
+              </Link>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-12 pb-20 px-6 sm:px-8 lg:px-12 overflow-hidden">
+      <section className="pt-8 sm:pt-12 pb-16 sm:pb-20 px-4 sm:px-8 lg:px-12 overflow-hidden">
         <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+          <div className="grid lg:grid-cols-12 gap-10 lg:gap-8 items-center">
             
             {/* Left Content Column */}
-            <div className="lg:col-span-6 xl:col-span-5 pt-4">
-              <h1 className="text-5xl sm:text-6xl xl:text-7xl font-heading font-extrabold tracking-tight leading-[1.08] mb-6">
+            <div className="lg:col-span-6 xl:col-span-5 pt-2 sm:pt-4 text-center lg:text-left">
+              <h1 className="text-4xl sm:text-6xl xl:text-7xl font-heading font-extrabold tracking-tight leading-[1.1] mb-5 sm:mb-6">
                 <span className="gradient-text-hero">AI analysis</span>
                 <br />
                 <span className="text-[#121217]">for real-time</span>
@@ -189,15 +262,15 @@ export default function LandingPage() {
                 <span className="text-[#121217]">discussions</span>
               </h1>
 
-              <p className="text-base sm:text-lg text-[#5A544E] leading-relaxed max-w-lg mb-8">
+              <p className="text-sm sm:text-base lg:text-lg text-[#5A544E] leading-relaxed max-w-lg mx-auto lg:mx-0 mb-6 sm:mb-8">
                 Adviza AI records your wealth advisory meetings, recognizes who’s speaking, and provides real-time insights and live recommendations — all without taking manual notes.
               </p>
 
               {/* CTAs */}
-              <div className="flex flex-wrap items-center gap-4 mb-6">
+              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-4 mb-6">
                 <Link
                   href="/auth/signup"
-                  className="btn-hero-gradient inline-flex items-center gap-3 px-7 py-3.5 rounded-full text-white font-semibold text-base shadow-lg shadow-rose-500/20 group"
+                  className="btn-hero-gradient w-full sm:w-auto inline-flex items-center justify-center gap-3 px-7 py-3.5 rounded-full text-white font-bold text-sm sm:text-base shadow-lg shadow-rose-500/20 group"
                 >
                   <span className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-white transition-transform group-hover:translate-x-0.5">
                     <ArrowRight className="w-4 h-4" />
@@ -206,18 +279,18 @@ export default function LandingPage() {
                 </Link>
 
                 <Link
-                  href="#contact"
-                  className="inline-flex items-center justify-center px-7 py-3.5 rounded-full bg-white border border-[#D8CCC2] hover:border-[#121217] text-[#121217] font-semibold text-base transition-all hover:bg-[#F7EFE8]"
+                  href="#pricing"
+                  className="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3.5 rounded-full bg-white border border-[#D8CCC2] hover:border-[#121217] text-[#121217] font-bold text-sm sm:text-base transition-all hover:bg-[#F7EFE8]"
                 >
-                  Contact us
+                  View Pricing
                 </Link>
               </div>
 
               {/* Bullets */}
-              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs sm:text-sm text-[#7A726A] font-medium">
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-4 gap-y-2 text-xs sm:text-sm text-[#7A726A] font-medium">
                 <span className="inline-flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#A89E95]" />
-                  31-day free trial
+                  10 free meetings
                 </span>
                 <span className="inline-flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#A89E95]" />
@@ -231,7 +304,7 @@ export default function LandingPage() {
             </div>
 
             {/* Right Interactive Hero Showcase (Matching reference UI) */}
-            <div className="lg:col-span-6 xl:col-span-7 relative flex items-center justify-center min-h-[520px] lg:min-h-[580px]">
+            <div className="lg:col-span-6 xl:col-span-7 relative flex items-center justify-center min-h-[460px] sm:min-h-[520px] lg:min-h-[580px] px-2 sm:px-0">
               
               {/* Connector lines SVG behind cards */}
               <svg className="absolute inset-0 w-full h-full pointer-events-none hidden sm:block" xmlns="http://www.w3.org/2000/svg">
@@ -254,12 +327,13 @@ export default function LandingPage() {
               </svg>
 
               {/* Floating Participant Video 1 (Top Left) */}
-              <div className="absolute -top-2 left-4 sm:left-12 z-20 animate-float">
+              <div className="absolute -top-3 left-0 sm:left-10 z-20 animate-float scale-75 sm:scale-100 origin-top-left">
                 <div className="relative w-28 h-20 sm:w-36 sm:h-24 rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-rose-200/80 shadow-md bg-white">
                   <img
                     src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80"
                     alt="Advisor Participant"
                     className="w-full h-full object-cover"
+                    loading="lazy"
                   />
                   <div className="absolute bottom-1.5 right-1.5 bg-black/60 backdrop-blur-md p-1 rounded-md text-white flex items-center gap-1">
                     <Video className="w-2.5 h-2.5 text-rose-400" />
@@ -269,12 +343,13 @@ export default function LandingPage() {
               </div>
 
               {/* Floating Participant Video 2 (Top Right) */}
-              <div className="absolute top-6 right-2 sm:right-8 z-20 animate-float-slow">
+              <div className="absolute top-2 right-0 sm:right-6 z-20 animate-float-slow scale-75 sm:scale-100 origin-top-right">
                 <div className="relative w-28 h-20 sm:w-36 sm:h-24 rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-purple-200/80 shadow-md bg-white">
                   <img
                     src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80"
                     alt="Wealth Client"
                     className="w-full h-full object-cover"
+                    loading="lazy"
                   />
                   <div className="absolute bottom-1.5 right-1.5 bg-black/60 backdrop-blur-md p-1 rounded-md text-white flex items-center gap-1">
                     <Video className="w-2.5 h-2.5 text-emerald-400" />
@@ -284,12 +359,13 @@ export default function LandingPage() {
               </div>
 
               {/* Floating Participant Video 3 (Bottom Left) */}
-              <div className="absolute bottom-2 left-6 sm:left-14 z-20 animate-float-slow">
+              <div className="absolute bottom-1 left-0 sm:left-12 z-20 animate-float-slow scale-75 sm:scale-100 origin-bottom-left">
                 <div className="relative w-28 h-20 sm:w-36 sm:h-24 rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-[#EADBCE] shadow-md bg-white">
                   <img
                     src="https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=400&q=80"
                     alt="Estate Planner"
                     className="w-full h-full object-cover"
+                    loading="lazy"
                   />
                   <div className="absolute bottom-1.5 right-1.5 bg-black/60 backdrop-blur-md p-1 rounded-md text-white flex items-center gap-1">
                     <Video className="w-2.5 h-2.5 text-white" />
@@ -299,12 +375,13 @@ export default function LandingPage() {
               </div>
 
               {/* Floating Participant Video 4 (Bottom Right) */}
-              <div className="absolute bottom-4 right-4 sm:right-10 z-20 animate-float">
+              <div className="absolute bottom-2 right-0 sm:right-8 z-20 animate-float scale-75 sm:scale-100 origin-bottom-right">
                 <div className="relative w-28 h-20 sm:w-36 sm:h-24 rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-[#EADBCE] shadow-md bg-white">
                   <img
                     src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80"
                     alt="Tax Specialist"
                     className="w-full h-full object-cover"
+                    loading="lazy"
                   />
                   <div className="absolute bottom-1.5 right-1.5 bg-black/60 backdrop-blur-md p-1 rounded-md text-white flex items-center gap-1">
                     <Video className="w-2.5 h-2.5 text-emerald-400" />
@@ -314,7 +391,7 @@ export default function LandingPage() {
               </div>
 
               {/* Central Main Meeting Intelligence Device / App Card */}
-              <div className="relative z-30 w-full max-w-[320px] sm:max-w-[340px] bg-white rounded-[32px] shadow-2xl border border-[#EADBCE] overflow-hidden">
+              <div className="relative z-30 w-full max-w-[300px] sm:max-w-[340px] bg-white rounded-[32px] shadow-2xl border border-[#EADBCE] overflow-hidden">
                 
                 {/* Top Floating Reviews Pill */}
                 <div className="absolute -top-3 right-4 z-40 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-full border border-rose-100 shadow-md flex items-center gap-1.5 text-[11px] font-bold text-[#121217]">
@@ -376,6 +453,7 @@ export default function LandingPage() {
                           src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80"
                           alt="Conrad"
                           className="w-full h-full object-cover"
+                          loading="lazy"
                         />
                       </div>
                       <span className="text-xs font-bold text-zinc-900">David M.</span>
@@ -419,8 +497,8 @@ export default function LandingPage() {
       </section>
 
       {/* Mid-page Announcement Banner */}
-      <section className="py-4 px-6 sm:px-8 border-y border-[#EADBCE] bg-[#F7EFE8]/70">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-3 text-center text-sm">
+      <section className="py-4 px-4 sm:px-8 border-y border-[#EADBCE] bg-[#F7EFE8]/70">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-center text-xs sm:text-sm">
           <span className="font-semibold text-[#121217]">
             Enjoy 50% off premium features for first 3 months — 21 days remaining
           </span>
@@ -437,12 +515,12 @@ export default function LandingPage() {
       </section>
 
       {/* Monochrome Brand Logos Strip */}
-      <section className="py-12 px-6 sm:px-8 bg-[#FAF5F0]">
+      <section className="py-10 sm:py-12 px-4 sm:px-8 bg-[#FAF5F0]">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-wrap items-center justify-between gap-8 md:gap-12 opacity-85 grayscale hover:grayscale-0 transition-all">
+          <div className="flex flex-wrap items-center justify-center sm:justify-between gap-6 sm:gap-8 md:gap-12 opacity-85 grayscale hover:grayscale-0 transition-all">
             {LOGOS.map((logo) => (
-              <div key={logo.name} className="flex items-center gap-2 text-xl sm:text-2xl font-heading font-extrabold tracking-wider text-[#121217]">
-                <span className="text-lg opacity-60">{logo.symbol}</span>
+              <div key={logo.name} className="flex items-center gap-2 text-lg sm:text-2xl font-heading font-extrabold tracking-wider text-[#121217]">
+                <span className="text-base sm:text-lg opacity-60">{logo.symbol}</span>
                 <span>{logo.name}</span>
               </div>
             ))}
@@ -451,9 +529,9 @@ export default function LandingPage() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 px-6 sm:px-8 bg-white border-y border-[#EADBCE]">
+      <section className="py-12 sm:py-16 px-4 sm:px-8 bg-white border-y border-[#EADBCE]">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
             {STATS.map((stat) => {
               const Icon = stat.icon;
               return (
@@ -461,7 +539,7 @@ export default function LandingPage() {
                   <div className="w-10 h-10 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center mx-auto mb-3 text-rose-600">
                     <Icon className="w-5 h-5" />
                   </div>
-                  <div className="text-3xl sm:text-4xl font-heading font-extrabold text-[#121217] mb-1">
+                  <div className="text-2xl sm:text-4xl font-heading font-extrabold text-[#121217] mb-1">
                     {stat.value}
                   </div>
                   <div className="text-xs sm:text-sm text-[#7A726A] font-medium">{stat.label}</div>
@@ -473,9 +551,9 @@ export default function LandingPage() {
       </section>
 
       {/* Features Grid */}
-      <section id="features" className="py-24 px-6 sm:px-8 lg:px-12 bg-[#FAF5F0]">
+      <section id="features" className="py-16 sm:py-24 px-4 sm:px-8 lg:px-12 bg-[#FAF5F0]">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center max-w-2xl mx-auto mb-16">
+          <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-100 text-rose-700 text-xs font-heading font-bold uppercase tracking-wider mb-4">
               <Sparkles className="w-3.5 h-3.5" />
               Core AI Agents
@@ -483,23 +561,23 @@ export default function LandingPage() {
             <h2 className="text-3xl sm:text-5xl font-heading font-extrabold text-[#121217] tracking-tight mb-4">
               Built specifically for modern wealth management.
             </h2>
-            <p className="text-[#686058] text-base sm:text-lg">
+            <p className="text-[#686058] text-sm sm:text-lg">
               Every agent is fine-tuned for RIA compliance, CRM context, and high-stakes client conversations.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
             {FEATURES.map((feature) => {
               const Icon = feature.icon;
               return (
                 <div
                   key={feature.title}
-                  className={`bg-white rounded-3xl p-8 border ${feature.border} shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 relative overflow-hidden`}
+                  className={`bg-white rounded-3xl p-6 sm:p-8 border ${feature.border} shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 relative overflow-hidden`}
                 >
-                  <div className={`w-14 h-14 rounded-2xl ${feature.badge} flex items-center justify-center mb-6`}>
-                    <Icon className="w-7 h-7" />
+                  <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl ${feature.badge} flex items-center justify-center mb-5 sm:mb-6`}>
+                    <Icon className="w-6 h-6 sm:w-7 sm:h-7" />
                   </div>
-                  <h3 className="text-xl font-heading font-bold text-[#121217] mb-3">
+                  <h3 className="text-lg sm:text-xl font-heading font-bold text-[#121217] mb-2 sm:mb-3">
                     {feature.title}
                   </h3>
                   <p className="text-[#686058] leading-relaxed text-sm">
@@ -513,9 +591,9 @@ export default function LandingPage() {
       </section>
 
       {/* How it Works / 4-Step Flow */}
-      <section id="how-it-works" className="py-24 px-6 sm:px-8 lg:px-12 bg-white border-y border-[#EADBCE]">
+      <section id="how-it-works" className="py-16 sm:py-24 px-4 sm:px-8 lg:px-12 bg-white border-y border-[#EADBCE]">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center max-w-2xl mx-auto mb-16">
+          <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-100 text-zinc-800 text-xs font-heading font-bold uppercase tracking-wider mb-4">
               Seamless Workflow
             </div>
@@ -524,7 +602,7 @@ export default function LandingPage() {
             </h2>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
             {[
               {
                 step: "01",
@@ -560,23 +638,23 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing Cards */}
-      <section id="pricing" className="py-24 px-6 sm:px-8 lg:px-12 bg-[#FAF5F0]">
+      <section id="pricing" className="py-16 sm:py-24 px-4 sm:px-8 lg:px-12 bg-[#FAF5F0]">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center max-w-2xl mx-auto mb-16">
+          <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-100 text-rose-700 text-xs font-heading font-bold uppercase tracking-wider mb-4">
               Transparent Pricing
             </div>
             <h2 className="text-3xl sm:text-5xl font-heading font-extrabold text-[#121217] tracking-tight mb-4">
               Simple plans for ambitious advisors.
             </h2>
-            <p className="text-[#686058]">No setup fee. 14-day full access trial. Upgrade or cancel anytime.</p>
+            <p className="text-[#686058] text-sm sm:text-base">No setup fee. 10 free meetings. Upgrade or cancel anytime.</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
             {PRICING.map((plan) => (
               <div
                 key={plan.name}
-                className={`rounded-[32px] p-8 sm:p-10 transition-all ${
+                className={`rounded-[32px] p-6 sm:p-10 transition-all ${
                   plan.highlighted
                     ? "bg-[#121217] text-white shadow-2xl ring-2 ring-rose-500 relative"
                     : "bg-white text-[#121217] border border-[#EADBCE] shadow-sm"
@@ -637,19 +715,19 @@ export default function LandingPage() {
       </section>
 
       {/* Ready to Accelerate CTA */}
-      <section className="py-24 px-6 sm:px-8 bg-white border-t border-[#EADBCE]">
+      <section className="py-16 sm:py-24 px-4 sm:px-8 bg-white border-t border-[#EADBCE]">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl sm:text-6xl font-heading font-extrabold tracking-tight text-[#121217] mb-6">
+          <h2 className="text-3xl sm:text-5xl lg:text-6xl font-heading font-extrabold tracking-tight text-[#121217] mb-6">
             Ready to give your advisors
             <br />
             <span className="gradient-text-hero">5 hours back every week?</span>
           </h2>
-          <p className="text-lg text-[#686058] max-w-xl mx-auto mb-10">
+          <p className="text-sm sm:text-lg text-[#686058] max-w-xl mx-auto mb-8 sm:mb-10">
             Join wealth advisory firms using Adviza to eliminate operational friction and automate compliance.
           </p>
           <Link
             href="/auth/signup"
-            className="btn-hero-gradient inline-flex items-center gap-3 px-9 py-4 rounded-full text-white font-bold text-lg shadow-xl shadow-rose-500/25"
+            className="btn-hero-gradient inline-flex items-center gap-3 px-8 sm:px-9 py-3.5 sm:py-4 rounded-full text-white font-bold text-base sm:text-lg shadow-xl shadow-rose-500/25"
           >
             <span>Start Free Today</span>
             <ArrowRight className="w-5 h-5" />
@@ -657,16 +735,16 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Footer matching reference design */}
-      <footer className="bg-[#FAF5F0] border-t border-[#EADBCE] py-14 px-6 sm:px-8 lg:px-12">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      {/* Footer */}
+      <footer className="bg-[#FAF5F0] border-t border-[#EADBCE] py-10 sm:py-14 px-4 sm:px-8 lg:px-12">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-[#121217] flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-[#121217] flex items-center justify-center shadow-sm">
               <div className="w-3 h-3 rounded-full border-2 border-white" />
             </div>
             <span className="font-heading font-bold text-base text-[#121217]">Adviza AI</span>
           </div>
-          <p className="text-xs sm:text-sm text-[#7A726A]">
+          <p className="text-xs sm:text-sm text-[#7A726A]" suppressHydrationWarning>
             © {new Date().getFullYear()} Adviza AI. Empowering wealth advisors with real-time intelligence.
           </p>
           <div className="flex gap-6 text-xs sm:text-sm text-[#7A726A]">

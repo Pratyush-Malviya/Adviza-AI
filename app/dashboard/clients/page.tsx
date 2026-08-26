@@ -49,15 +49,17 @@ export default async function ClientsPage() {
 
       {/* Client list */}
       <div className="bg-white rounded-3xl border border-[#EADBCE] shadow-sm overflow-hidden">
-        {/* Table header */}
-        <div className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-[#EADBCE]/80 bg-[#FAF5F0]/60">
-          <div className="col-span-4 text-xs font-heading font-bold text-[#8E847C] uppercase tracking-wider">
-            Client
-          </div>
-          <div className="col-span-2 text-xs font-heading font-bold text-[#8E847C] uppercase tracking-wider">
-            Portfolio
-          </div>
-          <div className="col-span-2 text-xs font-heading font-bold text-[#8E847C] uppercase tracking-wider">
+        <div className="overflow-x-auto">
+          <div className="min-w-[640px]">
+            {/* Table header */}
+            <div className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-[#EADBCE]/80 bg-[#FAF5F0]/60">
+              <div className="col-span-4 text-xs font-heading font-bold text-[#8E847C] uppercase tracking-wider">
+                Client
+              </div>
+              <div className="col-span-2 text-xs font-heading font-bold text-[#8E847C] uppercase tracking-wider">
+                Portfolio
+              </div>
+              <div className="col-span-2 text-xs font-heading font-bold text-[#8E847C] uppercase tracking-wider">
             Risk Profile
           </div>
           <div className="col-span-3 text-xs font-heading font-bold text-[#8E847C] uppercase tracking-wider">
@@ -152,6 +154,8 @@ export default async function ClientsPage() {
             </Link>
           </div>
         )}
+          </div>
+        </div>
       </div>
     </div>
   );

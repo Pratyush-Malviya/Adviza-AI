@@ -53,31 +53,33 @@ export default async function MeetingsPage() {
               const config = STATUS_CONFIG[meeting.status] || STATUS_CONFIG.scheduled;
               return (
                 <Link key={meeting.id} href={`/dashboard/meetings/${meeting.id}`}
-                  className="bg-white rounded-3xl p-5 border border-[#EADBCE] shadow-sm flex items-center gap-4 hover:shadow-md hover:border-[#D8CCC2] transition-all group">
-                  <div className="w-11 h-11 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center flex-shrink-0 text-rose-600">
-                    <Calendar className="w-5 h-5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-1">
-                      <span className="font-heading font-bold text-[#121217] text-base">
-                        {(meeting as { clients?: { full_name: string } }).clients?.full_name}
-                      </span>
-                      <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${config.color}`}>
-                        {config.label}
-                      </span>
+                  className="bg-white rounded-3xl p-4 sm:p-5 border border-[#EADBCE] shadow-sm flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 hover:shadow-md hover:border-[#D8CCC2] transition-all group">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center flex-shrink-0 text-rose-600">
+                      <Calendar className="w-5 h-5" />
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-[#7A726A]" suppressHydrationWarning>
-                      <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{new Date(meeting.scheduled_at).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
-                      <span className="text-[#D8CCC2]">·</span>
-                      <span className="capitalize">{meeting.meeting_type}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 sm:gap-3 flex-wrap mb-0.5">
+                        <span className="font-heading font-bold text-[#121217] text-sm sm:text-base">
+                          {(meeting as { clients?: { full_name: string } }).clients?.full_name}
+                        </span>
+                        <span className={`text-[11px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full border ${config.color}`}>
+                          {config.label}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 sm:gap-3 text-xs text-[#7A726A]" suppressHydrationWarning>
+                        <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{new Date(meeting.scheduled_at).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
+                        <span className="text-[#D8CCC2]">·</span>
+                        <span className="capitalize">{meeting.meeting_type}</span>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex items-center justify-between sm:justify-end gap-2 flex-shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#EADBCE]/50">
                     {meeting.briefing
-                      ? <span className="flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full"><Brain className="w-3.5 h-3.5" />Briefed</span>
-                      : <span className="flex items-center gap-1 text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full"><Brain className="w-3.5 h-3.5" />No briefing</span>
+                      ? <span className="flex items-center gap-1 text-[11px] sm:text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 sm:px-3 py-1 rounded-full"><Brain className="w-3.5 h-3.5" />Briefed</span>
+                      : <span className="flex items-center gap-1 text-[11px] sm:text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2.5 sm:px-3 py-1 rounded-full"><Brain className="w-3.5 h-3.5" />No briefing</span>
                     }
-                    <ChevronRight className="w-4 h-4 text-[#A89E95] group-hover:text-[#121217] transition-colors ml-2" />
+                    <ChevronRight className="w-4 h-4 text-[#A89E95] group-hover:text-[#121217] transition-colors ml-1" />
                   </div>
                 </Link>
               );

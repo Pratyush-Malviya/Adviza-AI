@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Users,
@@ -12,16 +13,17 @@ import {
   LogOut,
   ChevronRight,
   Zap,
+  Menu,
+  X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
 import { cn, getInitials } from "@/lib/utils";
 
-const NAV_ITEMS = [
+export const NAV_ITEMS = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/dashboard/clients", icon: Users, label: "Clients" },
   { href: "/dashboard/meetings", icon: Calendar, label: "Meetings" },
-  { href: "/dashboard/actions", icon: ClipboardList, label: "Action Items" },
+  { href: "/dashboard/actions", icon: ClipboardList, label: "Actions" },
   { href: "/dashboard/compliance", icon: Shield, label: "Compliance" },
   { href: "/dashboard/connectors", icon: Zap, label: "Connectors" },
 ];
@@ -35,6 +37,7 @@ interface SidebarProps {
 }
 
 export function DashboardSidebar({ profile }: SidebarProps) {
+  const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
@@ -44,11 +47,11 @@ export function DashboardSidebar({ profile }: SidebarProps) {
     router.push("/auth/login");
   }
 
-  return (
-    <aside className="w-64 flex-shrink-0 flex flex-col bg-white border-r border-[#EADBCE]">
+  const navContent = (
+    <div className="flex flex-col h-full bg-white">
       {/* Logo */}
-      <div className="px-5 py-5 border-b border-[#EADBCE]/80">
-        <Link href="/dashboard" className="flex items-center gap-3 group">
+      <div className="px-5 py-5 border-b border-[#EADBCE]/80 flex items-center justify-between">
+        <Link href="/dashboard" className="flex items-center gap-3 group" onClick={() => setMobileOpen(false)}>
           <div className="w-9 h-9 rounded-2xl bg-[#121217] flex items-center justify-center shadow-md transition-transform group-hover:scale-105">
             <div className="w-3.5 h-3.5 rounded-full border-2 border-white flex items-center justify-center">
               <div className="w-1.5 h-1.5 rounded-full bg-white" />
@@ -63,6 +66,13 @@ export function DashboardSidebar({ profile }: SidebarProps) {
             </div>
           </div>
         </Link>
+        <button
+          onClick={() => setMobileOpen(false)}
+          className="md:hidden p-2 text-[#8E847C] hover:text-[#121217] rounded-xl hover:bg-[#FAF5F0]"
+          aria-label="Close menu"
+        >
+          <X className="w-5 h-5" />
+        </button>
       </div>
 
       {/* Plan badge */}
@@ -100,8 +110,9 @@ export function DashboardSidebar({ profile }: SidebarProps) {
               <li key={item.href}>
                 <Link
                   href={item.href}
+                  onClick={() => setMobileOpen(false)}
                   className={cn(
-                    "flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm font-semibold transition-all",
+                    "flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm font-semibold transition-all min-h-[44px]",
                     isActive
                       ? "bg-[#121217] text-white shadow-sm"
                       : "text-[#5A544E] hover:text-[#121217] hover:bg-[#FAF5F0]"
@@ -121,8 +132,9 @@ export function DashboardSidebar({ profile }: SidebarProps) {
         <div className="mt-6 pt-6 border-t border-[#EADBCE]/80 space-y-1">
           <Link
             href="/dashboard/settings"
+            onClick={() => setMobileOpen(false)}
             className={cn(
-              "flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm font-semibold transition-all",
+              "flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm font-semibold transition-all min-h-[44px]",
               pathname.startsWith("/dashboard/settings")
                 ? "bg-[#121217] text-white shadow-sm"
                 : "text-[#5A544E] hover:text-[#121217] hover:bg-[#FAF5F0]"
@@ -150,13 +162,83 @@ export function DashboardSidebar({ profile }: SidebarProps) {
           </div>
           <button
             onClick={handleSignOut}
-            className="text-[#8E847C] hover:text-rose-600 transition-colors flex-shrink-0"
+            className="text-[#8E847C] hover:text-rose-600 transition-colors flex-shrink-0 p-1.5"
             title="Sign out"
           >
             <LogOut className="w-4 h-4" />
           </button>
         </div>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Mobile Top Bar Hamburger Trigger (Rendered when sidebar state is used) */}
+      <button
+        onClick={() => setMobileOpen(true)}
+        className="md:hidden fixed top-3.5 left-4 z-40 p-2 rounded-2xl bg-white border border-[#EADBCE] text-[#121217] shadow-sm hover:bg-[#FAF5F0] transition-colors"
+        aria-label="Open navigation menu"
+      >
+        <Menu className="w-5 h-5" />
+      </button>
+
+      {/* Mobile Slide-Out Drawer Overlay */}
+      {mobileOpen && (
+        <div className="md:hidden fixed inset-0 z-50 flex">
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity"
+            onClick={() => setMobileOpen(false)}
+          />
+          <div className="relative w-4/5 max-w-xs h-full bg-white shadow-2xl z-10 flex flex-col border-r border-[#EADBCE] animate-in slide-in-from-left duration-200">
+            {navContent}
+          </div>
+        </div>
+      )}
+
+      {/* Desktop Persistent Sidebar */}
+      <aside className="hidden md:flex md:w-64 flex-shrink-0 flex-col border-r border-[#EADBCE]">
+        {navContent}
+      </aside>
+
+      {/* Mobile Bottom Navigation Bar for quick thumb navigation */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-[#EADBCE] px-2 py-1.5 flex items-center justify-around shadow-lg">
+        {NAV_ITEMS.slice(0, 5).map((item) => {
+          const Icon = item.icon;
+          const isActive =
+            item.href === "/dashboard"
+              ? pathname === "/dashboard"
+              : pathname.startsWith(item.href);
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "flex flex-col items-center justify-center py-1 px-2.5 rounded-xl text-[10px] font-bold transition-all min-w-[54px]",
+                isActive
+                  ? "text-rose-600 font-extrabold"
+                  : "text-[#8E847C] hover:text-[#121217]"
+              )}
+            >
+              <Icon className={cn("w-5 h-5 mb-0.5", isActive ? "text-rose-600" : "text-[#8E847C]")} />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
+        <Link
+          href="/dashboard/settings"
+          className={cn(
+            "flex flex-col items-center justify-center py-1 px-2.5 rounded-xl text-[10px] font-bold transition-all min-w-[54px]",
+            pathname.startsWith("/dashboard/settings")
+              ? "text-rose-600 font-extrabold"
+              : "text-[#8E847C] hover:text-[#121217]"
+          )}
+        >
+          <Settings className={cn("w-5 h-5 mb-0.5", pathname.startsWith("/dashboard/settings") ? "text-rose-600" : "text-[#8E847C]")} />
+          <span>Settings</span>
+        </Link>
+      </div>
+    </>
   );
 }

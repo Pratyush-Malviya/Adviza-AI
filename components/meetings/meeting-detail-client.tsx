@@ -248,12 +248,12 @@ export function MeetingDetailClient({ meeting, actionItems }: MeetingDetailClien
 
       {/* Tabs */}
       <div className="border-b border-[#EADBCE]">
-        <div className="flex gap-2">
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none whitespace-nowrap">
           {TABS.map((tab) => {
             const Icon = tab.icon;
             return (
               <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                className={cn("flex items-center gap-2 px-5 py-3 text-sm font-heading font-bold border-b-2 transition-colors",
+                className={cn("flex items-center gap-2 px-4 sm:px-5 py-3 text-xs sm:text-sm font-heading font-bold border-b-2 transition-colors flex-shrink-0",
                   activeTab === tab.id
                     ? "border-rose-600 text-[#121217]"
                     : "border-transparent text-[#7A726A] hover:text-[#121217]"
