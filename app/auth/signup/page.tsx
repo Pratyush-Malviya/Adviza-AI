@@ -46,7 +46,11 @@ export default function SignupPage() {
     });
 
     if (error) {
-      setError(error.message);
+      if (error.message.toLowerCase().includes("already registered") || error.status === 422) {
+        setError("An account with this email is already registered. Please sign in instead.");
+      } else {
+        setError(error.message);
+      }
       setLoading(false);
     } else if (data?.session) {
       window.location.href = "/dashboard";
@@ -107,8 +111,15 @@ export default function SignupPage() {
           </div>
 
           {error && (
-            <div className="mb-5 p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-sm font-medium">
+            <div className="mb-5 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-sm font-medium leading-relaxed">
               {error}
+              {error.includes("already registered") && (
+                <div className="mt-2">
+                  <Link href="/auth/login" className="font-bold underline hover:text-rose-900">
+                    Go to Sign In &rarr;
+                  </Link>
+                </div>
+              )}
             </div>
           )}
 

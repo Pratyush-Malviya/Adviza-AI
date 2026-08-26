@@ -25,7 +25,13 @@ export default function LoginPage() {
       });
 
       if (error) {
-        setError(error.message);
+        if (error.message.toLowerCase().includes("email not confirmed")) {
+          setError("Your email address is not yet confirmed. Please check your inbox / spam folder or confirm it in your Supabase dashboard.");
+        } else if (error.message.toLowerCase().includes("invalid login credentials")) {
+          setError("Invalid email or password. Please verify your credentials or reset your password.");
+        } else {
+          setError(error.message);
+        }
         setLoading(false);
       } else {
         window.location.href = "/dashboard";
@@ -64,7 +70,7 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <div className="mb-5 p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-sm font-medium">
+            <div className="mb-5 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-sm font-medium leading-relaxed">
               {error}
             </div>
           )}
