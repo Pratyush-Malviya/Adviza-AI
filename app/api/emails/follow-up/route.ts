@@ -3,8 +3,6 @@ import { createClient } from "@/lib/supabase/server";
 import { Resend } from "resend";
 import { NextRequest, NextResponse } from "next/server";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function POST(request: NextRequest) {
   try {
     const { meetingId } = await request.json();
@@ -37,11 +35,17 @@ export async function POST(request: NextRequest) {
     }
 
     const client = meeting.clients as { full_name: string; email: string | null };
-    const advisor = meeting.profiles as { full_name: string };
 
     if (!client.email) {
       return NextResponse.json({ error: "Client has no email address" }, { status: 400 });
     }
+
+    const resendApiKey = process.env.RESEND_API_KEY;
+    if (!resendApiKey) {
+      return NextResponse.json({ error: "Email delivery service not configured (RESEND_API_KEY missing)" }, { status: 500 });
+    }
+
+    const resend = new Resend(resendApiKey);
 
     // Send the email via Resend
     const { data: emailData, error: emailError } = await resend.emails.send({

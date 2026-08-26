@@ -4,13 +4,15 @@ import {
   InvokeModelCommand,
 } from "@aws-sdk/client-bedrock-runtime";
 
-const client = new BedrockRuntimeClient({
-  region: process.env.AWS_REGION || "us-east-1",
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-  },
-});
+function getBedrockClient() {
+  return new BedrockRuntimeClient({
+    region: process.env.AWS_REGION || "us-east-1",
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID || "placeholder_key",
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "placeholder_secret",
+    },
+  });
+}
 
 const MODEL_ID =
   process.env.AWS_BEDROCK_MODEL_ID ||
@@ -39,6 +41,7 @@ export async function invokeModel(
     body: JSON.stringify(body),
   });
 
+  const client = getBedrockClient();
   const response = await client.send(command);
   const responseBody = JSON.parse(new TextDecoder().decode(response.body));
   return responseBody.content[0].text;
@@ -63,6 +66,7 @@ export async function invokeModelStream(
     body: JSON.stringify(body),
   });
 
+  const client = getBedrockClient();
   const response = await client.send(command);
   let fullText = "";
 
