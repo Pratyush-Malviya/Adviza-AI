@@ -134,11 +134,15 @@ Return JSON:
 }`;
 
   try {
-    if (
-      !process.env.AWS_ACCESS_KEY_ID ||
-      process.env.AWS_ACCESS_KEY_ID.includes("your_") ||
-      process.env.AWS_ACCESS_KEY_ID === "placeholder_key"
-    ) {
+    const hasGemini =
+      !!process.env.GEMINI_API_KEY &&
+      !process.env.GEMINI_API_KEY.includes("your_");
+    const hasBedrock =
+      !!process.env.AWS_ACCESS_KEY_ID &&
+      !process.env.AWS_ACCESS_KEY_ID.includes("your_") &&
+      process.env.AWS_ACCESS_KEY_ID !== "placeholder_key";
+
+    if (!hasGemini && !hasBedrock) {
       return generateFallbackCompliance(input);
     }
 
@@ -147,7 +151,7 @@ Return JSON:
       SYSTEM_PROMPT
     );
   } catch (err) {
-    console.warn("[compliance-agent] Bedrock invocation fallback:", err);
+    console.warn("[compliance-agent] AI invocation fallback:", err);
     return generateFallbackCompliance(input);
   }
 }

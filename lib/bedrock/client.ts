@@ -14,28 +14,91 @@ function getBedrockClient() {
   });
 }
 
-const MODEL_ID =
+const BEDROCK_MODEL_ID =
   process.env.AWS_BEDROCK_MODEL_ID ||
   "anthropic.claude-3-5-sonnet-20241022-v2:0";
 
-interface BedrockMessage {
-  role: "user" | "assistant";
+export interface LLMMessage {
+  role: "user" | "assistant" | "model";
   content: string;
 }
 
-export async function invokeModel(
-  messages: BedrockMessage[],
+/**
+ * Invokes Google Gemini API directly using native fetch.
+ */
+async function invokeGemini(
+  messages: LLMMessage[],
+  systemPrompt?: string,
+  forceJson = false
+): Promise<string> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error("GEMINI_API_KEY is not configured");
+  }
+
+  const model = process.env.GEMINI_MODEL || "gemini-3.6-flash";
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+  const contents = messages.map((m) => ({
+    role: m.role === "assistant" ? "model" : "user",
+    parts: [{ text: m.content }],
+  }));
+
+  const body: Record<string, unknown> = {
+    contents,
+    generationConfig: {
+      temperature: 0.2,
+      maxOutputTokens: 8192,
+      ...(forceJson ? { responseMimeType: "application/json" } : {}),
+    },
+  };
+
+  if (systemPrompt) {
+    body.system_instruction = {
+      parts: [{ text: systemPrompt }],
+    };
+  }
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Gemini API error (${res.status}): ${errText}`);
+  }
+
+  const data = await res.json();
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) {
+    throw new Error("No text response returned from Gemini API");
+  }
+  return text;
+}
+
+/**
+ * Invokes AWS Bedrock Claude runtime.
+ */
+async function invokeBedrock(
+  messages: LLMMessage[],
   systemPrompt?: string
 ): Promise<string> {
+  const bedrockMessages = messages.map((m) => ({
+    role: m.role === "assistant" ? "assistant" : "user",
+    content: m.content,
+  }));
+
   const body = {
     anthropic_version: "bedrock-2023-05-31",
     max_tokens: 4096,
     system: systemPrompt,
-    messages,
+    messages: bedrockMessages,
   };
 
   const command = new InvokeModelCommand({
-    modelId: MODEL_ID,
+    modelId: BEDROCK_MODEL_ID,
     contentType: "application/json",
     accept: "application/json",
     body: JSON.stringify(body),
@@ -47,20 +110,48 @@ export async function invokeModel(
   return responseBody.content[0].text;
 }
 
+export async function invokeModel(
+  messages: LLMMessage[],
+  systemPrompt?: string
+): Promise<string> {
+  // 1. Prioritize Google Gemini API if key is present
+  if (process.env.GEMINI_API_KEY && !process.env.GEMINI_API_KEY.includes("your_")) {
+    try {
+      return await invokeGemini(messages, systemPrompt);
+    } catch (geminiErr) {
+      console.warn("[ai-client] Gemini invocation failed, attempting Bedrock fallback:", geminiErr);
+    }
+  }
+
+  // 2. Fall back to AWS Bedrock
+  return invokeBedrock(messages, systemPrompt);
+}
+
 export async function invokeModelStream(
-  messages: BedrockMessage[],
+  messages: LLMMessage[],
   systemPrompt?: string,
   onChunk?: (text: string) => void
 ): Promise<string> {
+  if (process.env.GEMINI_API_KEY && !process.env.GEMINI_API_KEY.includes("your_")) {
+    const fullText = await invokeGemini(messages, systemPrompt);
+    onChunk?.(fullText);
+    return fullText;
+  }
+
+  const bedrockMessages = messages.map((m) => ({
+    role: m.role === "assistant" ? "assistant" : "user",
+    content: m.content,
+  }));
+
   const body = {
     anthropic_version: "bedrock-2023-05-31",
     max_tokens: 4096,
     system: systemPrompt,
-    messages,
+    messages: bedrockMessages,
   };
 
   const command = new InvokeModelWithResponseStreamCommand({
-    modelId: MODEL_ID,
+    modelId: BEDROCK_MODEL_ID,
     contentType: "application/json",
     accept: "application/json",
     body: JSON.stringify(body),
@@ -86,17 +177,31 @@ export async function invokeModelStream(
 }
 
 export async function invokeModelJSON<T>(
-  messages: BedrockMessage[],
+  messages: LLMMessage[],
   systemPrompt?: string
 ): Promise<T> {
+  // 1. Google Gemini Native Structured JSON Generation
+  if (process.env.GEMINI_API_KEY && !process.env.GEMINI_API_KEY.includes("your_")) {
+    try {
+      const text = await invokeGemini(messages, systemPrompt, true);
+      const cleaned = text
+        .replace(/```json\n?/g, "")
+        .replace(/```\n?/g, "")
+        .trim();
+      return JSON.parse(cleaned) as T;
+    } catch (err) {
+      console.warn("[ai-client] Gemini JSON generation error:", err);
+      throw err;
+    }
+  }
+
+  // 2. AWS Bedrock Fallback
   const jsonSystemPrompt = `${systemPrompt || ""}\n\nYou MUST respond with valid JSON only. No markdown, no code blocks, just raw JSON.`;
-  const text = await invokeModel(messages, jsonSystemPrompt);
-  
-  // Strip markdown code blocks if present
+  const text = await invokeBedrock(messages, jsonSystemPrompt);
   const cleaned = text
     .replace(/```json\n?/g, "")
     .replace(/```\n?/g, "")
     .trim();
-  
+
   return JSON.parse(cleaned) as T;
 }
