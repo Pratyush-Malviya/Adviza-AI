@@ -26,7 +26,7 @@ export interface LLMMessage {
 /**
  * Invokes Google Gemini API directly using native fetch.
  */
-async function invokeGemini(
+export async function invokeGemini(
   messages: LLMMessage[],
   systemPrompt?: string,
   forceJson = false

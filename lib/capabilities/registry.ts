@@ -83,16 +83,18 @@ export const CAPABILITY_REGISTRY: CapabilityDefinition[] = [
   // ============================================================
   {
     id: "composio_googlecalendar_list_events",
-    name: "Google Calendar: List Upcoming Events",
-    description: "Fetches scheduled client appointments, reviews, and discovery calls from Google Calendar.",
+    name: "Google Calendar: Query Events & Meetings",
+    description: "Fetches scheduled, past, or upcoming appointments, reviews, meetings, or calendar schedule from Google Calendar with customizable timeMin/timeMax date range.",
     source: "composio_connector",
     category: "calendar",
     requiredConnector: "googlecalendar",
     requiresHITL: false,
     executionType: "sync",
     parameters: {
-      timeMin: { type: "string", description: "ISO timestamp or relative date (e.g. 'today')", required: false },
-      maxResults: { type: "number", description: "Maximum number of events to fetch", required: false },
+      timeMin: { type: "string", description: "ISO timestamp start date/time (e.g. '2026-07-01T00:00:00Z' for July, or start of last week)", required: false },
+      timeMax: { type: "string", description: "ISO timestamp end date/time (e.g. '2026-07-31T23:59:59Z' for July, or end of last week)", required: false },
+      q: { type: "string", description: "Optional search query string for specific meeting or client name", required: false },
+      maxResults: { type: "number", description: "Maximum number of events to fetch (default 25)", required: false },
     },
   },
   {
@@ -241,19 +243,27 @@ export function getCapabilityRegistryPrompt(): string {
 ${paramsList}`;
   }).join("\n\n");
 
-  return `You are Adviza AI's Chat Orchestrator. You have access to the following typed Capability Registry:
+  const now = new Date();
+  const dateContext = `Current System Date & Time: ${now.toISOString()} (${now.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })})`;
+
+  return `You are Adviza AI's Chat Orchestrator for Wealth Management Advisors.
+${dateContext}
+
+You have access to the following typed Capability Registry:
 
 ${toolsFormatted}
 
-When a user asks a question or gives an instruction:
-1. Determine which capability or capabilities from the registry should be invoked to satisfy the user's intent.
-2. If multiple capabilities are needed (e.g. calendar fetch + briefing generation), list all required tool calls.
-3. If no external tool is needed (e.g. general advisory question or greeting), answer directly with natural conversational guidance.
+When an advisor asks a question or gives an instruction:
+1. Determine which capability or capabilities from the registry should be invoked to satisfy the advisor's intent.
+2. For calendar or meeting queries:
+   - Always map meeting queries, schedules, appointments, reviews, or queries like "how many meetings did I have in July / last week / today" to "composio_googlecalendar_list_events".
+   - Compute the exact ISO timestamps for "timeMin" and "timeMax". For example, if asked about July 2026, set timeMin="2026-07-01T00:00:00Z" and timeMax="2026-07-31T23:59:59Z". If asked about "last week", calculate the start and end dates of the previous 7 days based on Current System Date.
+3. If no external tool is needed (e.g. general wealth management concept, greeting), answer directly with natural conversational guidance.
 4. Output your plan as structured JSON with:
-   - "conversational_intro": String explaining what you are doing (e.g. "Checking your calendar and compiling the briefing...")
+   - "conversational_intro": String explaining what you are doing (e.g. "Checking your calendar schedule for the requested timeframe...")
    - "capability_calls": Array of objects:
      - "capability_id": ID from registry
-     - "parameters": Key-value dictionary matching capability parameters
+     - "parameters": Key-value dictionary matching capability parameters (e.g. { "timeMin": "2026-07-01T00:00:00Z", "timeMax": "2026-07-31T23:59:59Z" })
      - "reason": Why this tool is being invoked
    - "direct_answer": String containing the direct response if no tool call is needed.`;
 }

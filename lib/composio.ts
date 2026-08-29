@@ -547,7 +547,25 @@ export async function executeComposioAction(
       toolSlug = "GOOGLECALENDAR_FIND_EVENT";
     }
 
-    // 3. Execute via Composio v3 tool execution endpoint
+    // 3. Prepare arguments dynamically
+    const toolArgs: Record<string, any> = {
+      calendarId: "primary",
+      singleEvents: true,
+      orderBy: "startTime",
+      maxResults: params.maxResults || 25,
+    };
+
+    if (params.timeMin) {
+      toolArgs.timeMin = params.timeMin;
+    }
+    if (params.timeMax) {
+      toolArgs.timeMax = params.timeMax;
+    }
+    if (params.q) {
+      toolArgs.q = params.q;
+    }
+
+    // 4. Execute via Composio v3 tool execution endpoint
     const response = await fetch(`${COMPOSIO_V3_BASE}/tools/execute/${toolSlug}`, {
       method: "POST",
       headers: {
@@ -557,11 +575,7 @@ export async function executeComposioAction(
       body: JSON.stringify({
         user_id: activeConnection.userUuid || userId,
         connected_account_id: activeConnection.id,
-        arguments: {
-          calendarId: "primary",
-          timeMin: new Date(new Date().setHours(0, 0, 0, 0)).toISOString(),
-          maxResults: params.maxResults || 10,
-        },
+        arguments: toolArgs,
       }),
     });
 

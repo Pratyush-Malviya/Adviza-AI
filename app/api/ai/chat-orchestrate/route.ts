@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { invokeModelJSON, LLMMessage } from "@/lib/bedrock/client";
+import { invokeModelJSON, invokeGemini, invokeModel, LLMMessage } from "@/lib/bedrock/client";
 import {
   findCapability,
   getCapabilityRegistryPrompt,
@@ -272,24 +272,40 @@ export async function POST(req: NextRequest) {
     // Synthesize final natural language answer from executed results
     let responseText = decision.conversational_intro || "Here is what I found for your request.";
     if (executedResults.length > 0) {
-      const calendarResult = executedResults.find(
-        (r) => r.capabilityId?.toLowerCase().includes("calendar") || r.category === "calendar"
-      );
-      if (calendarResult?.result) {
-        const events = calendarResult.result.events || [];
-        const email = calendarResult.result.accountEmail || "Google Calendar";
-        if (events.length === 0) {
-          responseText = `I checked **${email}**. You currently have **no client meetings scheduled for today**. Your schedule is clear.`;
-        } else {
-          responseText = `I checked **${email}** and found **${events.length} meeting(s)** scheduled for today:\n\n` +
-            events
-              .map((ev: any, i: number) => {
-                const start = ev.start?.dateTime
-                  ? new Date(ev.start.dateTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                  : ev.start?.date || "All day";
-                return `${i + 1}. **${ev.summary || "Client Review"}** (${start})`;
-              })
-              .join("\n");
+      const summaryPrompt = `You are Adviza AI's wealth assistant. The advisor asked: "${message}".
+We executed the capabilities and retrieved this live data from Google Calendar and fiduciary services:
+${JSON.stringify(executedResults, null, 2)}
+
+Provide a concise, direct, professional response answering the advisor's question based on the retrieved data.
+- If they asked how many meetings they had in July, last week, or today, state the exact count and list the meetings with dates/times and titles.
+- If there are 0 meetings, clearly state that there were no meetings found for that timeframe.
+- Respond in clean GitHub markdown.`;
+
+      try {
+        responseText = await invokeGemini([{ role: "user", content: summaryPrompt }]);
+      } catch (synthErr) {
+        console.warn("LLM synthesis error, fallback to formatted summary:", synthErr);
+        const calendarResult = executedResults.find(
+          (r) => r.capabilityId?.toLowerCase().includes("calendar") || r.category === "calendar"
+        );
+        if (calendarResult?.result) {
+          const events = calendarResult.result.events || [];
+          const email = calendarResult.result.accountEmail || "Google Calendar";
+          if (events.length === 0) {
+            responseText = `I checked **${email}**. You have **0 meetings** recorded for that timeframe.`;
+          } else {
+            responseText = `I checked **${email}** and found **${events.length} meeting(s)**:\n\n` +
+              events
+                .map((ev: any, i: number) => {
+                  const start = ev.start?.dateTime
+                    ? new Date(ev.start.dateTime).toLocaleDateString([], { month: "short", day: "numeric" }) +
+                      " at " +
+                      new Date(ev.start.dateTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                    : ev.start?.date || "All day";
+                  return `${i + 1}. **${ev.summary || "Meeting"}** (${start})`;
+                })
+                .join("\n");
+          }
         }
       }
     }
@@ -334,14 +350,46 @@ function resolveHeuristicIntent(
 ): OrchestratorDecision {
   const lower = message.toLowerCase();
 
-  if (lower.includes("meeting") || lower.includes("calendar") || lower.includes("schedule") || lower.includes("today")) {
+  if (
+    lower.includes("meet") ||
+    lower.includes("calendar") ||
+    lower.includes("schedule") ||
+    lower.includes("today") ||
+    lower.includes("july") ||
+    lower.includes("august") ||
+    lower.includes("week") ||
+    lower.includes("month")
+  ) {
+    let timeMin = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
+    let timeMax: string | undefined = undefined;
+
+    if (lower.includes("july")) {
+      timeMin = "2026-07-01T00:00:00Z";
+      timeMax = "2026-07-31T23:59:59Z";
+    } else if (lower.includes("last week") || lower.includes("past week")) {
+      const dMin = new Date();
+      dMin.setDate(dMin.getDate() - 7);
+      dMin.setHours(0, 0, 0, 0);
+      timeMin = dMin.toISOString();
+      const dMax = new Date();
+      dMax.setHours(23, 59, 59, 999);
+      timeMax = dMax.toISOString();
+    } else if (lower.includes("this month")) {
+      timeMin = "2026-08-01T00:00:00Z";
+      timeMax = "2026-08-31T23:59:59Z";
+    }
+
     return {
-      conversational_intro: "Checking your upcoming calendar schedule and client meetings...",
+      conversational_intro: "Checking your calendar schedule...",
       capability_calls: [
         {
           capability_id: "composio_googlecalendar_list_events",
-          parameters: { timeMin: "today", maxResults: 5 },
-          reason: "Retrieve upcoming advisory appointments",
+          parameters: {
+            timeMin,
+            ...(timeMax ? { timeMax } : {}),
+            maxResults: 25,
+          },
+          reason: "Retrieve advisory appointments",
         },
       ],
     };
