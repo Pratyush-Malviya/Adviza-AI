@@ -10,7 +10,20 @@ export interface CapabilityCall {
 export interface MissingConnector {
   appSlug: string;
   appName: string;
+  category: string;
+  description?: string;
   authUrl?: string;
+  pendingAction?: {
+    capabilityId: string;
+    parameters: Record<string, any>;
+    preview?: {
+      title?: string;
+      recipient?: string;
+      subject?: string;
+      body?: string;
+      details?: Record<string, any>;
+    };
+  };
 }
 
 export interface HITLPrompt {
@@ -31,6 +44,12 @@ export interface PlanMetadata {
   intent: string;
   targetCapabilities: string[];
   reasoning: string;
+  draftedContent?: {
+    recipient?: string;
+    subject?: string;
+    body?: string;
+    type?: string;
+  };
 }
 
 /**

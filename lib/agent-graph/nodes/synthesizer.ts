@@ -18,11 +18,17 @@ export async function synthesizerNode(
     return { finalResponse: directAnswer };
   }
 
-  // 2. Missing connectors warning
+  // 2. Missing connectors with Drafted Action Preview
   if (missingConnectors && missingConnectors.length > 0 && (!executedResults || executedResults.length === 0)) {
-    const apps = missingConnectors.map((m) => m.appName).join(", ");
+    const preview = missingConnectors[0]?.pendingAction?.preview;
+    let previewText = "";
+
+    if (preview?.recipient || preview?.body) {
+      previewText = `\n\n### 📝 Drafted Message Preview\n- **To:** \`${preview.recipient || "Recipient"}\`\n- **Subject:** *${preview.subject || "Adviza AI Update"}*\n\n> ${preview.body?.replace(/\n/g, "\n> ")}\n\n`;
+    }
+
     return {
-      finalResponse: `To complete this request, please connect your **${apps}** account using the authorization card below.`,
+      finalResponse: `I have analyzed your request and prepared the action.${previewText}To dispatch this automatically, please connect any of the available connectors below. Once connected, Adviza AI will instantly execute and deliver this for you.`,
     };
   }
 
@@ -36,16 +42,16 @@ export async function synthesizerNode(
   // 4. Synthesize from executed results
   if (executedResults && executedResults.length > 0) {
     try {
-      const summaryPrompt = `You are Adviza AI, a high-conviction Fiduciary Wealth Management Assistant.
-The user asked: "${message}"
+      const summaryPrompt = `You are Adviza AI, an autonomous Fiduciary Wealth Management Assistant.
+The user requested: "${message}"
 
 Below are the live execution results from the tool integrations:
 ${JSON.stringify(executedResults, null, 2)}
 
-Provide a concise, direct, professional answer to the user's question based on these results.
+Provide a concise, direct, professional answer to the user:
+- If an email was sent, clearly state that the email has been sent successfully to the recipient, along with the subject and confirmation.
 - If calendar events or meetings are returned, state the exact count and list them with titles and times.
-- If emails are returned, summarize any relevant messages or state clearly if no matching emails were found.
-- If briefing or compliance data is returned, highlight key portfolio numbers and talking points.
+- If briefing or compliance data is returned, highlight key metrics and talking points.
 - Do NOT output raw JSON blocks. Format with crisp markdown bullet points.`;
 
       const synthesisMessages: LLMMessage[] = [

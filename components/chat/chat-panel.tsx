@@ -190,13 +190,26 @@ export function ChatPanel({
   useEffect(() => {
     const connectedParam = searchParams.get("connected");
     if (connectedParam) {
+      let pendingPrompt: string | null = null;
+      try {
+        pendingPrompt = sessionStorage.getItem("adviza_pending_chat_prompt");
+      } catch {}
+
       fetch("/api/integrations/composio/connections", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ appSlug: connectedParam, appName: connectedParam }),
       })
         .then(() => {
-          handleSendMessage(`How many client meetings do I have scheduled?`);
+          if (pendingPrompt) {
+            try {
+              sessionStorage.removeItem("adviza_pending_chat_prompt");
+            } catch {}
+            setStatusMessage(`Connected ${connectedParam}! Auto-resuming your task...`);
+            handleSendMessage(pendingPrompt);
+          } else {
+            handleSendMessage(`I have connected ${connectedParam}. Please proceed with the action.`);
+          }
         })
         .catch((err) => console.error("Auto-resume error:", err));
     }
@@ -205,6 +218,10 @@ export function ChatPanel({
   const handleSendMessage = async (textToSend?: string) => {
     const query = textToSend || input.trim();
     if (!query || loading) return;
+
+    try {
+      sessionStorage.setItem("adviza_pending_chat_prompt", query);
+    } catch {}
 
     const userMsgId = `user_${Date.now()}`;
     const newMsg: ChatMessage = {
@@ -386,15 +403,20 @@ export function ChatPanel({
 
               {/* Render Missing Connector Cards */}
               {msg.missingConnectors && msg.missingConnectors.length > 0 && (
-                <div className="mt-2 space-y-2">
+                <div className="mt-3 space-y-2.5">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-[#8E847C]">
+                    Available Connectors ({msg.missingConnectors.length})
+                  </div>
                   {msg.missingConnectors.map((mc, idx) => (
                     <MissingConnectorCard
                       key={idx}
                       connectorId={mc.connectorId || mc.appSlug}
                       connectorName={mc.connectorName || mc.appName}
+                      category={mc.category}
                       description={mc.description || `Connect ${mc.appName || mc.appSlug} to enable this capability.`}
                       reason={mc.reason}
-                      capabilityId={mc.capabilityId}
+                      capabilityId={mc.capabilityId || mc.appSlug}
+                      authUrl={mc.authUrl}
                       onConnectedAndResume={() => {
                         handleSendMessage(`Resume request: ${mc.reason || mc.connectorName || mc.appName}`);
                       }}
