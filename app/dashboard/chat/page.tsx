@@ -1,63 +1,99 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { ChatPanel } from "@/components/chat/chat-panel";
-import { MessageSquare, Sparkles, Shield, Zap, FileText } from "lucide-react";
-import { CAPABILITY_REGISTRY } from "@/lib/capabilities/registry";
+import { ChatSidebar, ChatSessionItem } from "@/components/chat/chat-sidebar";
 
 export default function ChatDashboardPage() {
-  return (
-    <div className="h-[calc(100vh-140px)] flex flex-col md:flex-row gap-6">
-      {/* Left Sidebar: Capabilities & Quick Context */}
-      <div className="w-full md:w-80 flex flex-col gap-4">
-        <div className="bg-white rounded-2xl border border-[#EADBCE] p-5 shadow-sm">
-          <div className="flex items-center gap-2.5 mb-3">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-rose-500 to-amber-500 flex items-center justify-center text-white shadow-sm">
-              <Sparkles className="w-4 h-4" />
-            </div>
-            <div>
-              <h2 className="font-bold text-sm text-[#121217]">Chat Orchestrator</h2>
-              <p className="text-xs text-[#8E847C]">Autonomous AI Agent Gateway</p>
-            </div>
-          </div>
-          <p className="text-xs text-[#5A544E] leading-relaxed">
-            Adviza Chat connects directly to your Fiduciary Agent Fleet and 150+ Composio connectors. Actions execute with strict compliance audit logging.
-          </p>
-        </div>
+  const [sessions, setSessions] = useState<ChatSessionItem[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-        {/* Capability Roster */}
-        <div className="flex-1 bg-white rounded-2xl border border-[#EADBCE] p-4 shadow-sm overflow-y-auto">
-          <h3 className="font-heading font-bold text-xs uppercase tracking-wider text-[#8E847C] mb-3">
-            Active Capabilities ({CAPABILITY_REGISTRY.length})
-          </h3>
-          <div className="space-y-2">
-            {CAPABILITY_REGISTRY.slice(0, 8).map((cap) => (
-              <div
-                key={cap.id}
-                className="p-2.5 rounded-xl bg-[#FAF5F0] border border-[#EADBCE]/60 text-xs space-y-1"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-[#121217]">{cap.name}</span>
-                  <span className="text-[9px] px-1.5 py-0.5 bg-rose-500/10 text-rose-600 font-medium rounded-md uppercase">
-                    {cap.category}
-                  </span>
-                </div>
-                <p className="text-[11px] text-[#5A544E] line-clamp-2">{cap.description}</p>
-                {cap.requiresHITL && (
-                  <div className="flex items-center gap-1 text-[10px] text-amber-600 font-medium pt-0.5">
-                    <Shield className="w-3 h-3" />
-                    <span>Requires Advisor HITL Sign-Off</span>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
+  // Fetch all chat sessions
+  const fetchSessions = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/ai/chat-sessions");
+      const data = await res.json();
+      if (data.sessions) {
+        setSessions(data.sessions);
+      }
+    } catch (err) {
+      console.error("Failed to load chat sessions:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchSessions();
+  }, [fetchSessions]);
+
+  const handleSelectSession = (sessionId: string) => {
+    setActiveSessionId(sessionId);
+  };
+
+  const handleNewChat = () => {
+    setActiveSessionId(null);
+  };
+
+  const handleDeleteSession = async (sessionId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const res = await fetch("/api/ai/chat-sessions", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId }),
+      });
+
+      if (res.ok) {
+        setSessions((prev) => prev.filter((s) => s.id !== sessionId));
+        if (activeSessionId === sessionId) {
+          setActiveSessionId(null);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to delete session:", err);
+    }
+  };
+
+  const handleSessionCreated = (newSession: { id: string; title: string }) => {
+    setSessions((prev) => {
+      const exists = prev.some((s) => s.id === newSession.id);
+      if (exists) return prev;
+      return [
+        {
+          id: newSession.id,
+          title: newSession.title,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+        ...prev,
+      ];
+    });
+    setActiveSessionId(newSession.id);
+  };
+
+  return (
+    <div className="h-[calc(100vh-140px)] flex flex-col md:flex-row gap-5">
+      {/* Left Sidebar: Claude & Gemini style Chat History */}
+      <div className="w-full md:w-72 lg:w-80 h-full shrink-0">
+        <ChatSidebar
+          sessions={sessions}
+          activeSessionId={activeSessionId}
+          onSelectSession={handleSelectSession}
+          onNewChat={handleNewChat}
+          onDeleteSession={handleDeleteSession}
+          loading={loading}
+        />
       </div>
 
       {/* Main Full-Size Chat Panel */}
       <div className="flex-1 h-full min-h-[500px]">
-        <ChatPanel />
+        <ChatPanel
+          sessionId={activeSessionId}
+          onSessionCreated={handleSessionCreated}
+        />
       </div>
     </div>
   );

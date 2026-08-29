@@ -35,9 +35,16 @@ export interface ChatMessage {
 interface ChatPanelProps {
   onClose?: () => void;
   isFloating?: boolean;
+  sessionId?: string | null;
+  onSessionCreated?: (session: { id: string; title: string }) => void;
 }
 
-export function ChatPanel({ onClose, isFloating = false }: ChatPanelProps) {
+export function ChatPanel({
+  onClose,
+  isFloating = false,
+  sessionId,
+  onSessionCreated,
+}: ChatPanelProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -45,7 +52,42 @@ export function ChatPanel({ onClose, isFloating = false }: ChatPanelProps) {
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(sessionId || null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Sync external sessionId prop
+  useEffect(() => {
+    setActiveSessionId(sessionId || null);
+    if (sessionId) {
+      // Load saved messages for this session
+      fetch(`/api/ai/chat-sessions/${sessionId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.messages && data.messages.length > 0) {
+            setMessages(data.messages);
+          } else {
+            setMessages([
+              {
+                id: "welcome",
+                role: "assistant",
+                content: "Welcome to Adviza Chat Orchestrator. Ask for client briefings, calendar lookups, compliance checks, or automated workflow runs.",
+                timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+              },
+            ]);
+          }
+        })
+        .catch((err) => console.error("Failed to load session messages:", err));
+    } else {
+      setMessages([
+        {
+          id: "welcome",
+          role: "assistant",
+          content: "Welcome to Adviza Chat Orchestrator. Ask for client briefings, calendar lookups, compliance checks, or automated workflow runs.",
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        },
+      ]);
+    }
+  }, [sessionId]);
 
   // Derive ambient context from current page route
   const getAmbientContext = () => {
@@ -73,20 +115,6 @@ export function ChatPanel({ onClose, isFloating = false }: ChatPanelProps) {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading, statusMessage]);
-
-  // Initial welcome message
-  useEffect(() => {
-    if (messages.length === 0) {
-      setMessages([
-        {
-          id: "welcome",
-          role: "assistant",
-          content: "Welcome to Adviza Chat Orchestrator. Ask for client briefings, calendar lookups, compliance checks, or automated workflow runs.",
-          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        },
-      ]);
-    }
-  }, []);
 
   // Handle return from connector authorization
   useEffect(() => {
@@ -123,6 +151,29 @@ export function ChatPanel({ onClose, isFloating = false }: ChatPanelProps) {
     setStatusMessage("Resolving intent against Capability Registry...");
 
     try {
+      let currentSession = activeSessionId;
+
+      // Auto-create session on first prompt if none selected
+      if (!currentSession) {
+        try {
+          const createRes = await fetch("/api/ai/chat-sessions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              title: query.length > 32 ? query.slice(0, 32) + "..." : query,
+            }),
+          });
+          const createData = await createRes.json();
+          if (createData.session?.id) {
+            currentSession = createData.session.id;
+            setActiveSessionId(currentSession);
+            onSessionCreated?.(createData.session);
+          }
+        } catch (sessErr) {
+          console.warn("Session auto-create error (non-fatal):", sessErr);
+        }
+      }
+
       const ambientContext = getAmbientContext();
 
       const res = await fetch("/api/ai/chat-orchestrate", {
@@ -130,6 +181,7 @@ export function ChatPanel({ onClose, isFloating = false }: ChatPanelProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: query,
+          sessionId: currentSession,
           ambientContext,
           history: newHistory.map((m) => ({ role: m.role, content: m.content })),
         }),
@@ -159,7 +211,7 @@ export function ChatPanel({ onClose, isFloating = false }: ChatPanelProps) {
         {
           id: `err_${Date.now()}`,
           role: "assistant",
-          content: "I encountered an issue connecting to the orchestrator. Please verify network credentials and try again.",
+          content: "Encountered an issue executing your request. Please check connections or retry.",
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         },
       ]);
