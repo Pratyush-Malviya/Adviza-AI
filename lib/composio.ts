@@ -394,7 +394,7 @@ export async function initiateComposioConnection(
   }
 
   try {
-    // 1. Resolve auth config ID for the app
+    // 1. Resolve or Create auth config ID for the app
     const authConfigsRes = await fetch(`${COMPOSIO_V3_BASE}/auth_configs`, {
       headers: { "x-api-key": apiKey },
     });
@@ -411,30 +411,29 @@ export async function initiateComposioConnection(
     }
 
     if (!authConfigId) {
-      // Fallback to direct app link if auth_config is dynamic
-      const directRes = await fetch(`${COMPOSIO_V3_BASE}/connected_accounts/link`, {
+      // Create Composio-managed auth_config for this toolkit
+      const createRes = await fetch(`${COMPOSIO_V3_BASE}/auth_configs`, {
         method: "POST",
         headers: {
           "x-api-key": apiKey,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          user_id: userId,
-          app: appName,
-          callback_url: redirectUri,
+          toolkit: { slug: appName.toLowerCase() },
         }),
       });
 
-      const directData = await directRes.json();
-      if (directRes.ok && directData.redirect_url) {
-        return {
-          redirectUrl: directData.redirect_url,
-          connectionId: directData.connected_account_id,
-        };
+      if (createRes.ok) {
+        const createData = await createRes.json();
+        authConfigId = createData.auth_config?.id || createData.id;
       }
     }
 
-    // 2. Call link endpoint
+    if (!authConfigId) {
+      throw new Error(`Could not generate auth configuration for toolkit ${appName}`);
+    }
+
+    // 2. Call link endpoint with resolved auth_config_id
     const response = await fetch(`${COMPOSIO_V3_BASE}/connected_accounts/link`, {
       method: "POST",
       headers: {
