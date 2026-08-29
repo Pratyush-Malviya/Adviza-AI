@@ -369,6 +369,131 @@ export interface Database {
           }
         ];
       };
+      workflows: {
+        Row: {
+          id: string;
+          firm_id: string;
+          creator_id: string;
+          name: string;
+          description: string | null;
+          status: "draft" | "active" | "paused" | "archived";
+          trigger_type: string | null;
+          nodes: Json;
+          edges: Json;
+          connected_apps: string[];
+          ai_generated: boolean;
+          ai_prompt: string | null;
+          last_run_at: string | null;
+          run_count: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          firm_id: string;
+          creator_id: string;
+          name: string;
+          description?: string | null;
+          status?: "draft" | "active" | "paused" | "archived";
+          trigger_type?: string | null;
+          nodes?: Json;
+          edges?: Json;
+          connected_apps?: string[];
+          ai_generated?: boolean;
+          ai_prompt?: string | null;
+          last_run_at?: string | null;
+          run_count?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          firm_id?: string;
+          creator_id?: string;
+          name?: string;
+          description?: string | null;
+          status?: "draft" | "active" | "paused" | "archived";
+          trigger_type?: string | null;
+          nodes?: Json;
+          edges?: Json;
+          connected_apps?: string[];
+          ai_generated?: boolean;
+          ai_prompt?: string | null;
+          last_run_at?: string | null;
+          run_count?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "workflows_firm_id_fkey";
+            columns: ["firm_id"];
+            isOneToOne: false;
+            referencedRelation: "firms";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "workflows_creator_id_fkey";
+            columns: ["creator_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      workflow_runs: {
+        Row: {
+          id: string;
+          workflow_id: string;
+          firm_id: string;
+          triggered_by: string | null;
+          status: "pending" | "running" | "success" | "failed" | "cancelled";
+          started_at: string | null;
+          finished_at: string | null;
+          duration_ms: number | null;
+          logs: Json;
+          node_outputs: Json;
+          error_message: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          workflow_id: string;
+          firm_id: string;
+          triggered_by?: string | null;
+          status?: "pending" | "running" | "success" | "failed" | "cancelled";
+          started_at?: string | null;
+          finished_at?: string | null;
+          duration_ms?: number | null;
+          logs?: Json;
+          node_outputs?: Json;
+          error_message?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          workflow_id?: string;
+          firm_id?: string;
+          triggered_by?: string | null;
+          status?: "pending" | "running" | "success" | "failed" | "cancelled";
+          started_at?: string | null;
+          finished_at?: string | null;
+          duration_ms?: number | null;
+          logs?: Json;
+          node_outputs?: Json;
+          error_message?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "workflow_runs_workflow_id_fkey";
+            columns: ["workflow_id"];
+            isOneToOne: false;
+            referencedRelation: "workflows";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -383,3 +508,5 @@ export type Client = Database["public"]["Tables"]["clients"]["Row"];
 export type Meeting = Database["public"]["Tables"]["meetings"]["Row"];
 export type ActionItem = Database["public"]["Tables"]["action_items"]["Row"];
 export type AuditLog = Database["public"]["Tables"]["audit_logs"]["Row"];
+export type WorkflowRecord = Database["public"]["Tables"]["workflows"]["Row"];
+export type WorkflowRun = Database["public"]["Tables"]["workflow_runs"]["Row"];

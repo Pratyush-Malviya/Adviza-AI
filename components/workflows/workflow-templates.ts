@@ -10,6 +10,7 @@ export const AVAILABLE_NODE_TEMPLATES: NodeTemplateDefinition[] = [
     iconName: "Calendar",
     color: "#3B82F6",
     badge: "Composio Trigger",
+    composioAppIds: ["googlecalendar", "outlook_calendar"],
     inputs: [],
     outputs: [
       { id: "out-event", name: "Meeting Event", type: "out", dataType: "event" }
@@ -351,6 +352,7 @@ export const AVAILABLE_NODE_TEMPLATES: NodeTemplateDefinition[] = [
     iconName: "Layers",
     color: "#EA580C",
     badge: "Composio Tool",
+    composioAppIds: ["salesforce", "hubspot", "wealthbox", "zoho", "redtail", "pipedrive"],
     inputs: [
       { id: "in-crm-data", name: "Structured Data", type: "in", dataType: "json" }
     ],
@@ -395,6 +397,7 @@ export const AVAILABLE_NODE_TEMPLATES: NodeTemplateDefinition[] = [
     iconName: "Mail",
     color: "#F43F5E",
     badge: "Resend API",
+    composioAppIds: ["gmail", "outlook", "sendgrid"],
     inputs: [
       { id: "in-email-body", name: "Approved Content", type: "in", dataType: "text" }
     ],

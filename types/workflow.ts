@@ -50,6 +50,8 @@ export interface NodeTemplateDefinition {
   iconName: string;
   color: string;
   badge?: string;
+  /** Composio app slug(s) this node depends on — used for live connection status display */
+  composioAppIds?: string[];
   defaultConfig: Record<string, any>;
   inputs: NodePort[];
   outputs: NodePort[];

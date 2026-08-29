@@ -13,35 +13,49 @@ import {
   Copy,
   Trash2
 } from "lucide-react";
-import { WorkflowNode, ConfigField } from "@/types/workflow";
+import { WorkflowNode, ConfigField, NodeTemplateDefinition } from "@/types/workflow";
 import { AVAILABLE_NODE_TEMPLATES } from "./workflow-templates";
+import { ConnectorBadge } from "./connector-badge";
 
 interface WorkflowPropertiesProps {
   node: WorkflowNode | null;
-  onUpdateNodeConfig: (nodeId: string, updatedConfig: Record<string, any>) => void;
+  /** Optional pre-resolved template (avoids re-lookup) */
+  template?: NodeTemplateDefinition | null;
+  /** Fn from useConnections to check live connector state */
+  isConnected?: (appId: string) => boolean;
+  onUpdateNodeConfig?: (nodeId: string, updatedConfig: Record<string, any>) => void;
+  /** Alternative: single-key update (used by new editor page) */
+  onConfigChange?: (key: string, value: any) => void;
   onClose: () => void;
-  onDeleteNode: (nodeId: string) => void;
-  onDuplicateNode: (nodeId: string) => void;
+  onDeleteNode?: (nodeId: string) => void;
+  onDuplicateNode?: (nodeId: string) => void;
+  /** Alternative delete handler */
+  onDelete?: () => void;
 }
 
 export function WorkflowProperties({
   node,
+  template: templateProp,
+  isConnected,
   onUpdateNodeConfig,
+  onConfigChange,
   onClose,
   onDeleteNode,
   onDuplicateNode,
+  onDelete,
 }: WorkflowPropertiesProps) {
   if (!node) return null;
 
-  const template = AVAILABLE_NODE_TEMPLATES.find((t) => t.typeId === node.data.typeId);
+  const template = templateProp ?? AVAILABLE_NODE_TEMPLATES.find((t) => t.typeId === node.data.typeId);
   const configFields: ConfigField[] = template?.configFields || [];
 
   const handleFieldChange = (key: string, value: any) => {
-    const newConfig = {
-      ...(node.data.config || {}),
-      [key]: value,
-    };
-    onUpdateNodeConfig(node.id, newConfig);
+    if (onConfigChange) {
+      onConfigChange(key, value);
+    } else if (onUpdateNodeConfig) {
+      const newConfig = { ...(node.data.config || {}), [key]: value };
+      onUpdateNodeConfig(node.id, newConfig);
+    }
   };
 
   return (
@@ -89,6 +103,17 @@ export function WorkflowProperties({
         <h2 className="text-sm font-bold text-[#121217] mt-1.5">{node.data.label}</h2>
         {node.data.subtitle && (
           <p className="text-xs text-[#8E847C] mt-0.5">{node.data.subtitle}</p>
+        )}
+        {/* Connector status badge for this node */}
+        {template?.composioAppIds && template.composioAppIds.length > 0 && isConnected && (
+          <div className="mt-2">
+            <ConnectorBadge
+              appId={template.composioAppIds[0]}
+              appName={template.composioAppIds.join(" / ")}
+              isConnected={template.composioAppIds.some((id) => isConnected(id))}
+              size="sm"
+            />
+          </div>
         )}
       </div>
 
@@ -191,7 +216,9 @@ export function WorkflowProperties({
       {/* Footer Controls */}
       <div className="p-3 border-t border-[#EADBCE] bg-[#F5EDE4]/60 flex items-center justify-between">
         <button
-          onClick={() => onDuplicateNode(node.id)}
+          onClick={() => {
+            if (onDuplicateNode) onDuplicateNode(node.id);
+          }}
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#645F5A] hover:text-[#121217] bg-white border border-[#EADBCE] rounded-xl hover:shadow-sm transition"
         >
           <Copy className="w-3.5 h-3.5" />
@@ -199,7 +226,10 @@ export function WorkflowProperties({
         </button>
 
         <button
-          onClick={() => onDeleteNode(node.id)}
+          onClick={() => {
+            if (onDelete) onDelete();
+            else if (onDeleteNode) onDeleteNode(node.id);
+          }}
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl transition"
         >
           <Trash2 className="w-3.5 h-3.5" />

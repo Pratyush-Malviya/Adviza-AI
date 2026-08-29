@@ -21,10 +21,15 @@ import {
 } from "lucide-react";
 import { NodeTemplateDefinition, NodeCategory } from "@/types/workflow";
 import { AVAILABLE_NODE_TEMPLATES } from "./workflow-templates";
+import { ConnectorBadge } from "./connector-badge";
 import { cn } from "@/lib/utils";
 
 interface WorkflowPaletteProps {
   onAddNode: (template: NodeTemplateDefinition, position?: { x: number; y: number }) => void;
+  /** templates prop is accepted but not used — we always use AVAILABLE_NODE_TEMPLATES */
+  templates?: NodeTemplateDefinition[];
+  /** Fn from useConnections to check if a composio app slug is connected */
+  isConnected?: (appId: string) => boolean;
 }
 
 const CATEGORY_TABS: { key: "all" | NodeCategory; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
@@ -50,7 +55,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Cpu
 };
 
-export function WorkflowPalette({ onAddNode }: WorkflowPaletteProps) {
+export function WorkflowPalette({ onAddNode, isConnected }: WorkflowPaletteProps) {
   const [selectedCategory, setSelectedCategory] = useState<"all" | NodeCategory>("all");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -166,6 +171,18 @@ export function WorkflowPalette({ onAddNode }: WorkflowPaletteProps) {
                     {template.subtitle}
                   </p>
                 </div>
+
+                {/* Connector status badge */}
+                {template.composioAppIds && template.composioAppIds.length > 0 && isConnected && (
+                  <div className="mt-1.5">
+                    <ConnectorBadge
+                      appId={template.composioAppIds[0]}
+                      appName={template.composioAppIds[0]}
+                      isConnected={template.composioAppIds.some((id) => isConnected(id))}
+                      size="xs"
+                    />
+                  </div>
+                )}
 
                 {/* Quick Add Button on hover */}
                 <button
