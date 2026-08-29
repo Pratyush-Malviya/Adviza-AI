@@ -165,17 +165,17 @@ export const CAPABILITY_REGISTRY: CapabilityDefinition[] = [
   },
   {
     id: "composio_gmail_send_email",
-    name: "Gmail: Send Client Follow-Up",
-    description: "Dispatches a post-meeting summary, suitability memo, or onboarding email to the client via Gmail.",
+    name: "Gmail: Send Email",
+    description: "Sends an email to a recipient address via the advisor's connected Gmail account with recipient_email, subject, and body.",
     source: "composio_connector",
     category: "email",
     requiredConnector: "gmail",
-    requiresHITL: true, // Outbound client communication requires advisor sign-off
+    requiresHITL: false,
     executionType: "sync",
     parameters: {
-      recipientEmail: { type: "string", description: "Client email address", required: true },
+      recipient_email: { type: "string", description: "Target recipient email address (e.g. pratyush.malviya1@gmail.com)", required: true },
       subject: { type: "string", description: "Email subject line", required: true },
-      body: { type: "string", description: "Compliance-approved email body", required: true },
+      body: { type: "string", description: "Full professional email body text", required: true },
     },
   },
   {

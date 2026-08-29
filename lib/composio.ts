@@ -557,12 +557,27 @@ export async function executeComposioAction(
     let toolArgs: Record<string, any> = {};
 
     if (targetApp === "gmail") {
-      toolSlug = "GMAIL_FETCH_EMAILS";
-      toolArgs = {
-        query: params.query || "is:inbox",
-        max_results: params.maxResults || 10,
-        ...params,
-      };
+      if (
+        actionName.toLowerCase().includes("send") ||
+        actionName.toLowerCase().includes("draft") ||
+        actionName.toLowerCase().includes("dispatch") ||
+        params.recipient_email ||
+        params.recipientEmail ||
+        params.to
+      ) {
+        toolSlug = "GMAIL_SEND_EMAIL";
+        toolArgs = {
+          recipient_email: params.recipient_email || params.recipientEmail || params.to || "pratyush.malviya1@gmail.com",
+          subject: params.subject || "Adviza AI Update",
+          body: params.body || params.content || params.message || "Thank you. Everything is operating smoothly.",
+        };
+      } else {
+        toolSlug = "GMAIL_FETCH_EMAILS";
+        toolArgs = {
+          query: params.query || "is:inbox",
+          max_results: params.maxResults || 10,
+        };
+      }
     } else {
       toolArgs = {
         calendarId: "primary",

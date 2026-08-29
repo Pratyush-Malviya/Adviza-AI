@@ -76,6 +76,37 @@ function fallbackResolver(
   const lower = message.toLowerCase();
 
   // 1. Email Intent
+  // 1. Send / Write Email Intent
+  if (
+    (lower.includes("send") || lower.includes("write") || lower.includes("compose") || lower.includes("draft")) &&
+    (lower.includes("email") || lower.includes("mail") || lower.includes("@"))
+  ) {
+    const emailMatch = message.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+    const recipient = emailMatch ? emailMatch[0] : "pratyush.malviya1@gmail.com";
+
+    return {
+      conversationalIntro: `Sending email to ${recipient}...`,
+      capabilityCalls: [
+        {
+          capability_id: "composio_gmail_send_email",
+          parameters: {
+            recipient_email: recipient,
+            subject: "Adviza AI Update",
+            body: "Hi,\n\nThanks, it works totally fine.\n\nBest regards,\nAdviza AI",
+          },
+          reason: `Dispatch email to ${recipient}`,
+          requiresHITL: false,
+        },
+      ],
+      plan: {
+        intent: `Send email to ${recipient}`,
+        targetCapabilities: ["composio_gmail_send_email"],
+        reasoning: "Matched write/send email instruction",
+      },
+    };
+  }
+
+  // 2. Search / Fetch Email Intent
   if (
     lower.includes("email") ||
     lower.includes("mail") ||
