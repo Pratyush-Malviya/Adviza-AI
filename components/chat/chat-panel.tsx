@@ -310,7 +310,7 @@ export function ChatPanel({
 
   return (
     <div
-      className={`flex flex-col bg-background/95 backdrop-blur-xl border border-border/80 rounded-2xl shadow-2xl transition-all duration-300 overflow-hidden ${
+      className={`flex flex-col bg-white border border-[#EADBCE] rounded-3xl shadow-sm transition-all duration-300 overflow-hidden ${
         isFloating
           ? isExpanded
             ? "w-[560px] h-[750px] max-h-[88vh]"
@@ -319,34 +319,34 @@ export function ChatPanel({
       }`}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border/60 bg-muted/30">
+      <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#EADBCE] bg-white">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-rose-500 to-amber-500 flex items-center justify-center text-white shadow-md shadow-rose-500/20">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-rose-500 to-amber-500 flex items-center justify-center text-white shadow-sm">
             <Sparkles className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="font-bold text-sm text-foreground flex items-center gap-1.5">
+            <h3 className="font-bold text-sm text-[#121217] flex items-center gap-1.5">
               Adviza AI Assistant
-              <span className="text-[10px] px-1.5 py-0.2 bg-emerald-500/10 text-emerald-600 font-semibold rounded-full">
+              <span className="text-[10px] px-1.5 py-0.5 bg-emerald-500/10 text-emerald-600 font-semibold rounded-full">
                 Active
               </span>
             </h3>
-            <p className="text-[11px] text-muted-foreground">Fiduciary Agent Fleet & Composio Gateway</p>
+            <p className="text-[11px] text-[#8E847C]">Fiduciary Agent Fleet & Composio Gateway</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1 text-muted-foreground">
+        <div className="flex items-center gap-1 text-[#8E847C]">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
             title={isExpanded ? "Collapse" : "Expand"}
-            className="p-1.5 hover:bg-muted rounded-lg hover:text-foreground transition"
+            className="p-1.5 hover:bg-[#FAF5F0] rounded-xl hover:text-[#121217] transition"
           >
             {isExpanded ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
           </button>
           <button
             onClick={handleClearHistory}
             title="Clear Chat"
-            className="p-1.5 hover:bg-muted rounded-lg hover:text-foreground transition"
+            className="p-1.5 hover:bg-[#FAF5F0] rounded-xl hover:text-[#121217] transition"
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
@@ -354,7 +354,7 @@ export function ChatPanel({
             <button
               onClick={onClose}
               title="Close"
-              className="p-1.5 hover:bg-muted rounded-lg hover:text-foreground transition"
+              className="p-1.5 hover:bg-[#FAF5F0] rounded-xl hover:text-[#121217] transition"
             >
               <X className="w-4 h-4" />
             </button>
@@ -363,23 +363,23 @@ export function ChatPanel({
       </div>
 
       {/* Messages Scroll Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 text-xs">
+      <div className="flex-1 overflow-y-auto p-5 space-y-4 text-xs scrollbar-thin">
         {messages.map((msg) => (
           <div
             key={msg.id}
             className={`flex gap-2.5 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
           >
             {msg.role === "assistant" && (
-              <div className="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-600 flex items-center justify-center shrink-0 mt-0.5">
+              <div className="w-7 h-7 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
                 <Bot className="w-4 h-4" />
               </div>
             )}
 
             <div
-              className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 ${
+              className={`max-w-[85%] rounded-2xl px-4 py-3 ${
                 msg.role === "user"
-                  ? "bg-rose-600 text-white rounded-br-none shadow-sm"
-                  : "bg-muted/60 text-foreground border border-border/50 rounded-bl-none"
+                  ? "bg-gradient-to-r from-rose-500 to-rose-600 text-white rounded-br-sm shadow-sm"
+                  : "bg-[#FAF5F0] text-[#121217] border border-[#EADBCE] rounded-bl-sm shadow-2xs"
               }`}
             >
               <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
@@ -535,7 +535,7 @@ export function ChatPanel({
 
       {/* Suggested Quick Prompts */}
       {messages.length < 3 && (
-        <div className="px-4 py-2 border-t border-border/40 bg-muted/20 flex flex-wrap gap-1.5">
+        <div className="px-5 py-2.5 border-t border-[#EADBCE] bg-[#FAF5F0]/50 flex flex-wrap gap-1.5">
           {[
             "How many client meetings do I have today?",
             "Prepare briefing dossier for Sarah Jenkins",
@@ -544,7 +544,7 @@ export function ChatPanel({
             <button
               key={i}
               onClick={() => handleSendMessage(prompt)}
-              className="text-[10px] px-2.5 py-1 bg-background hover:bg-muted border border-border/60 rounded-lg text-muted-foreground hover:text-foreground transition"
+              className="text-[11px] px-3 py-1 bg-white hover:bg-[#FAF5F0] border border-[#EADBCE] rounded-xl text-[#5A544E] hover:text-[#121217] transition shadow-2xs font-medium"
             >
               {prompt}
             </button>
@@ -553,13 +553,13 @@ export function ChatPanel({
       )}
 
       {/* Input Form */}
-      <div className="p-3 border-t border-border/60 bg-muted/20">
+      <div className="p-3.5 border-t border-[#EADBCE] bg-white">
         <form
           onSubmit={(e) => {
             e.preventDefault();
             handleSendMessage();
           }}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2.5"
         >
           <input
             type="text"
@@ -567,14 +567,15 @@ export function ChatPanel({
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask anything or request workflow actions..."
             disabled={loading}
-            className="flex-1 bg-background border border-border/80 rounded-xl px-3.5 py-2 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-rose-500/50 disabled:opacity-50"
+            className="flex-1 bg-[#FAF5F0] border border-[#EADBCE] rounded-2xl px-4 py-2.5 text-xs text-[#121217] placeholder:text-[#8E847C] focus:outline-none focus:ring-1 focus:ring-rose-500 focus:border-rose-400 disabled:opacity-50 transition shadow-2xs"
           />
           <button
             type="submit"
             disabled={!input.trim() || loading}
-            className="p-2 bg-rose-600 hover:bg-rose-700 disabled:opacity-40 text-white rounded-xl shadow-md transition"
+            className="p-2.5 bg-[#121217] hover:bg-[#2A2A35] disabled:opacity-30 text-white rounded-2xl transition shadow-sm group"
+            title="Send message"
           >
-            <Send className="w-4 h-4" />
+            <Send className="w-4 h-4 text-rose-400 group-hover:scale-105 transition-transform" />
           </button>
         </form>
       </div>
