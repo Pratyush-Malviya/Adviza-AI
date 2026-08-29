@@ -21,6 +21,11 @@ export function ChatPanelWrapper() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  // Don't render floating widget if user is on the dedicated full-screen /dashboard/chat route
+  if (pathname === "/dashboard/chat") {
+    return null;
+  }
+
   return (
     <>
       {/* Floating Trigger Button */}
