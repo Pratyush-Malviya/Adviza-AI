@@ -59,21 +59,91 @@ export function ChatPanel({
   useEffect(() => {
     setActiveSessionId(sessionId || null);
     if (sessionId) {
-      // Load saved messages for this session
+      // 1. Instant check from localStorage
+      try {
+        const cached = localStorage.getItem("adviza_chat_msg_" + sessionId);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setMessages(parsed);
+          }
+        }
+      } catch {}
+
+      // 2. Fetch saved messages for this session from DB
       fetch(`/api/ai/chat-sessions/${sessionId}`)
         .then((res) => res.json())
         .then((data) => {
           if (data.messages && data.messages.length > 0) {
             setMessages(data.messages);
-          } else {
-            setMessages([
-              {
-                id: "welcome",
-                role: "assistant",
-                content: "Welcome to Adviza Chat Orchestrator. Ask for client briefings, calendar lookups, compliance checks, or automated workflow runs.",
-                timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-              },
-            ]);
+            try {
+              localStorage.setItem("adviza_chat_msg_" + sessionId, JSON.stringify(data.messages));
+            } catch {}
+          } else if (!localStorage.getItem("adviza_chat_msg_" + sessionId)) {
+            // Pre-seed starter thread messages
+            let seedMessages: ChatMessage[] = [];
+            if (sessionId === "sess_calendar_today") {
+              seedMessages = [
+                {
+                  id: "msg_u1",
+                  role: "user",
+                  content: "How many client meetings do I have scheduled for today?",
+                  timestamp: "01:09 AM",
+                },
+                {
+                  id: "msg_a1",
+                  role: "assistant",
+                  content: "I checked **malviya.pratyush26@gmail.com**. You have 3 meetings scheduled for today:\n\n1. **Train to NEW DELHI (NDLS)** (10:30 PM)\n2. **Effective Communication as a PM : Part 1** (11:00 AM)\n3. **Pallavi Dhamapurkar: Mentor Session** (05:00 PM)",
+                  timestamp: "01:09 AM",
+                },
+              ];
+            } else if (sessionId === "sess_july_audit") {
+              seedMessages = [
+                {
+                  id: "msg_u2",
+                  role: "user",
+                  content: "How many meetings did I have in the month of July?",
+                  timestamp: "Yesterday",
+                },
+                {
+                  id: "msg_a2",
+                  role: "assistant",
+                  content: "I checked **malviya.pratyush26@gmail.com** and found **10 meetings** in July 2026 including Portfolio Reviews and Discovery calls.",
+                  timestamp: "Yesterday",
+                },
+              ];
+            } else if (sessionId === "sess_briefing_sarah") {
+              seedMessages = [
+                {
+                  id: "msg_u3",
+                  role: "user",
+                  content: "Prepare pre-meeting briefing dossier for Sarah Jenkins",
+                  timestamp: "2 days ago",
+                },
+                {
+                  id: "msg_a3",
+                  role: "assistant",
+                  content: "Generated Pre-Meeting Executive Briefing for Sarah Jenkins (Portfolio: $1,850,000 | Growth & Income). Talking points and municipal bond rebalancing recommendations compiled.",
+                  timestamp: "2 days ago",
+                },
+              ];
+            }
+
+            if (seedMessages.length > 0) {
+              setMessages(seedMessages);
+              try {
+                localStorage.setItem("adviza_chat_msg_" + sessionId, JSON.stringify(seedMessages));
+              } catch {}
+            } else {
+              setMessages([
+                {
+                  id: "welcome",
+                  role: "assistant",
+                  content: "Welcome to Adviza Chat Orchestrator. Ask for client briefings, calendar lookups, compliance checks, or automated workflow runs.",
+                  timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+                },
+              ]);
+            }
           }
         })
         .catch((err) => console.error("Failed to load session messages:", err));
@@ -203,7 +273,13 @@ export function ChatPanel({
         hitlPrompts: data.hitlPrompts || [],
       };
 
-      setMessages((prev) => [...prev, assistantMsg]);
+      const updatedMessages = [...newHistory, assistantMsg];
+      setMessages(updatedMessages);
+      if (currentSession) {
+        try {
+          localStorage.setItem("adviza_chat_msg_" + currentSession, JSON.stringify(updatedMessages));
+        } catch {}
+      }
     } catch (err: any) {
       console.error("Chat error:", err);
       setMessages((prev) => [

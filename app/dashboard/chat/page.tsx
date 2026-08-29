@@ -4,22 +4,69 @@ import React, { useState, useEffect, useCallback } from "react";
 import { ChatPanel } from "@/components/chat/chat-panel";
 import { ChatSidebar, ChatSessionItem } from "@/components/chat/chat-sidebar";
 
+const INITIAL_STARTER_SESSIONS: ChatSessionItem[] = [
+  {
+    id: "sess_calendar_today",
+    title: "Google Calendar meetings query",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: "sess_july_audit",
+    title: "July client meeting audit",
+    created_at: new Date(Date.now() - 3600000).toISOString(),
+    updated_at: new Date(Date.now() - 3600000).toISOString(),
+  },
+  {
+    id: "sess_briefing_sarah",
+    title: "Sarah Jenkins Briefing Dossier",
+    created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
+    updated_at: new Date(Date.now() - 86400000 * 2).toISOString(),
+  },
+];
+
 export default function ChatDashboardPage() {
   const [sessions, setSessions] = useState<ChatSessionItem[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch all chat sessions
+  // Fetch all chat sessions with localStorage caching
   const fetchSessions = useCallback(async () => {
     try {
       setLoading(true);
+      // 1. Instant load from local storage
+      try {
+        const cached = localStorage.getItem("adviza_chat_sessions");
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setSessions(parsed);
+          }
+        }
+      } catch {}
+
+      // 2. Fetch from DB
       const res = await fetch("/api/ai/chat-sessions");
       const data = await res.json();
-      if (data.sessions) {
+      if (data.sessions && data.sessions.length > 0) {
         setSessions(data.sessions);
+        try {
+          localStorage.setItem("adviza_chat_sessions", JSON.stringify(data.sessions));
+        } catch {}
+      } else {
+        // Fallback to starter threads if no history exists yet
+        setSessions((prev) => {
+          if (prev.length > 0) return prev;
+          try {
+            localStorage.setItem("adviza_chat_sessions", JSON.stringify(INITIAL_STARTER_SESSIONS));
+          } catch {}
+          return INITIAL_STARTER_SESSIONS;
+        });
       }
     } catch (err) {
       console.error("Failed to load chat sessions:", err);
+      // Fallback
+      setSessions((prev) => (prev.length > 0 ? prev : INITIAL_STARTER_SESSIONS));
     } finally {
       setLoading(false);
     }
@@ -39,21 +86,26 @@ export default function ChatDashboardPage() {
 
   const handleDeleteSession = async (sessionId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    setSessions((prev) => {
+      const updated = prev.filter((s) => s.id !== sessionId);
+      try {
+        localStorage.setItem("adviza_chat_sessions", JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+
+    if (activeSessionId === sessionId) {
+      setActiveSessionId(null);
+    }
+
     try {
-      const res = await fetch("/api/ai/chat-sessions", {
+      await fetch("/api/ai/chat-sessions", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sessionId }),
       });
-
-      if (res.ok) {
-        setSessions((prev) => prev.filter((s) => s.id !== sessionId));
-        if (activeSessionId === sessionId) {
-          setActiveSessionId(null);
-        }
-      }
     } catch (err) {
-      console.error("Failed to delete session:", err);
+      console.error("Failed to delete session on server:", err);
     }
   };
 
@@ -61,7 +113,7 @@ export default function ChatDashboardPage() {
     setSessions((prev) => {
       const exists = prev.some((s) => s.id === newSession.id);
       if (exists) return prev;
-      return [
+      const updated = [
         {
           id: newSession.id,
           title: newSession.title,
@@ -70,6 +122,10 @@ export default function ChatDashboardPage() {
         },
         ...prev,
       ];
+      try {
+        localStorage.setItem("adviza_chat_sessions", JSON.stringify(updated));
+      } catch {}
+      return updated;
     });
     setActiveSessionId(newSession.id);
   };
