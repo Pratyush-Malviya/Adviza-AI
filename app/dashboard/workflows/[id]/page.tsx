@@ -110,6 +110,47 @@ export default function WorkflowEditorPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // ─── Local Storage Sync Helper ─────────────────────────────────────────────
+  const syncToLocalStorage = useCallback((customName?: string, customNodes?: WorkflowNode[], customEdges?: WorkflowEdge[]) => {
+    if (!workflowId) return;
+    try {
+      const nameToSave = customName || workflowName;
+      const nodesToSave = customNodes || nodes;
+      const edgesToSave = customEdges || edges;
+
+      const raw = localStorage.getItem("adviza_saved_workflows");
+      const list = raw ? JSON.parse(raw) : [];
+      const idx = list.findIndex((item: any) => item.id === workflowId);
+
+      const updatedRecord = {
+        id: workflowId,
+        name: nameToSave,
+        description: dbWorkflow?.description || `Visual automation with ${nodesToSave.length} nodes`,
+        status: dbWorkflow?.status || "draft",
+        nodes: nodesToSave,
+        edges: edgesToSave,
+        trigger_type: nodesToSave.find((n) => n.data.category === "trigger")?.data.typeId ?? null,
+        connected_apps: [],
+        ai_generated: false,
+        run_count: 0,
+        last_run_at: null,
+        updated_at: new Date().toISOString(),
+        created_at: list[idx]?.created_at || new Date().toISOString(),
+      };
+
+      if (idx >= 0) {
+        list[idx] = { ...list[idx], ...updatedRecord };
+      } else {
+        list.unshift(updatedRecord);
+      }
+
+      localStorage.setItem("adviza_saved_workflows", JSON.stringify(list));
+      localStorage.setItem("adviza_current_workflow", JSON.stringify(updatedRecord));
+    } catch (e) {
+      console.error("Local sync error", e);
+    }
+  }, [workflowId, workflowName, nodes, edges, dbWorkflow]);
+
   // ─── Load from DB ──────────────────────────────────────────────────────────
   useEffect(() => {
     if (!workflowId) return;
@@ -117,21 +158,40 @@ export default function WorkflowEditorPage() {
     async function load() {
       setLoadingWorkflow(true);
       try {
+        // 1. Try DB first
         const res = await fetch(`/api/workflows/${workflowId}`);
         if (res.ok) {
           const data = await res.json();
           const wf = data.workflow;
-          if (wf) {
+          if (wf && Array.isArray(wf.nodes) && wf.nodes.length > 0) {
             setDbWorkflow({ name: wf.name, description: wf.description, status: wf.status });
             setWorkflowName(wf.name || "Untitled Workflow");
-            setNodes(Array.isArray(wf.nodes) ? wf.nodes : []);
+            setNodes(wf.nodes);
             setEdges(Array.isArray(wf.edges) ? wf.edges : []);
             setIsDirty(false);
+            syncToLocalStorage(wf.name, wf.nodes, wf.edges);
             return;
           }
         }
 
-        // Fallback to localStorage for local / generated workflow
+        // 2. Search adviza_saved_workflows list in localStorage
+        try {
+          const raw = localStorage.getItem("adviza_saved_workflows");
+          if (raw) {
+            const list = JSON.parse(raw);
+            const found = list.find((item: any) => item.id === workflowId);
+            if (found) {
+              if (found.name) setWorkflowName(found.name);
+              setNodes(Array.isArray(found.nodes) ? found.nodes : []);
+              setEdges(Array.isArray(found.edges) ? found.edges : []);
+              setDbWorkflow({ name: found.name, description: found.description, status: found.status || "draft" });
+              setIsDirty(false);
+              return;
+            }
+          }
+        } catch {}
+
+        // 3. Fallback to adviza_current_workflow
         const saved = localStorage.getItem("adviza_current_workflow");
         if (saved) {
           try {
@@ -140,6 +200,7 @@ export default function WorkflowEditorPage() {
               if (parsed.name) setWorkflowName(parsed.name);
               setNodes(Array.isArray(parsed.nodes) ? parsed.nodes : []);
               setEdges(Array.isArray(parsed.edges) ? parsed.edges : []);
+              setIsDirty(false);
             }
           } catch (e) {
             console.error("Failed to parse local workflow", e);
@@ -153,13 +214,14 @@ export default function WorkflowEditorPage() {
     }
 
     load();
-  }, [workflowId]);
+  }, [workflowId, syncToLocalStorage]);
 
   // ─── Auto-save with 2s debounce ────────────────────────────────────────────
   const scheduleSave = useCallback(() => {
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     autoSaveTimer.current = setTimeout(async () => {
       if (!workflowId || !isDirty) return;
+      syncToLocalStorage();
       try {
         setIsSaving(true);
         const connectedApps = nodes
@@ -188,7 +250,7 @@ export default function WorkflowEditorPage() {
         setIsSaving(false);
       }
     }, 2000);
-  }, [workflowId, isDirty, workflowName, nodes, edges]);
+  }, [workflowId, isDirty, workflowName, nodes, edges, syncToLocalStorage]);
 
   // Trigger auto-save when canvas state changes
   useEffect(() => {
@@ -202,6 +264,7 @@ export default function WorkflowEditorPage() {
   // ─── Manual Save ───────────────────────────────────────────────────────────
   const handleSaveWorkflow = async () => {
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    syncToLocalStorage();
     try {
       setIsSaving(true);
       if (workflowId) {
@@ -225,14 +288,11 @@ export default function WorkflowEditorPage() {
         });
         setLastSaved(new Date());
         setIsDirty(false);
-      } else {
-        // localStorage fallback
-        localStorage.setItem("adviza_current_workflow", JSON.stringify({ name: workflowName, nodes, edges, savedAt: new Date().toISOString() }));
       }
       setSaveSuccessToast("Workflow saved successfully.");
       setTimeout(() => setSaveSuccessToast(null), 2500);
     } catch {
-      setSaveSuccessToast("Save failed — check your connection.");
+      setSaveSuccessToast("Workflow saved locally.");
       setTimeout(() => setSaveSuccessToast(null), 2500);
     } finally {
       setIsSaving(false);

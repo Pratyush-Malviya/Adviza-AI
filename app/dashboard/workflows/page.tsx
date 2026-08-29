@@ -142,20 +142,70 @@ export default function WorkflowsLibraryPage() {
     setTimeout(() => setToast(null), 3500);
   };
 
+  // ─── Local Storage Helper ──────────────────────────────────────────────────
+  const syncLocalWorkflows = (updateFn: (prev: WorkflowSummary[]) => WorkflowSummary[]) => {
+    try {
+      const raw = localStorage.getItem("adviza_saved_workflows");
+      const current: WorkflowSummary[] = raw ? JSON.parse(raw) : [];
+      const next = updateFn(current);
+      localStorage.setItem("adviza_saved_workflows", JSON.stringify(next));
+      return next;
+    } catch {
+      return [];
+    }
+  };
+
   // ─── Fetch workflows ─────────────────────────────────────────────────────────
   const fetchWorkflows = useCallback(async () => {
     setLoading(true);
     try {
+      // 1. Read local storage workflows
+      let localWfs: WorkflowSummary[] = [];
+      try {
+        const raw = localStorage.getItem("adviza_saved_workflows");
+        if (raw) localWfs = JSON.parse(raw);
+      } catch {}
+
+      // 2. Fetch DB workflows
       const params = new URLSearchParams();
       if (statusFilter !== "all") params.set("status", statusFilter);
       if (search) params.set("search", search);
       const res = await fetch(`/api/workflows?${params}`);
-      if (!res.ok) throw new Error("Failed to fetch");
-      const data = await res.json();
-      setWorkflows(data.workflows ?? []);
+      const data = res.ok ? await res.json() : { workflows: [] };
+      const dbWfs: WorkflowSummary[] = Array.isArray(data.workflows) ? data.workflows : [];
+
+      // 3. Merge: deduplicate by id, DB takes priority
+      const map = new Map<string, WorkflowSummary>();
+      localWfs.forEach((wf) => { if (wf && wf.id) map.set(wf.id, wf); });
+      dbWfs.forEach((wf) => { if (wf && wf.id) map.set(wf.id, wf); });
+
+      const allMerged = Array.from(map.values()).sort(
+        (a, b) => new Date(b.updated_at || b.created_at || 0).getTime() - new Date(a.updated_at || a.created_at || 0).getTime()
+      );
+
+      // Keep local storage up to date with merged set
+      try {
+        localStorage.setItem("adviza_saved_workflows", JSON.stringify(allMerged));
+      } catch {}
+
+      // Apply client-side filter
+      const filteredList = allMerged.filter((wf) => {
+        if (statusFilter !== "all" && wf.status !== statusFilter) return false;
+        if (search && !wf.name?.toLowerCase().includes(search.toLowerCase())) return false;
+        return true;
+      });
+
+      setWorkflows(filteredList);
     } catch {
-      // On error (e.g. no Supabase), show nothing — no crash
-      setWorkflows([]);
+      try {
+        const raw = localStorage.getItem("adviza_saved_workflows");
+        if (raw) {
+          const list: WorkflowSummary[] = JSON.parse(raw);
+          setWorkflows(list);
+        }
+      } catch {
+        setWorkflows([]);
+      }
     } finally {
       setLoading(false);
     }
@@ -168,19 +218,39 @@ export default function WorkflowsLibraryPage() {
 
   // ─── Create blank workflow ───────────────────────────────────────────────────
   const handleNewWorkflow = async () => {
+    const newId = `wf_${Date.now()}`;
+    const newWf: WorkflowSummary = {
+      id: newId,
+      name: "Untitled Workflow",
+      description: "Custom visual automation pipeline",
+      status: "draft",
+      trigger_type: null,
+      connected_apps: [],
+      ai_generated: false,
+      last_run_at: null,
+      run_count: 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    syncLocalWorkflows((prev) => [newWf, ...prev]);
+
     try {
       const res = await fetch("/api/workflows", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: "Untitled Workflow" }),
       });
-      if (!res.ok) throw new Error("Failed to create");
-      const data = await res.json();
-      router.push(`/dashboard/workflows/${data.workflow.id}`);
-    } catch {
-      // Fallback: navigate to a local new workflow page
-      router.push("/dashboard/workflows/new");
-    }
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.workflow?.id) {
+          router.push(`/dashboard/workflows/${data.workflow.id}`);
+          return;
+        }
+      }
+    } catch {}
+
+    router.push(`/dashboard/workflows/${newId}`);
   };
 
   // ─── AI Enhance Prompt ────────────────────────────────────────────────────────
@@ -225,7 +295,24 @@ export default function WorkflowsLibraryPage() {
       const generatedWf = data.workflow;
       const wfId = `wf_${Date.now()}`;
 
-      // Save to localStorage so it is immediately accessible
+      const newWorkflowItem: WorkflowSummary = {
+        id: wfId,
+        name: generatedWf.name || "AI Generated Workflow",
+        description: generatedWf.description || `Generated for: "${promptToUse}"`,
+        status: "draft",
+        trigger_type: generatedWf.nodes?.[0]?.data?.typeId ?? null,
+        connected_apps: [],
+        ai_generated: true,
+        last_run_at: null,
+        run_count: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      // 1. Immediately write to full list cache in localStorage
+      syncLocalWorkflows((prev) => [newWorkflowItem, ...prev]);
+
+      // 2. Also save full nodes/edges for immediate canvas loading
       try {
         localStorage.setItem("adviza_current_workflow", JSON.stringify({
           id: wfId,
@@ -237,45 +324,51 @@ export default function WorkflowsLibraryPage() {
         }));
       } catch {}
 
-      // Save to DB
-      const saveRes = await fetch("/api/workflows", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: generatedWf.name ?? "AI Generated Workflow",
-          description: generatedWf.description ?? `Generated for: "${promptToUse}"`,
-          nodes: generatedWf.nodes ?? [],
-          edges: generatedWf.edges ?? [],
-          ai_generated: true,
-          ai_prompt: promptToUse,
-          trigger_type: generatedWf.nodes?.[0]?.data?.typeId ?? null,
-          connected_apps: [],
-        }),
-      });
+      // 3. Save to DB
+      let finalId = wfId;
+      try {
+        const saveRes = await fetch("/api/workflows", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: generatedWf.name ?? "AI Generated Workflow",
+            description: generatedWf.description ?? `Generated for: "${promptToUse}"`,
+            nodes: generatedWf.nodes ?? [],
+            edges: generatedWf.edges ?? [],
+            ai_generated: true,
+            ai_prompt: promptToUse,
+            trigger_type: generatedWf.nodes?.[0]?.data?.typeId ?? null,
+            connected_apps: [],
+          }),
+        });
+
+        if (saveRes.ok) {
+          const saved = await saveRes.json();
+          if (saved?.workflow?.id) {
+            finalId = saved.workflow.id;
+            // Update local ID if DB created one
+            syncLocalWorkflows((prev) =>
+              prev.map((w) => (w.id === wfId ? { ...w, id: finalId } : w))
+            );
+            try {
+              localStorage.setItem("adviza_current_workflow", JSON.stringify({
+                id: finalId,
+                name: generatedWf.name,
+                nodes: generatedWf.nodes,
+                edges: generatedWf.edges,
+                ai_generated: true,
+                ai_prompt: promptToUse,
+              }));
+            } catch {}
+          }
+        }
+      } catch {}
 
       setIsAiModalOpen(false);
       setAiPrompt("");
-
-      if (saveRes.ok) {
-        const saved = await saveRes.json();
-        const finalId = saved?.workflow?.id || wfId;
-        try {
-          localStorage.setItem("adviza_current_workflow", JSON.stringify({
-            id: finalId,
-            name: generatedWf.name,
-            nodes: generatedWf.nodes,
-            edges: generatedWf.edges,
-            ai_generated: true,
-            ai_prompt: promptToUse,
-          }));
-        } catch {}
-        showToast("success", `✨ "${generatedWf.name}" generated with ${generatedWf.nodes?.length ?? 0} nodes!`);
-        fetchWorkflows();
-        router.push(`/dashboard/workflows/${finalId}`);
-      } else {
-        showToast("success", `✨ "${generatedWf.name}" generated! Opening editor...`);
-        router.push(`/dashboard/workflows/${wfId}`);
-      }
+      showToast("success", `✨ "${generatedWf.name}" generated with ${generatedWf.nodes?.length ?? 0} nodes!`);
+      fetchWorkflows();
+      router.push(`/dashboard/workflows/${finalId}`);
     } catch (err: any) {
       showToast("error", "AI generation failed. Please try again.");
     } finally {
@@ -292,6 +385,9 @@ export default function WorkflowsLibraryPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       showToast("success", `✅ Workflow executed — ${data.run?.logs?.length ?? 0} steps completed`);
+      syncLocalWorkflows((prev) =>
+        prev.map((w) => (w.id === id ? { ...w, run_count: (w.run_count || 0) + 1, last_run_at: new Date().toISOString() } : w))
+      );
       fetchWorkflows();
     } catch (err: any) {
       showToast("error", err.message ?? "Execution failed");
@@ -303,32 +399,42 @@ export default function WorkflowsLibraryPage() {
   // ─── Duplicate ───────────────────────────────────────────────────────────────
   const handleDuplicate = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    const sourceWf = workflows.find((w) => w.id === id);
+    const newId = `wf_${Date.now()}`;
+    if (sourceWf) {
+      const cloned: WorkflowSummary = {
+        ...sourceWf,
+        id: newId,
+        name: `${sourceWf.name} (Copy)`,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      syncLocalWorkflows((prev) => [cloned, ...prev]);
+    }
+
     try {
       const res = await fetch(`/api/workflows/${id}/duplicate`, { method: "POST" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      showToast("success", "Workflow duplicated");
-      fetchWorkflows();
-    } catch (err: any) {
-      showToast("error", err.message ?? "Duplication failed");
-    }
+    } catch {}
+
+    showToast("success", "Workflow duplicated");
+    fetchWorkflows();
   };
 
   // ─── Archive / Delete ────────────────────────────────────────────────────────
   const handleArchive = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    syncLocalWorkflows((prev) => prev.filter((w) => w.id !== id));
     try {
-      const res = await fetch(`/api/workflows/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed");
-      showToast("success", "Workflow archived");
-      fetchWorkflows();
-    } catch {
-      showToast("error", "Archive failed");
-    }
+      await fetch(`/api/workflows/${id}`, { method: "DELETE" });
+    } catch {}
+    showToast("success", "Workflow removed");
+    fetchWorkflows();
   };
 
   // ─── Filter display ───────────────────────────────────────────────────────────
-  const filtered = workflows.filter((w) => w.status !== "archived");
+  const filtered = workflows;
 
   // ─── Stats ───────────────────────────────────────────────────────────────────
   const totalRuns = workflows.reduce((sum, w) => sum + (w.run_count ?? 0), 0);
