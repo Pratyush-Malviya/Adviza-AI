@@ -526,43 +526,54 @@ export async function executeComposioAction(
   }
 
   try {
-    // 1. Locate active connection
+    // 1. Resolve target app
+    let targetApp = "googlecalendar";
+    if (actionName.toLowerCase().includes("gmail") || actionName.toLowerCase().includes("email") || actionName.toLowerCase().includes("mail")) {
+      targetApp = "gmail";
+    } else if (actionName.toLowerCase().includes("salesforce")) {
+      targetApp = "salesforce";
+    } else if (actionName.toLowerCase().includes("wealthbox")) {
+      targetApp = "wealthbox";
+    } else if (actionName.toLowerCase().includes("slack")) {
+      targetApp = "slack";
+    } else if (actionName.toLowerCase().includes("outlook")) {
+      targetApp = "outlook_calendar";
+    }
+
+    // 2. Locate active connection for the target app
     const connections = await getComposioConnections(userId);
-    const activeConnection =
-      connections.find(
-        (c) =>
-          c.status === "CONNECTED" &&
-          (actionName.toLowerCase().includes(c.appName.toLowerCase()) ||
-            c.appName.toLowerCase().includes("googlecalendar") ||
-            c.appName.toLowerCase().includes("calendar"))
-      ) || connections.find((c) => c.status === "CONNECTED");
+    const activeConnection = connections.find(
+      (c) =>
+        c.status === "CONNECTED" &&
+        (c.appName.toLowerCase().includes(targetApp) || targetApp.includes(c.appName.toLowerCase()))
+    );
 
     if (!activeConnection) {
-      throw new Error(`No active connected account found for ${actionName}. Please connect the account in Connectors.`);
+      throw new Error(`No active connected account found for ${targetApp.toUpperCase()}. Please connect the account in Connectors.`);
     }
 
-    // 2. Map capability to v3 tool slug
+    // 3. Map capability to v3 tool slug
     let toolSlug = "GOOGLECALENDAR_EVENTS_LIST";
-    if (actionName.toLowerCase().includes("find")) {
-      toolSlug = "GOOGLECALENDAR_FIND_EVENT";
-    }
+    let toolArgs: Record<string, any> = {};
 
-    // 3. Prepare arguments dynamically
-    const toolArgs: Record<string, any> = {
-      calendarId: "primary",
-      singleEvents: true,
-      orderBy: "startTime",
-      maxResults: params.maxResults || 25,
-    };
+    if (targetApp === "gmail") {
+      toolSlug = "GMAIL_FETCH_EMAILS";
+      toolArgs = {
+        query: params.query || "is:inbox",
+        max_results: params.maxResults || 10,
+        ...params,
+      };
+    } else {
+      toolArgs = {
+        calendarId: "primary",
+        singleEvents: true,
+        orderBy: "startTime",
+        maxResults: params.maxResults || 25,
+      };
 
-    if (params.timeMin) {
-      toolArgs.timeMin = params.timeMin;
-    }
-    if (params.timeMax) {
-      toolArgs.timeMax = params.timeMax;
-    }
-    if (params.q) {
-      toolArgs.q = params.q;
+      if (params.timeMin) toolArgs.timeMin = params.timeMin;
+      if (params.timeMax) toolArgs.timeMax = params.timeMax;
+      if (params.q) toolArgs.q = params.q;
     }
 
     // 4. Execute via Composio v3 tool execution endpoint
@@ -581,18 +592,20 @@ export async function executeComposioAction(
 
     const result = await response.json();
     if (!response.ok) {
-      throw new Error(result.error?.message || result.message || "Failed to execute calendar tool call");
+      throw new Error(result.error?.message || result.message || `Failed to execute ${toolSlug}`);
     }
 
-    const items = result.data?.items || result.items || [];
-    const email = activeConnection.email || result.data?.summary || "Google Calendar";
+    const items = result.data?.items || result.data?.messages || result.items || [];
+    const email = activeConnection.email || result.data?.summary || "Connected Account";
 
     return {
       success: true,
+      app: targetApp,
       accountEmail: email,
-      events: items,
-      totalEvents: items.length,
-      timeZone: result.data?.timeZone || "Asia/Kolkata",
+      events: targetApp === "googlecalendar" ? items : [],
+      messages: targetApp === "gmail" ? items : [],
+      totalCount: items.length,
+      raw: result.data,
     };
   } catch (error: any) {
     console.error(`Error executing action ${actionName}:`, error);

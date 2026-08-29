@@ -350,15 +350,36 @@ function resolveHeuristicIntent(
 ): OrchestratorDecision {
   const lower = message.toLowerCase();
 
+  // 1. Email / Inbox Intent
+  if (
+    lower.includes("email") ||
+    lower.includes("mail") ||
+    lower.includes("inbox") ||
+    lower.includes("gmail") ||
+    lower.includes("message")
+  ) {
+    return {
+      conversational_intro: "Searching your mailbox for relevant emails...",
+      capability_calls: [
+        {
+          capability_id: "composio_gmail_fetch_emails",
+          parameters: {
+            query: message.replace(/check my (email|emails|mail|inbox|gmail) and tell (me )?if i have received/gi, "").trim() || "is:inbox",
+            maxResults: 10,
+          },
+          reason: "Fetch and analyze emails from Gmail inbox",
+        },
+      ],
+    };
+  }
+
+  // 2. Calendar / Meeting Intent
   if (
     lower.includes("meet") ||
     lower.includes("calendar") ||
     lower.includes("schedule") ||
-    lower.includes("today") ||
-    lower.includes("july") ||
-    lower.includes("august") ||
-    lower.includes("week") ||
-    lower.includes("month")
+    lower.includes("appointment") ||
+    lower.includes("agenda")
   ) {
     let timeMin = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
     let timeMax: string | undefined = undefined;

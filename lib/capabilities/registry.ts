@@ -150,6 +150,20 @@ export const CAPABILITY_REGISTRY: CapabilityDefinition[] = [
     },
   },
   {
+    id: "composio_gmail_fetch_emails",
+    name: "Gmail: Search & Fetch Inbox Emails",
+    description: "Searches the advisor's Gmail inbox for messages matching keywords, job opportunities, client inquiries, or date filters.",
+    source: "composio_connector",
+    category: "email",
+    requiredConnector: "gmail",
+    requiresHITL: false,
+    executionType: "sync",
+    parameters: {
+      query: { type: "string", description: "Search query or keywords (e.g. 'job OR interview OR recruiter newer_than:1d')", required: false },
+      maxResults: { type: "number", description: "Maximum number of messages to fetch (default 10)", required: false },
+    },
+  },
+  {
     id: "composio_gmail_send_email",
     name: "Gmail: Send Client Follow-Up",
     description: "Dispatches a post-meeting summary, suitability memo, or onboarding email to the client via Gmail.",
