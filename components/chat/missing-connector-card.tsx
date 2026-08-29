@@ -21,7 +21,6 @@ export function MissingConnectorCard({
   onConnectedAndResume,
 }: MissingConnectorCardProps) {
   const [connecting, setConnecting] = useState(false);
-  const [connected, setConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleConnect = async () => {
@@ -32,44 +31,16 @@ export function MissingConnectorCard({
       const res = await fetch("/api/integrations/composio/connect", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ appName: connectorId }),
+        body: JSON.stringify({ appName: connectorId, source: "chat" }),
       });
-
-      if (!res.ok) {
-        throw new Error("Failed to initiate connection");
-      }
 
       const data = await res.json();
 
       if (data.redirectUrl) {
-        // Open OAuth in a popup or new tab
-        const width = 600;
-        const height = 700;
-        const left = window.screen.width / 2 - width / 2;
-        const top = window.screen.height / 2 - height / 2;
-
-        const authWindow = window.open(
-          data.redirectUrl,
-          `Connect ${connectorName}`,
-          `width=${width},height=${height},top=${top},left=${left}`
-        );
-
-        // Poll for window close / mock completion
-        const timer = setInterval(() => {
-          if (authWindow?.closed || !authWindow) {
-            clearInterval(timer);
-            setConnecting(false);
-            setConnected(true);
-            // Auto-resume original intent after 1 second
-            setTimeout(() => {
-              onConnectedAndResume?.();
-            }, 1000);
-          }
-        }, 1000);
+        // Directly navigate to connector without popup blockers
+        window.location.href = data.redirectUrl;
       } else {
-        setConnecting(false);
-        setConnected(true);
-        onConnectedAndResume?.();
+        throw new Error(data.error || "Failed to initiate connector");
       }
     } catch (err: any) {
       console.error("Connect error:", err);
@@ -115,33 +86,26 @@ export function MissingConnectorCard({
 
       <div className="flex items-center justify-between pt-1">
         <span className="text-[10px] text-muted-foreground">
-          Auto-resumes your request immediately after connecting.
+          Directly opens connector authorization.
         </span>
 
-        {connected ? (
-          <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold text-xs">
-            <CheckCircle2 className="w-4 h-4" />
-            Connected! Resuming...
-          </div>
-        ) : (
-          <button
-            onClick={handleConnect}
-            disabled={connecting}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium shadow-sm transition disabled:opacity-50"
-          >
-            {connecting ? (
-              <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                Connecting...
-              </>
-            ) : (
-              <>
-                Connect {connectorName}
-                <ExternalLink className="w-3 h-3" />
-              </>
-            )}
-          </button>
-        )}
+        <button
+          onClick={handleConnect}
+          disabled={connecting}
+          className="flex items-center gap-1.5 px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-semibold shadow-sm transition disabled:opacity-50"
+        >
+          {connecting ? (
+            <>
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              Opening Connector...
+            </>
+          ) : (
+            <>
+              Connect {connectorName}
+              <ExternalLink className="w-3.5 h-3.5" />
+            </>
+          )}
+        </button>
       </div>
     </div>
   );

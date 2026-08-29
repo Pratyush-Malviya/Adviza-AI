@@ -18,7 +18,8 @@ export async function POST(req: Request) {
 
     const userId = user?.id || "demo_advisor_uuid";
     const origin = req.headers.get("origin") || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    const redirectUri = `${origin}/dashboard/settings?connected=${appName}`;
+    const redirectPath = body.source === "chat" ? "/dashboard/chat" : "/dashboard/connectors";
+    const redirectUri = `${origin}${redirectPath}?connected=${appName}`;
 
     const connection = await initiateComposioConnection(userId, appName, redirectUri);
 
