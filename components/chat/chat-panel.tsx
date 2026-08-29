@@ -15,6 +15,7 @@ import {
   Minimize2,
   Maximize2,
   ShieldAlert,
+  Calendar,
 } from "lucide-react";
 import { MissingConnectorCard } from "./missing-connector-card";
 import { HITLApprovalCard } from "./hitl-approval-card";
@@ -315,15 +316,60 @@ export function ChatPanel({ onClose, isFloating = false }: ChatPanelProps) {
                       {er.category === "compliance" && (
                         <BriefingCard data={er.result} type="compliance" />
                       )}
-                      {er.category !== "briefing" && er.category !== "compliance" && (
+                      {er.category === "calendar" && (
+                        <div className="p-3 bg-white/90 rounded-xl border border-emerald-500/30 text-[11px] space-y-2 shadow-xs">
+                          <div className="flex items-center justify-between">
+                            <div className="font-bold text-foreground flex items-center gap-1.5">
+                              <Calendar className="w-3.5 h-3.5 text-emerald-600" />
+                              <span>{er.name}</span>
+                            </div>
+                            <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[9px] font-bold border border-emerald-200">
+                              🟢 Live Sync
+                            </span>
+                          </div>
+
+                          <div className="text-[10px] text-muted-foreground font-mono">
+                            Account: {er.result?.accountEmail || "Google Calendar"}
+                          </div>
+
+                          {(!er.result?.events || er.result.events.length === 0) ? (
+                            <div className="p-2.5 bg-[#FAF5F0] rounded-lg border border-[#EADBCE] text-center text-xs text-muted-foreground">
+                              🗓️ No upcoming client meetings scheduled today.
+                            </div>
+                          ) : (
+                            <div className="space-y-1.5">
+                              {er.result.events.map((ev: any, evIdx: number) => {
+                                const start = ev.start?.dateTime
+                                  ? new Date(ev.start.dateTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                                  : ev.start?.date || "All Day";
+                                return (
+                                  <div
+                                    key={evIdx}
+                                    className="p-2 rounded-lg bg-zinc-50 border border-zinc-200/80 flex items-center justify-between"
+                                  >
+                                    <div className="font-semibold text-zinc-900 truncate">
+                                      {ev.summary || "Client Meeting"}
+                                    </div>
+                                    <span className="text-[10px] text-rose-600 font-mono font-bold shrink-0">
+                                      {start}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {er.category !== "briefing" && er.category !== "compliance" && er.category !== "calendar" && (
                         <div className="p-2.5 bg-background/80 rounded-xl border border-border/50 text-[11px]">
                           <div className="font-semibold text-foreground flex items-center gap-1">
                             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
                             {er.name}
                           </div>
-                          <pre className="mt-1 p-2 bg-muted/40 rounded text-[10px] overflow-x-auto">
-                            {JSON.stringify(er.result, null, 2)}
-                          </pre>
+                          <div className="mt-1 p-2 bg-muted/40 rounded text-[10px]">
+                            {er.result?.message || "Executed successfully."}
+                          </div>
                         </div>
                       )}
                     </div>

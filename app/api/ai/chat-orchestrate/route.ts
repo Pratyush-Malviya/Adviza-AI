@@ -269,6 +269,31 @@ export async function POST(req: NextRequest) {
       executedResults.push(...results);
     }
 
+    // Synthesize final natural language answer from executed results
+    let responseText = decision.conversational_intro || "Here is what I found for your request.";
+    if (executedResults.length > 0) {
+      const calendarResult = executedResults.find(
+        (r) => r.capabilityId?.toLowerCase().includes("calendar") || r.category === "calendar"
+      );
+      if (calendarResult?.result) {
+        const events = calendarResult.result.events || [];
+        const email = calendarResult.result.accountEmail || "Google Calendar";
+        if (events.length === 0) {
+          responseText = `I checked **${email}**. You currently have **no client meetings scheduled for today**. Your schedule is clear.`;
+        } else {
+          responseText = `I checked **${email}** and found **${events.length} meeting(s)** scheduled for today:\n\n` +
+            events
+              .map((ev: any, i: number) => {
+                const start = ev.start?.dateTime
+                  ? new Date(ev.start.dateTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                  : ev.start?.date || "All day";
+                return `${i + 1}. **${ev.summary || "Client Review"}** (${start})`;
+              })
+              .join("\n");
+        }
+      }
+    }
+
     // Save chat interaction to Supabase
     if (sessionId && firmId) {
       await supabase.from("chat_messages").insert({
@@ -276,7 +301,7 @@ export async function POST(req: NextRequest) {
         firm_id: firmId,
         user_id: user.id,
         role: "assistant",
-        content: decision.conversational_intro || "Here is what I found for your request.",
+        content: responseText,
         capability_calls: decision.capability_calls,
         metadata: {
           executedResults,
@@ -288,7 +313,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       type: "orchestrated_response",
-      intro: decision.conversational_intro,
+      intro: responseText,
       executedResults,
       missingConnectors,
       hitlPrompts,

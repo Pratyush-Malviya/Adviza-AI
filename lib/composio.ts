@@ -526,48 +526,59 @@ export async function executeComposioAction(
   }
 
   try {
-    // 1. Locate an active connection for this action category
+    // 1. Locate active connection
     const connections = await getComposioConnections(userId);
-    const activeConnection = connections.find(
-      (c) => c.status === "CONNECTED" && actionName.toLowerCase().includes(c.appName.toLowerCase())
-    ) || connections.find((c) => c.status === "CONNECTED");
+    const activeConnection =
+      connections.find(
+        (c) =>
+          c.status === "CONNECTED" &&
+          (actionName.toLowerCase().includes(c.appName.toLowerCase()) ||
+            c.appName.toLowerCase().includes("googlecalendar") ||
+            c.appName.toLowerCase().includes("calendar"))
+      ) || connections.find((c) => c.status === "CONNECTED");
 
     if (!activeConnection) {
-      throw new Error(`No active connected account found for ${actionName}. Please connect the account in Settings.`);
+      throw new Error(`No active connected account found for ${actionName}. Please connect the account in Connectors.`);
     }
 
-    // 2. Perform proxy execution
-    if (actionName.includes("CALENDAR") || actionName.includes("FIND_EVENTS")) {
-      const proxyRes = await fetch(`${COMPOSIO_V31_BASE}/tools/execute/proxy`, {
-        method: "POST",
-        headers: {
-          "x-api-key": apiKey,
-          "Content-Type": "application/json",
+    // 2. Map capability to v3 tool slug
+    let toolSlug = "GOOGLECALENDAR_EVENTS_LIST";
+    if (actionName.toLowerCase().includes("find")) {
+      toolSlug = "GOOGLECALENDAR_FIND_EVENT";
+    }
+
+    // 3. Execute via Composio v3 tool execution endpoint
+    const response = await fetch(`${COMPOSIO_V3_BASE}/tools/execute/${toolSlug}`, {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        user_id: activeConnection.userUuid || userId,
+        connected_account_id: activeConnection.id,
+        arguments: {
+          calendarId: "primary",
+          timeMin: new Date(new Date().setHours(0, 0, 0, 0)).toISOString(),
+          maxResults: params.maxResults || 10,
         },
-        body: JSON.stringify({
-          connected_account_id: activeConnection.id,
-          endpoint: "/calendars/primary/events",
-          method: "GET",
-          parameters: [
-            { name: "maxResults", value: String(params.maxResults || 10), type: "query" },
-            ...(params.timeMin ? [{ name: "timeMin", value: params.timeMin, type: "query" }] : []),
-          ],
-        }),
-      });
+      }),
+    });
 
-      const proxyData = await proxyRes.json();
-      if (!proxyRes.ok) {
-        throw new Error(proxyData.error?.message || "Failed to execute calendar tool call");
-      }
-
-      return proxyData.data || proxyData;
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.error?.message || result.message || "Failed to execute calendar tool call");
     }
 
-    // General fallback execution
+    const items = result.data?.items || result.items || [];
+    const email = activeConnection.email || result.data?.summary || "Google Calendar";
+
     return {
       success: true,
-      connectedAccountId: activeConnection.id,
-      data: params,
+      accountEmail: email,
+      events: items,
+      totalEvents: items.length,
+      timeZone: result.data?.timeZone || "Asia/Kolkata",
     };
   } catch (error: any) {
     console.error(`Error executing action ${actionName}:`, error);
