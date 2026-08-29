@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
-import { Brain, Building2, CreditCard, Shield } from "lucide-react";
+import Link from "next/link";
+import { Brain, Building2, CreditCard, Shield, ArrowRight } from "lucide-react";
 import { BillingButton } from "@/components/dashboard/billing-button";
-import { IntegrationsHub } from "@/components/dashboard/integrations-hub";
 
 export const metadata = { title: "Settings" };
 
@@ -82,9 +82,21 @@ export default async function SettingsPage() {
         </p>
       </div>
 
-      {/* Connected Tools & Workspace Integrations */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#EADBCE] shadow-sm">
-        <IntegrationsHub />
+      {/* Connectors & Integrations Reference */}
+      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#EADBCE] shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-sm font-heading font-bold text-[#121217] uppercase tracking-wider">Connectors & Tool Integrations</h2>
+          <p className="text-xs text-[#7A726A] mt-1">
+            Manage your Google Calendar, Outlook, CRM, and communication tool authorizations.
+          </p>
+        </div>
+        <Link
+          href="/dashboard/connectors"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl bg-[#121217] hover:bg-[#2A2620] text-white font-semibold text-xs transition shadow-sm shrink-0"
+        >
+          <span>Open Connectors & Tools</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </Link>
       </div>
 
       {/* AI Stack */}
