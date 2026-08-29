@@ -30,9 +30,21 @@ import {
   FileCode2,
   Share2,
   Workflow,
-  Plus
+  Plus,
+  Wand2,
+  Loader2,
+  Send,
+  HelpCircle,
+  ArrowRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+const SAMPLE_PROMPTS = [
+  "When a client portfolio drifts by > 5%, run risk audit, require advisor sign-off, and dispatch Inngest rebalance",
+  "After client meeting audio upload, extract commitments with Claude, run FINRA/SEC compliance check, and sync tasks to Salesforce",
+  "60 minutes before Google Calendar review meeting, generate executive briefing memo and sync prep note to CRM",
+  "Inbound webhook for High Net Worth lead, audit KYC requirements, and send automated welcome follow-up email via Resend"
+];
 
 export default function WorkflowsPage() {
   // Workflow State
@@ -41,12 +53,17 @@ export default function WorkflowsPage() {
   const [edges, setEdges] = useState<WorkflowEdge[]>(PREBUILT_WORKFLOW_TEMPLATES[0].edges);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
+  // AI Generation State
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+
   // UI Drawer states
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
   const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
   const [isExecuting, setIsExecuting] = useState(false);
   const [executionLogs, setExecutionLogs] = useState<WorkflowExecutionLog[]>([]);
-  const [saveSuccessToast, setSaveSuccessToast] = useState(false);
+  const [saveSuccessToast, setSaveSuccessToast] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -77,8 +94,8 @@ export default function WorkflowsPage() {
         savedAt: new Date().toISOString(),
       };
       localStorage.setItem("adviza_current_workflow", JSON.stringify(payload));
-      setSaveSuccessToast(true);
-      setTimeout(() => setSaveSuccessToast(false), 2500);
+      setSaveSuccessToast("Workflow pipeline successfully saved to local vault.");
+      setTimeout(() => setSaveSuccessToast(null), 2500);
     } catch (e) {
       console.error(e);
     }
@@ -126,6 +143,42 @@ export default function WorkflowsPage() {
       }
     };
     reader.readAsText(file);
+  };
+
+  // AI Workflow Generator Handler
+  const handleGenerateWorkflow = async (promptOverride?: string) => {
+    const targetPrompt = promptOverride || aiPrompt;
+    if (!targetPrompt || targetPrompt.trim().length === 0) return;
+
+    setIsGeneratingAI(true);
+    try {
+      const response = await fetch("/api/ai/workflow-generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: targetPrompt.trim() }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate workflow via AI");
+      }
+
+      const data = await response.json();
+      if (data?.workflow) {
+        setWorkflowName(data.workflow.name || "AI Generated Workflow");
+        setNodes(data.workflow.nodes || []);
+        setEdges(data.workflow.edges || []);
+        setSelectedNodeId(data.workflow.nodes?.[0]?.id || null);
+        setIsAiModalOpen(false);
+        setAiPrompt("");
+        setSaveSuccessToast(`✨ Generated "${data.workflow.name}" with ${data.workflow.nodes?.length} nodes!`);
+        setTimeout(() => setSaveSuccessToast(null), 3500);
+      }
+    } catch (err) {
+      console.error("AI Generation error:", err);
+      alert("Failed to generate workflow. Please try again.");
+    } finally {
+      setIsGeneratingAI(false);
+    }
   };
 
   // Add node from template
@@ -260,13 +313,13 @@ export default function WorkflowsPage() {
       // Generated Mock output based on category
       let outputSnippet = `Success: Output generated for ${node.data.label}`;
       if (node.data.category === "trigger") {
-        outputSnippet = JSON.stringify({ event: "Calendar_Meeting_Scheduled", client: "David & Sarah Henderson", portfolio_value: "$4,250,000" }, null, 2);
+        outputSnippet = JSON.stringify({ event: "Trigger_Activated", client: "David & Sarah Henderson", portfolio_value: "$4,250,000" }, null, 2);
       } else if (node.data.category === "agent") {
-        outputSnippet = `Executive Briefing Memo:\n- Client Sentiment: Highly receptive to tax-loss harvesting\n- Key Goal: Estate transfer to children\n- Compliance Guardrail: Fiduciary verified`;
+        outputSnippet = `Intelligence Memo:\n- Client Sentiment: High alignment\n- Strategy: Tax-loss harvesting & municipal re-allocation\n- Compliance: Fiduciary certified`;
       } else if (node.data.category === "logic") {
         outputSnippet = `Fiduciary Advisor Signature Verified: Cryptographic Hash #9fa4c-8821d`;
       } else if (node.data.category === "action") {
-        outputSnippet = `Synced to Salesforce FSC & Dispatched Resend Email (Message ID: #msg_88294a)`;
+        outputSnippet = `Dispatched action step & synced to CRM (Status: 200 OK)`;
       }
 
       // Mark Success
@@ -329,7 +382,7 @@ export default function WorkflowsPage() {
               type="text"
               value={workflowName}
               onChange={(e) => setWorkflowName(e.target.value)}
-              className="font-bold text-sm text-[#121217] bg-transparent hover:bg-[#FAF5F0] focus:bg-white px-2 py-1 rounded-lg border border-transparent hover:border-[#EADBCE] focus:border-rose-400 focus:outline-none transition max-w-[280px] sm:max-w-md truncate"
+              className="font-bold text-sm text-[#121217] bg-transparent hover:bg-[#FAF5F0] focus:bg-white px-2 py-1 rounded-lg border border-transparent hover:border-[#EADBCE] focus:border-rose-400 focus:outline-none transition max-w-[240px] sm:max-w-md truncate"
             />
             <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full hidden sm:inline-flex">
               Active Pipeline
@@ -339,6 +392,15 @@ export default function WorkflowsPage() {
 
         {/* Right: Actions */}
         <div className="flex items-center gap-2">
+          {/* AI Workflow Generator Trigger */}
+          <button
+            onClick={() => setIsAiModalOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-violet-700 hover:text-violet-900 bg-violet-50 hover:bg-violet-100 border border-violet-200 rounded-xl transition shadow-xs cursor-pointer"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-violet-600 animate-pulse" />
+            <span className="hidden sm:inline">Generate with AI</span>
+          </button>
+
           {/* Prebuilt Templates Modal Trigger */}
           <button
             onClick={() => setIsTemplateModalOpen(true)}
@@ -397,6 +459,79 @@ export default function WorkflowsPage() {
         </div>
       </header>
 
+      {/* AI Natural Language Prompt Header Bar */}
+      <div className="bg-white/80 backdrop-blur-md border-b border-[#EADBCE] px-4 py-2.5 flex flex-col md:flex-row items-stretch md:items-center gap-3 z-10 shrink-0">
+        <div className="flex items-center gap-2 text-violet-700 font-semibold text-xs shrink-0">
+          <div className="w-5 h-5 rounded-md bg-violet-100 flex items-center justify-center">
+            <Wand2 className="w-3 h-3 text-violet-600" />
+          </div>
+          <span className="hidden lg:inline">AI Builder:</span>
+        </div>
+
+        {/* Prompt Input Form */}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleGenerateWorkflow();
+          }}
+          className="flex-1 flex items-center gap-2"
+        >
+          <div className="relative flex-1">
+            <input
+              type="text"
+              value={aiPrompt}
+              onChange={(e) => setAiPrompt(e.target.value)}
+              placeholder="Describe what you want to automate (e.g. 'When portfolio drifts > 5%, request advisor sign-off and dispatch Inngest rebalance')..."
+              className="w-full pl-3 pr-8 py-1.5 text-xs bg-[#FAF5F0]/80 hover:bg-white focus:bg-white border border-[#EADBCE] focus:border-violet-500 rounded-xl focus:outline-none transition placeholder:text-[#8E847C]"
+            />
+            {aiPrompt && (
+              <button
+                type="button"
+                onClick={() => setAiPrompt("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-[#8E847C] hover:text-[#121217] cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            disabled={isGeneratingAI || !aiPrompt.trim()}
+            className="flex items-center gap-1.5 px-4 py-1.5 bg-gradient-to-r from-violet-600 to-rose-500 hover:from-violet-700 hover:to-rose-600 text-white text-xs font-semibold rounded-xl shadow-xs hover:shadow transition disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed shrink-0"
+          >
+            {isGeneratingAI ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>Generating...</span>
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Generate</span>
+              </>
+            )}
+          </button>
+        </form>
+
+        {/* Quick Sample Chip */}
+        <div className="hidden xl:flex items-center gap-1.5 text-[11px] text-[#8E847C] shrink-0">
+          <span>Try:</span>
+          <button
+            onClick={() => handleGenerateWorkflow(SAMPLE_PROMPTS[0])}
+            className="px-2 py-0.5 bg-[#FAF5F0] hover:bg-violet-50 hover:text-violet-700 border border-[#EADBCE] rounded-lg transition text-left truncate max-w-[200px] cursor-pointer"
+          >
+            Portfolio Drift Rebalance
+          </button>
+          <button
+            onClick={() => handleGenerateWorkflow(SAMPLE_PROMPTS[1])}
+            className="px-2 py-0.5 bg-[#FAF5F0] hover:bg-violet-50 hover:text-violet-700 border border-[#EADBCE] rounded-lg transition text-left truncate max-w-[200px] cursor-pointer"
+          >
+            Post-Meeting Compliance
+          </button>
+        </div>
+      </div>
+
       {/* Main Canvas Area with 3-Column Layout */}
       <div className="flex-1 flex min-h-0 relative overflow-hidden">
         {/* Left Palette */}
@@ -439,11 +574,101 @@ export default function WorkflowsPage() {
         )}
       </div>
 
-      {/* Save Success Toast */}
+      {/* Save / AI Success Toast */}
       {saveSuccessToast && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-[#121217] text-white text-xs font-medium px-4 py-2.5 rounded-xl shadow-xl border border-white/10 animate-in fade-in slide-in-from-bottom-2">
           <Check className="w-4 h-4 text-emerald-400" />
-          Workflow pipeline successfully saved to local vault.
+          {saveSuccessToast}
+        </div>
+      )}
+
+      {/* AI Generator Modal */}
+      {isAiModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-2xl border border-[#EADBCE] shadow-2xl max-w-xl w-full p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-[#EADBCE] pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-violet-600 to-rose-500 flex items-center justify-center text-white shadow-sm">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-[#121217]">
+                    AI Workflow Generator
+                  </h3>
+                  <p className="text-[11px] text-[#8E847C]">
+                    Describe your automated pipeline and AI will construct the full node graph.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsAiModalOpen(false)}
+                className="p-1 text-[#8E847C] hover:text-[#121217] rounded-lg cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-xs font-semibold text-[#121217]">
+                What should this workflow do?
+              </label>
+              <textarea
+                rows={4}
+                value={aiPrompt}
+                onChange={(e) => setAiPrompt(e.target.value)}
+                placeholder="Example: When an upcoming meeting is 1 hour away, trigger the briefing agent to pull portfolio data, check open action items, require advisor sign-off, and update Salesforce CRM..."
+                className="w-full p-3 text-xs bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl focus:bg-white focus:outline-none focus:ring-1 focus:ring-violet-500 resize-none placeholder:text-[#8E847C]"
+              />
+            </div>
+
+            {/* Prompt Inspiration Suggestions */}
+            <div className="space-y-1.5">
+              <span className="text-[11px] font-semibold text-[#8E847C]">
+                Suggested Prompts:
+              </span>
+              <div className="space-y-1.5">
+                {SAMPLE_PROMPTS.map((sample, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setAiPrompt(sample)}
+                    className="w-full text-left p-2 rounded-xl text-xs bg-[#FAF5F0] hover:bg-violet-50 hover:text-violet-900 border border-[#EADBCE] hover:border-violet-300 transition flex items-center justify-between group cursor-pointer"
+                  >
+                    <span className="truncate pr-2">{sample}</span>
+                    <ArrowRight className="w-3.5 h-3.5 text-[#8E847C] group-hover:text-violet-600 shrink-0" />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#EADBCE]">
+              <button
+                onClick={() => setIsAiModalOpen(false)}
+                className="px-3.5 py-1.5 text-xs font-medium text-[#645F5A] hover:bg-[#FAF5F0] border border-[#EADBCE] rounded-xl transition cursor-pointer"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={() => handleGenerateWorkflow()}
+                disabled={isGeneratingAI || !aiPrompt.trim()}
+                className="flex items-center gap-1.5 px-4 py-1.5 bg-gradient-to-r from-violet-600 to-rose-500 hover:from-violet-700 hover:to-rose-600 text-white text-xs font-semibold rounded-xl shadow-xs transition disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+              >
+                {isGeneratingAI ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Synthesizing Nodes...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Generate & Build Canvas</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -460,7 +685,7 @@ export default function WorkflowsPage() {
               </div>
               <button
                 onClick={() => setIsTemplateModalOpen(false)}
-                className="p-1 text-[#8E847C] hover:text-[#121217] rounded-lg"
+                className="p-1 text-[#8E847C] hover:text-[#121217] rounded-lg cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -498,7 +723,7 @@ export default function WorkflowsPage() {
                   <div className="flex justify-end">
                     <button
                       onClick={() => handleSelectTemplate(tpl)}
-                      className="px-3.5 py-1.5 bg-gradient-to-r from-violet-600 to-rose-500 text-white text-xs font-semibold rounded-xl shadow-xs hover:shadow transition"
+                      className="px-3.5 py-1.5 bg-gradient-to-r from-violet-600 to-rose-500 text-white text-xs font-semibold rounded-xl shadow-xs hover:shadow transition cursor-pointer"
                     >
                       Load Template
                     </button>
