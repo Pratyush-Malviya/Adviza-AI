@@ -162,10 +162,12 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 6. Process Capability Calls (Auth check, HITL gate, Execution)
+    // 6. Process Capability Calls Concurrently (Auth check, HITL gate, Execution)
     const executedResults: any[] = [];
     const missingConnectors: any[] = [];
     const hitlPrompts: any[] = [];
+
+    const runnableCalls: any[] = [];
 
     for (const call of decision.capability_calls) {
       const cap = findCapability(call.capability_id);
@@ -201,60 +203,70 @@ export async function POST(req: NextRequest) {
         continue; // Wait for HITL sign-off
       }
 
-      // Execute Sync / Agent Fleet capabilities
-      try {
-        let resultData: any = null;
+      runnableCalls.push({ cap, call });
+    }
 
-        if (cap.id === "agent_meeting_briefing") {
-          const clientName = call.parameters.clientName || ambientContext?.clientName || "Sarah Jenkins";
-          resultData = await generateClientBriefing({
-            clientName,
-            meetingType: call.parameters.meetingType || "Portfolio Review",
-            meetingDate: new Date().toLocaleDateString(),
-            clientProfile: {
-              portfolioValue: 1850000,
-              riskTolerance: "Growth & Income",
-              investmentGoals: ["Estate Planning", "Tax-efficient wealth transfer"],
-            },
-          });
-        } else if (cap.id === "agent_compliance_audit") {
-          resultData = await generateComplianceRecord({
-            clientName: call.parameters.clientName || ambientContext?.clientName || "Sarah Jenkins",
-            advisorName: profile?.full_name || "Lead Advisor",
-            firmName: profile?.firms?.name || "Adviza Wealth Partners",
-            meetingDate: new Date().toISOString(),
-            meetingType: "Annual Suitability Review",
-            meetingSummary: call.parameters.meetingSummary || "Discussed equity overweight and rebalancing into high-yield muni bonds.",
-            topicsDiscussed: ["Asset Allocation", "Municipal Bonds", "Fee Disclosure"],
-            recommendationsMade: ["Rebalance $200k from US Equities to Tax-Exempt Fixed Income"],
-            clientRiskProfile: call.parameters.clientRiskProfile || "Moderate",
-            complianceNotes: {
-              suitabilityDiscussed: true,
-              risksDisclosed: ["Interest rate risk", "Credit duration risk"],
-              clientAcknowledgements: ["Received Form ADV Part 2A"],
-              flaggedItems: [],
-            },
-          });
-        } else if (cap.id.startsWith("composio_")) {
-          resultData = await executeComposioAction(user.id, cap.id, call.parameters);
-        } else {
-          resultData = { status: "success", executed: cap.name, params: call.parameters };
-        }
+    // Execute runnable capabilities in parallel
+    if (runnableCalls.length > 0) {
+      const results = await Promise.all(
+        runnableCalls.map(async ({ cap, call }) => {
+          try {
+            let resultData: any = null;
 
-        executedResults.push({
-          capabilityId: cap.id,
-          name: cap.name,
-          category: cap.category,
-          result: resultData,
-        });
-      } catch (execErr: any) {
-        console.error(`Execution error for capability ${cap.id}:`, execErr);
-        executedResults.push({
-          capabilityId: cap.id,
-          name: cap.name,
-          error: execErr.message || "Execution failed",
-        });
-      }
+            if (cap.id === "agent_meeting_briefing") {
+              const clientName = call.parameters.clientName || ambientContext?.clientName || "Sarah Jenkins";
+              resultData = await generateClientBriefing({
+                clientName,
+                meetingType: call.parameters.meetingType || "Portfolio Review",
+                meetingDate: new Date().toLocaleDateString(),
+                clientProfile: {
+                  portfolioValue: 1850000,
+                  riskTolerance: "Growth & Income",
+                  investmentGoals: ["Estate Planning", "Tax-efficient wealth transfer"],
+                },
+              });
+            } else if (cap.id === "agent_compliance_audit") {
+              resultData = await generateComplianceRecord({
+                clientName: call.parameters.clientName || ambientContext?.clientName || "Sarah Jenkins",
+                advisorName: profile?.full_name || "Lead Advisor",
+                firmName: profile?.firms?.name || "Adviza Wealth Partners",
+                meetingDate: new Date().toISOString(),
+                meetingType: "Annual Suitability Review",
+                meetingSummary: call.parameters.meetingSummary || "Discussed equity overweight and rebalancing into high-yield muni bonds.",
+                topicsDiscussed: ["Asset Allocation", "Municipal Bonds", "Fee Disclosure"],
+                recommendationsMade: ["Rebalance $200k from US Equities to Tax-Exempt Fixed Income"],
+                clientRiskProfile: call.parameters.clientRiskProfile || "Moderate",
+                complianceNotes: {
+                  suitabilityDiscussed: true,
+                  risksDisclosed: ["Interest rate risk", "Credit duration risk"],
+                  clientAcknowledgements: ["Received Form ADV Part 2A"],
+                  flaggedItems: [],
+                },
+              });
+            } else if (cap.id.startsWith("composio_")) {
+              resultData = await executeComposioAction(user.id, cap.id, call.parameters);
+            } else {
+              resultData = { status: "success", executed: cap.name, params: call.parameters };
+            }
+
+            return {
+              capabilityId: cap.id,
+              name: cap.name,
+              category: cap.category,
+              result: resultData,
+            };
+          } catch (execErr: any) {
+            console.error(`Execution error for capability ${cap.id}:`, execErr);
+            return {
+              capabilityId: cap.id,
+              name: cap.name,
+              error: execErr.message || "Execution failed",
+            };
+          }
+        })
+      );
+
+      executedResults.push(...results);
     }
 
     // Save chat interaction to Supabase
