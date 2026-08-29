@@ -10,7 +10,6 @@ export async function GET(_req: NextRequest, { params }: RouteContext) {
     const { id } = await params;
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { data, error } = await supabase
       .from("workflows")

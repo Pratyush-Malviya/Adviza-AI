@@ -4,19 +4,10 @@ import { generateWorkflowFromPrompt } from "@/lib/agents/workflow-generator";
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const body = await request.json();
     const { prompt } = body;
 
-    if (!prompt || typeof prompt !== "string") {
+    if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
       return NextResponse.json(
         { error: "A valid prompt string is required." },
         { status: 400 }

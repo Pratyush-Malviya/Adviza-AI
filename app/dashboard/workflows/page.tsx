@@ -28,7 +28,6 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PREBUILT_WORKFLOW_TEMPLATES } from "@/components/workflows/workflow-templates";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -184,30 +183,47 @@ export default function WorkflowsLibraryPage() {
   };
 
   // ─── AI Generate + Save ──────────────────────────────────────────────────────
-  const handleGenerateAndSave = async () => {
-    if (!aiPrompt.trim()) return;
+  const handleGenerateAndSave = async (promptOverride?: string) => {
+    const promptToUse = (promptOverride || aiPrompt).trim();
+    if (!promptToUse) return;
     setIsGenerating(true);
     try {
       const res = await fetch("/api/ai/workflow-generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: aiPrompt.trim() }),
+        body: JSON.stringify({ prompt: promptToUse }),
       });
       if (!res.ok) throw new Error("Generation failed");
       const data = await res.json();
       if (!data?.workflow) throw new Error("No workflow returned");
+
+      const generatedWf = data.workflow;
+      const wfId = `wf_${Date.now()}`;
+
+      // Save to localStorage so it is immediately accessible
+      try {
+        localStorage.setItem("adviza_current_workflow", JSON.stringify({
+          id: wfId,
+          name: generatedWf.name,
+          nodes: generatedWf.nodes,
+          edges: generatedWf.edges,
+          ai_generated: true,
+          ai_prompt: promptToUse,
+        }));
+      } catch {}
 
       // Save to DB
       const saveRes = await fetch("/api/workflows", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: data.workflow.name ?? "AI Workflow",
-          nodes: data.workflow.nodes ?? [],
-          edges: data.workflow.edges ?? [],
+          name: generatedWf.name ?? "AI Generated Workflow",
+          description: generatedWf.description ?? `Generated for: "${promptToUse}"`,
+          nodes: generatedWf.nodes ?? [],
+          edges: generatedWf.edges ?? [],
           ai_generated: true,
-          ai_prompt: aiPrompt.trim(),
-          trigger_type: data.workflow.nodes?.[0]?.data?.typeId ?? null,
+          ai_prompt: promptToUse,
+          trigger_type: generatedWf.nodes?.[0]?.data?.typeId ?? null,
           connected_apps: [],
         }),
       });
@@ -217,13 +233,23 @@ export default function WorkflowsLibraryPage() {
 
       if (saveRes.ok) {
         const saved = await saveRes.json();
-        showToast("success", `✨ "${data.workflow.name}" created with ${data.workflow.nodes?.length} nodes`);
+        const finalId = saved?.workflow?.id || wfId;
+        try {
+          localStorage.setItem("adviza_current_workflow", JSON.stringify({
+            id: finalId,
+            name: generatedWf.name,
+            nodes: generatedWf.nodes,
+            edges: generatedWf.edges,
+            ai_generated: true,
+            ai_prompt: promptToUse,
+          }));
+        } catch {}
+        showToast("success", `✨ "${generatedWf.name}" generated with ${generatedWf.nodes?.length ?? 0} nodes!`);
         fetchWorkflows();
-        setTimeout(() => router.push(`/dashboard/workflows/${saved.workflow.id}`), 800);
+        router.push(`/dashboard/workflows/${finalId}`);
       } else {
-        // No Supabase — navigate to new page with localStorage
-        showToast("success", `✨ "${data.workflow.name}" generated! Opening editor...`);
-        router.push("/dashboard/workflows/new");
+        showToast("success", `✨ "${generatedWf.name}" generated! Opening editor...`);
+        router.push(`/dashboard/workflows/${wfId}`);
       }
     } catch (err: any) {
       showToast("error", "AI generation failed. Please try again.");
@@ -263,7 +289,7 @@ export default function WorkflowsLibraryPage() {
     }
   };
 
-  // ─── Archive ─────────────────────────────────────────────────────────────────
+  // ─── Archive / Delete ────────────────────────────────────────────────────────
   const handleArchive = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
@@ -273,34 +299,6 @@ export default function WorkflowsLibraryPage() {
       fetchWorkflows();
     } catch {
       showToast("error", "Archive failed");
-    }
-  };
-
-  // ─── Load template as new workflow ───────────────────────────────────────────
-  const handleLoadTemplate = async (tpl: (typeof PREBUILT_WORKFLOW_TEMPLATES)[0]) => {
-    try {
-      const res = await fetch("/api/workflows", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: tpl.name,
-          description: tpl.description,
-          nodes: tpl.nodes,
-          edges: tpl.edges,
-          trigger_type: tpl.nodes?.[0]?.data?.typeId ?? null,
-          connected_apps: [],
-        }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        showToast("success", `Template "${tpl.name}" loaded`);
-        fetchWorkflows();
-        setTimeout(() => router.push(`/dashboard/workflows/${data.workflow.id}`), 500);
-      } else {
-        router.push("/dashboard/workflows/new");
-      }
-    } catch {
-      router.push("/dashboard/workflows/new");
     }
   };
 
@@ -343,25 +341,92 @@ export default function WorkflowsLibraryPage() {
             </h1>
           </div>
           <p className="text-sm text-[#7A726A] max-w-2xl">
-            Create, manage, and run automated pipelines. Connect AI agents, compliance checks, and your CRM — all in one visual canvas.
+            Create, manage, and run automated advisory pipelines. Connect AI agents, compliance checks, and your CRM in real time.
           </p>
         </div>
 
         <div className="flex items-center gap-2.5">
           <button
-            onClick={() => setIsAiModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-violet-600 to-rose-500 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer"
-          >
-            <Wand2 className="w-4 h-4" />
-            Generate with AI
-          </button>
-          <button
             onClick={handleNewWorkflow}
             className="flex items-center gap-2 px-4 py-2.5 bg-white border border-[#EADBCE] text-[#121217] text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            New Workflow
+            Blank Canvas
           </button>
+        </div>
+      </div>
+
+      {/* ── AI Prompt Hero Bar ────────────────────────────────────────────── */}
+      <div className="bg-gradient-to-r from-violet-900/90 via-indigo-900/90 to-purple-900/90 border border-violet-700/50 rounded-3xl p-6 sm:p-7 shadow-lg text-white relative overflow-hidden">
+        <div className="absolute -right-12 -top-12 w-64 h-64 bg-violet-500/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -left-12 -bottom-12 w-64 h-64 bg-rose-500/20 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 space-y-4">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-violet-300 animate-pulse" />
+            <h2 className="text-base sm:text-lg font-bold font-heading">Generate New Workflow with AI</h2>
+          </div>
+          <p className="text-xs sm:text-sm text-violet-200/90 max-w-2xl">
+            Describe the workflow you need in plain English. Adviza AI will generate the nodes, wire the connectors, and configure execution parameters.
+          </p>
+
+          <div className="flex flex-col sm:flex-row items-stretch gap-2.5 pt-1">
+            <div className="relative flex-1">
+              <input
+                value={aiPrompt}
+                onChange={(e) => setAiPrompt(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !isGenerating) handleGenerateAndSave();
+                }}
+                placeholder="e.g. When a client portfolio drifts by >5%, audit risk with SEC compliance, require advisor sign-off, and rebalance"
+                className="w-full pl-4 pr-10 py-3.5 text-sm bg-white/10 hover:bg-white/15 focus:bg-white/20 border border-white/20 rounded-2xl text-white placeholder:text-violet-200/60 focus:outline-none focus:ring-2 focus:ring-violet-400 transition-all backdrop-blur-sm"
+              />
+              {aiPrompt && (
+                <button
+                  onClick={() => setAiPrompt("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-violet-200/70 hover:text-white"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            <button
+              onClick={() => handleGenerateAndSave()}
+              disabled={isGenerating || !aiPrompt.trim()}
+              className="flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-violet-500 to-rose-500 hover:from-violet-400 hover:to-rose-400 text-white font-semibold text-sm rounded-2xl shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex-shrink-0"
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Wand2 className="w-4 h-4" />
+                  Generate Workflow
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Quick preset chips */}
+          <div className="flex items-center gap-2 flex-wrap pt-1">
+            <span className="text-[11px] font-medium text-violet-300/80">Suggestions:</span>
+            {SAMPLE_PROMPTS.map((prompt, i) => (
+              <button
+                key={i}
+                onClick={() => {
+                  setAiPrompt(prompt);
+                  handleGenerateAndSave(prompt);
+                }}
+                className="text-[11px] bg-white/10 hover:bg-white/20 text-violet-100 border border-white/10 hover:border-white/30 px-3 py-1 rounded-xl transition-all cursor-pointer truncate max-w-xs"
+                title={prompt}
+              >
+                {prompt.slice(0, 48)}...
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -394,7 +459,7 @@ export default function WorkflowsLibraryPage() {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search workflows..."
+            placeholder="Search your workflows..."
             className="w-full pl-9 pr-3 py-2 text-sm border border-[#EADBCE] rounded-xl bg-white text-[#121217] placeholder:text-[#9E978F] focus:outline-none focus:ring-2 focus:ring-violet-300"
           />
           {search && (
@@ -448,7 +513,7 @@ export default function WorkflowsLibraryPage() {
           <Loader2 className="w-8 h-8 animate-spin text-violet-400" />
         </div>
       ) : filtered.length === 0 ? (
-        <EmptyState onNew={handleNewWorkflow} onAI={() => setIsAiModalOpen(true)} onTemplate={handleLoadTemplate} />
+        <EmptyState onNew={handleNewWorkflow} onAI={(prompt) => handleGenerateAndSave(prompt)} />
       ) : (
         <div className={cn(
           viewMode === "grid"
@@ -469,41 +534,6 @@ export default function WorkflowsLibraryPage() {
           ))}
         </div>
       )}
-
-      {/* ── Templates Section ─────────────────────────────────────────────── */}
-      <div className="pt-4 border-t border-[#EADBCE]">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-[#121217]">Quick Start Templates</h2>
-          <span className="text-xs text-[#9E978F]">Click to load into a new workflow</span>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {PREBUILT_WORKFLOW_TEMPLATES.map((tpl) => (
-            <button
-              key={tpl.id}
-              onClick={() => handleLoadTemplate(tpl)}
-              className="text-left bg-white border border-[#EADBCE] rounded-2xl p-5 hover:border-violet-300 hover:shadow-md transition-all group cursor-pointer"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1">
-                  <span className="text-[10px] font-semibold text-violet-600 bg-violet-50 px-2 py-0.5 rounded-full border border-violet-100">
-                    {tpl.category}
-                  </span>
-                  <h4 className="font-semibold text-xs text-[#121217] mt-2">{tpl.name}</h4>
-                  <p className="text-[11px] text-[#645F5A] mt-1 leading-relaxed">{tpl.description}</p>
-                  <div className="flex flex-wrap gap-1 mt-2.5">
-                    {tpl.tags.slice(0, 3).map((tag) => (
-                      <span key={tag} className="text-[9px] bg-[#F7F3EE] border border-[#EADBCE] text-[#8E847C] px-1.5 py-0.5 rounded">
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                <ArrowRight className="w-4 h-4 text-[#C5BDB6] group-hover:text-violet-500 transition-colors flex-shrink-0 mt-1" />
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
 
       {/* ── AI Modal ──────────────────────────────────────────────────────── */}
       {isAiModalOpen && (
@@ -536,7 +566,7 @@ export default function WorkflowsLibraryPage() {
                   value={aiPrompt}
                   onChange={(e) => setAiPrompt(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleGenerateAndSave(); }}
-                  placeholder={SAMPLE_PROMPTS[currentPrompt]}
+                  placeholder={SAMPLE_PROMPTS[0]}
                   rows={4}
                   className="w-full px-4 py-3 text-sm border border-[#EADBCE] rounded-xl bg-white text-[#121217] placeholder:text-[#C5BDB6] focus:outline-none focus:ring-2 focus:ring-violet-300 resize-none"
                 />
@@ -558,7 +588,7 @@ export default function WorkflowsLibraryPage() {
               </div>
 
               <button
-                onClick={handleGenerateAndSave}
+                onClick={() => handleGenerateAndSave()}
                 disabled={isGenerating || !aiPrompt.trim()}
                 className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-violet-600 to-rose-500 text-white text-sm font-semibold rounded-xl shadow hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
@@ -734,49 +764,39 @@ function ActionButton({
 function EmptyState({
   onNew,
   onAI,
-  onTemplate,
 }: {
   onNew: () => void;
-  onAI: () => void;
-  onTemplate: (tpl: (typeof PREBUILT_WORKFLOW_TEMPLATES)[0]) => void;
+  onAI: (prompt?: string) => void;
 }) {
   return (
-    <div className="flex flex-col items-center py-16 px-4 text-center">
+    <div className="flex flex-col items-center py-16 px-4 text-center bg-white rounded-3xl border border-[#EADBCE] shadow-sm">
       <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-violet-100 to-rose-100 flex items-center justify-center mb-5 shadow-inner">
-        <Workflow className="w-8 h-8 text-violet-400" />
+        <Workflow className="w-8 h-8 text-violet-500" />
       </div>
-      <h3 className="text-lg font-bold text-[#121217] mb-2">No workflows yet</h3>
-      <p className="text-sm text-[#8E847C] max-w-sm mb-7">
-        Create your first automation pipeline using AI, a blank canvas, or a pre-built template.
+      <h3 className="text-lg font-bold text-[#121217] mb-2 font-heading">No workflows created yet</h3>
+      <p className="text-sm text-[#8E847C] max-w-md mb-7">
+        Generate your custom pipeline with natural language using the generator above, or start with a blank canvas.
       </p>
-      <div className="flex items-center gap-3 mb-10">
+      <div className="flex items-center gap-3 mb-8">
         <button
-          onClick={onAI}
-          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-violet-600 to-rose-500 text-white text-sm font-semibold rounded-xl shadow hover:shadow-md transition-all cursor-pointer"
-        >
-          <Wand2 className="w-4 h-4" /> Generate with AI
-        </button>
-        <button
-          onClick={onNew}
+          onClick={() => onNew()}
           className="flex items-center gap-2 px-5 py-2.5 bg-white border border-[#EADBCE] text-[#121217] text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all cursor-pointer"
         >
           <Plus className="w-4 h-4" /> Blank Canvas
         </button>
       </div>
-      <div className="w-full max-w-2xl">
-        <p className="text-xs font-semibold text-[#9E978F] uppercase tracking-wider mb-3">Or start from a template</p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {PREBUILT_WORKFLOW_TEMPLATES.map((tpl) => (
+
+      <div className="w-full max-w-xl text-left bg-[#F7F3EE] p-5 rounded-2xl border border-[#EADBCE]">
+        <p className="text-xs font-semibold text-[#5A544E] mb-2.5">💡 Quick AI Generation Ideas (Click to generate):</p>
+        <div className="space-y-2">
+          {SAMPLE_PROMPTS.map((prompt, i) => (
             <button
-              key={tpl.id}
-              onClick={() => onTemplate(tpl)}
-              className="text-left bg-white border border-[#EADBCE] rounded-xl p-4 hover:border-violet-300 hover:shadow-sm transition-all cursor-pointer"
+              key={i}
+              onClick={() => onAI(prompt)}
+              className="w-full text-left text-xs bg-white hover:bg-violet-50 hover:text-violet-700 p-3 rounded-xl border border-[#EADBCE] hover:border-violet-300 transition-all cursor-pointer flex items-center justify-between group"
             >
-              <div className="text-[10px] font-semibold text-violet-600 mb-1">{tpl.category}</div>
-              <div className="text-xs font-semibold text-[#121217]">{tpl.name}</div>
-              <div className="flex items-center gap-1 mt-1.5 text-[10px] text-[#9E978F]">
-                <ArrowRight className="w-3 h-3" /> Load template
-              </div>
+              <span className="text-[#3D3731] group-hover:text-violet-700 font-medium">{prompt}</span>
+              <ArrowRight className="w-3.5 h-3.5 text-[#9E978F] group-hover:text-violet-600 flex-shrink-0 ml-2" />
             </button>
           ))}
         </div>

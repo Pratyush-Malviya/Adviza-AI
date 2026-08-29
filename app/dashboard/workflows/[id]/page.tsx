@@ -61,8 +61,8 @@ export default function WorkflowEditorPage() {
 
   // Canvas state
   const [workflowName, setWorkflowName] = useState("Untitled Workflow");
-  const [nodes, setNodes] = useState<WorkflowNode[]>(PREBUILT_WORKFLOW_TEMPLATES[0].nodes);
-  const [edges, setEdges] = useState<WorkflowEdge[]>(PREBUILT_WORKFLOW_TEMPLATES[0].edges);
+  const [nodes, setNodes] = useState<WorkflowNode[]>([]);
+  const [edges, setEdges] = useState<WorkflowEdge[]>([]);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
   // AI Generation State
@@ -92,26 +92,35 @@ export default function WorkflowEditorPage() {
       setLoadingWorkflow(true);
       try {
         const res = await fetch(`/api/workflows/${workflowId}`);
-        if (!res.ok) {
-          // Fallback to localStorage for local mode
-          const saved = localStorage.getItem("adviza_current_workflow");
-          if (saved) {
-            const parsed = JSON.parse(saved);
-            if (parsed.nodes) setNodes(parsed.nodes);
-            if (parsed.edges) setEdges(parsed.edges);
-            if (parsed.name) setWorkflowName(parsed.name);
+        if (res.ok) {
+          const data = await res.json();
+          const wf = data.workflow;
+          if (wf) {
+            setDbWorkflow({ name: wf.name, description: wf.description, status: wf.status });
+            setWorkflowName(wf.name || "Untitled Workflow");
+            setNodes(Array.isArray(wf.nodes) ? wf.nodes : []);
+            setEdges(Array.isArray(wf.edges) ? wf.edges : []);
+            setIsDirty(false);
+            return;
           }
-          return;
         }
-        const data = await res.json();
-        const wf = data.workflow;
-        setDbWorkflow({ name: wf.name, description: wf.description, status: wf.status });
-        setWorkflowName(wf.name);
-        if (Array.isArray(wf.nodes) && wf.nodes.length > 0) setNodes(wf.nodes);
-        if (Array.isArray(wf.edges)) setEdges(wf.edges);
-        setIsDirty(false);
-      } catch {
-        // Graceful fallback
+
+        // Fallback to localStorage for local / generated workflow
+        const saved = localStorage.getItem("adviza_current_workflow");
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            if (parsed.id === workflowId || !workflowId || workflowId === "local" || workflowId.startsWith("wf_")) {
+              if (parsed.name) setWorkflowName(parsed.name);
+              setNodes(Array.isArray(parsed.nodes) ? parsed.nodes : []);
+              setEdges(Array.isArray(parsed.edges) ? parsed.edges : []);
+            }
+          } catch (e) {
+            console.error("Failed to parse local workflow", e);
+          }
+        }
+      } catch (err) {
+        console.error("Load workflow error", err);
       } finally {
         setLoadingWorkflow(false);
       }
@@ -275,13 +284,39 @@ export default function WorkflowEditorPage() {
       if (!res.ok) throw new Error("Generation failed");
       const data = await res.json();
       if (data?.workflow) {
-        setWorkflowName(data.workflow.name ?? "AI Generated Workflow");
-        setNodes(data.workflow.nodes ?? []);
-        setEdges(data.workflow.edges ?? []);
-        setSelectedNodeId(data.workflow.nodes?.[0]?.id ?? null);
+        const genWf = data.workflow;
+        setWorkflowName(genWf.name ?? "AI Generated Workflow");
+        setNodes(genWf.nodes ?? []);
+        setEdges(genWf.edges ?? []);
+        setSelectedNodeId(genWf.nodes?.[0]?.id ?? null);
         setIsAiModalOpen(false);
         setAiPrompt("");
-        setSaveSuccessToast(`✨ Generated "${data.workflow.name}" with ${data.workflow.nodes?.length} nodes!`);
+        setIsDirty(true);
+
+        try {
+          localStorage.setItem("adviza_current_workflow", JSON.stringify({
+            id: workflowId,
+            name: genWf.name,
+            nodes: genWf.nodes,
+            edges: genWf.edges
+          }));
+        } catch {}
+
+        if (workflowId && workflowId !== "local") {
+          fetch(`/api/workflows/${workflowId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: genWf.name,
+              nodes: genWf.nodes,
+              edges: genWf.edges,
+              ai_generated: true,
+              ai_prompt: targetPrompt.trim(),
+            }),
+          }).catch(() => {});
+        }
+
+        setSaveSuccessToast(`✨ Generated "${genWf.name}" with ${genWf.nodes?.length ?? 0} nodes!`);
         setTimeout(() => setSaveSuccessToast(null), 3500);
       }
     } catch {
