@@ -69,7 +69,32 @@ export default function WorkflowEditorPage() {
   // AI Generation State
   const [aiPrompt, setAiPrompt] = useState("");
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  const [isEnhancingAI, setIsEnhancingAI] = useState(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+
+  // ─── AI Enhance Prompt ────────────────────────────────────────────────────────
+  const handleEnhancePrompt = async () => {
+    if (!aiPrompt.trim()) return;
+    setIsEnhancingAI(true);
+    try {
+      const res = await fetch("/api/ai/workflow-enhance-prompt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: aiPrompt.trim() }),
+      });
+      if (!res.ok) throw new Error("Enhancement failed");
+      const data = await res.json();
+      if (data?.enhancedPrompt) {
+        setAiPrompt(data.enhancedPrompt);
+        setSaveSuccessToast("✨ Prompt enhanced with fiduciary & connector details!");
+        setTimeout(() => setSaveSuccessToast(null), 3500);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setIsEnhancingAI(false);
+    }
+  };
 
   // Run state
   const [isRunning, setIsRunning] = useState(false);
@@ -650,15 +675,54 @@ export default function WorkflowEditorPage() {
               </div>
             </div>
             <div className="p-7 space-y-4">
-              <textarea
-                value={aiPrompt}
-                onChange={(e) => setAiPrompt(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleGenerateWorkflow(); }}
-                placeholder={SAMPLE_PROMPTS[0]}
-                rows={4}
-                className="w-full px-4 py-3 text-sm border border-[#EADBCE] rounded-xl bg-white text-[#121217] placeholder:text-[#C5BDB6] focus:outline-none focus:ring-2 focus:ring-violet-300 resize-none"
-              />
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-[#3D3731]">Describe your workflow</label>
+                <button
+                  type="button"
+                  onClick={handleEnhancePrompt}
+                  disabled={isEnhancingAI || !aiPrompt.trim()}
+                  className="flex items-center gap-1.5 text-xs font-semibold text-violet-700 bg-violet-50 hover:bg-violet-100 hover:text-violet-800 px-3 py-1 rounded-xl border border-violet-200 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Use AI to refine and expand this prompt with fiduciary logic and connectors"
+                >
+                  {isEnhancingAI ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-violet-600" />
+                      <span>Enhancing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-3.5 h-3.5 text-violet-600" />
+                      <span>Make Prompt Better with AI ✨</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <div className="relative">
+                <textarea
+                  value={aiPrompt}
+                  onChange={(e) => setAiPrompt(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleGenerateWorkflow(); }}
+                  placeholder={SAMPLE_PROMPTS[0]}
+                  rows={4}
+                  className="w-full px-4 py-3 text-sm border border-[#EADBCE] rounded-xl bg-white text-[#121217] placeholder:text-[#C5BDB6] focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-violet-300 resize-none"
+                />
+                {aiPrompt.trim() && (
+                  <button
+                    type="button"
+                    onClick={handleEnhancePrompt}
+                    disabled={isEnhancingAI}
+                    className="absolute right-3 bottom-3 p-1.5 bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 rounded-lg text-xs font-medium flex items-center gap-1 shadow-xs transition cursor-pointer"
+                    title="Make prompt better with AI"
+                  >
+                    {isEnhancingAI ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                    <span>Enhance</span>
+                  </button>
+                )}
+              </div>
+
               <div className="space-y-1.5">
+                <div className="text-[10px] font-semibold text-[#9E978F] uppercase tracking-wider">Try one of these</div>
                 {SAMPLE_PROMPTS.map((p, i) => (
                   <button
                     key={i}
