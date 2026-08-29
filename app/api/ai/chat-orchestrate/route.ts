@@ -89,11 +89,22 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 1. Fetch user's active Composio connections
-    const connections = await getComposioConnections(user.id);
-    const connectedAppSlugs = new Set(
-      connections.filter((c) => c.status === "CONNECTED").map((c) => c.appName.toLowerCase())
-    );
+    // 1. Fetch user's active Composio and Firm DB connections
+    const composioConns = await getComposioConnections(user.id);
+    let dbConns: any[] = [];
+    if (firmId) {
+      const { data } = await supabase
+        .from("firm_connections")
+        .select("app_slug, status")
+        .eq("firm_id", firmId)
+        .eq("status", "CONNECTED");
+      if (data) dbConns = data;
+    }
+
+    const connectedAppSlugs = new Set([
+      ...composioConns.filter((c) => c.status === "CONNECTED").map((c) => c.appName.toLowerCase()),
+      ...dbConns.map((d) => (d.app_slug || "").toLowerCase()),
+    ]);
 
     // 2. Build contextual prompt
     let ambientPrompt = "";

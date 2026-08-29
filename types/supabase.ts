@@ -563,6 +563,45 @@ export interface Database {
         };
         Relationships: [];
       };
+      firm_connections: {
+        Row: {
+          id: string;
+          firm_id: string;
+          user_id: string | null;
+          app_name: string;
+          app_slug: string;
+          status: "CONNECTED" | "INITIATED" | "FAILED" | "EXPIRED" | "DISCONNECTED";
+          account_email: string | null;
+          metadata: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          firm_id: string;
+          user_id?: string | null;
+          app_name: string;
+          app_slug: string;
+          status?: "CONNECTED" | "INITIATED" | "FAILED" | "EXPIRED" | "DISCONNECTED";
+          account_email?: string | null;
+          metadata?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          firm_id?: string;
+          user_id?: string | null;
+          app_name?: string;
+          app_slug?: string;
+          status?: "CONNECTED" | "INITIATED" | "FAILED" | "EXPIRED" | "DISCONNECTED";
+          account_email?: string | null;
+          metadata?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -581,3 +620,4 @@ export type WorkflowRecord = Database["public"]["Tables"]["workflows"]["Row"];
 export type WorkflowRun = Database["public"]["Tables"]["workflow_runs"]["Row"];
 export type ChatSession = Database["public"]["Tables"]["chat_sessions"]["Row"];
 export type ChatMessageRecord = Database["public"]["Tables"]["chat_messages"]["Row"];
+export type FirmConnectionRecord = Database["public"]["Tables"]["firm_connections"]["Row"];
