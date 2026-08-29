@@ -6,11 +6,10 @@ import {
   Plus,
   Trash2,
   Search,
-  Calendar,
-  Sparkles,
-  ChevronRight,
+  PanelLeftClose,
+  PanelLeftOpen,
   Clock,
-  Check,
+  Sparkles,
 } from "lucide-react";
 
 export interface ChatSessionItem {
@@ -28,6 +27,8 @@ interface ChatSidebarProps {
   onNewChat: () => void;
   onDeleteSession: (sessionId: string, e: React.MouseEvent) => void;
   loading?: boolean;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 export function ChatSidebar({
@@ -37,6 +38,8 @@ export function ChatSidebar({
   onNewChat,
   onDeleteSession,
   loading = false,
+  isCollapsed = false,
+  onToggleCollapse,
 }: ChatSidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -73,6 +76,63 @@ export function ChatSidebar({
   };
 
   const groups = groupSessions(filteredSessions);
+
+  // Collapsed Minimal Sidebar View
+  if (isCollapsed) {
+    return (
+      <div className="h-full flex flex-col items-center justify-between bg-white rounded-3xl border border-[#EADBCE] py-4 px-2 shadow-sm space-y-4 w-16 transition-all duration-300">
+        <div className="flex flex-col items-center space-y-3">
+          {/* Expand Toggle Button */}
+          <button
+            onClick={onToggleCollapse}
+            className="w-10 h-10 rounded-2xl bg-[#FAF5F0] hover:bg-[#EADBCE]/50 border border-[#EADBCE] flex items-center justify-center text-[#5A544E] hover:text-[#121217] transition shadow-xs"
+            title="Expand chat history"
+          >
+            <PanelLeftOpen className="w-4 h-4 text-rose-600" />
+          </button>
+
+          {/* New Chat Icon Button */}
+          <button
+            onClick={onNewChat}
+            className="w-10 h-10 rounded-2xl bg-[#121217] hover:bg-[#2A2A35] text-white flex items-center justify-center transition shadow-sm group"
+            title="New Chat"
+          >
+            <Plus className="w-4 h-4 text-rose-400 group-hover:scale-110 transition-transform" />
+          </button>
+
+          <div className="w-8 h-px bg-[#EADBCE]/60 my-1" />
+
+          {/* Mini Session Icons */}
+          <div className="space-y-1.5 overflow-y-auto max-h-[calc(100vh-320px)] scrollbar-none">
+            {sessions.slice(0, 8).map((session) => {
+              const isActive = session.id === activeSessionId;
+              return (
+                <button
+                  key={session.id}
+                  onClick={() => onSelectSession(session.id)}
+                  className={`w-10 h-10 rounded-2xl flex items-center justify-center transition text-xs relative ${
+                    isActive
+                      ? "bg-[#121217] text-rose-400 shadow-xs"
+                      : "bg-[#FAF5F0] hover:bg-[#EADBCE]/40 text-[#8E847C] hover:text-[#121217]"
+                  }`}
+                  title={session.title}
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  {isActive && (
+                    <span className="absolute -right-0.5 top-1/2 -translate-y-1/2 w-1 h-3 bg-rose-500 rounded-l" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="text-[10px] font-mono text-[#8E847C] font-bold">
+          {sessions.length}
+        </div>
+      </div>
+    );
+  }
 
   const renderGroup = (title: string, groupItems: ChatSessionItem[]) => {
     if (groupItems.length === 0) return null;
@@ -128,22 +188,35 @@ export function ChatSidebar({
   };
 
   return (
-    <div className="h-full flex flex-col bg-white rounded-3xl border border-[#EADBCE] p-3.5 shadow-sm space-y-3">
-      {/* New Chat Primary Button */}
-      <button
-        onClick={onNewChat}
-        className="w-full flex items-center justify-between px-4 py-3 bg-[#121217] hover:bg-[#2A2A35] text-white rounded-2xl text-xs font-bold transition shadow-sm group"
-      >
-        <div className="flex items-center gap-2.5">
-          <div className="w-6 h-6 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-            <Plus className="w-4 h-4" />
+    <div className="h-full flex flex-col bg-white rounded-3xl border border-[#EADBCE] p-3.5 shadow-sm space-y-3 transition-all duration-300">
+      {/* Top Header with Collapse Button & New Chat */}
+      <div className="flex items-center justify-between gap-2">
+        <button
+          onClick={onNewChat}
+          className="flex-1 flex items-center justify-between px-3.5 py-2.5 bg-[#121217] hover:bg-[#2A2A35] text-white rounded-2xl text-xs font-bold transition shadow-sm group"
+        >
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-5 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Plus className="w-3.5 h-3.5" />
+            </div>
+            <span>New Chat</span>
           </div>
-          <span>New Chat</span>
-        </div>
-        <kbd className="hidden sm:inline-block px-1.5 py-0.5 rounded bg-white/10 text-white/60 text-[10px] font-mono">
-          ⌘K
-        </kbd>
-      </button>
+          <kbd className="hidden sm:inline-block px-1.5 py-0.5 rounded bg-white/10 text-white/60 text-[10px] font-mono">
+            ⌘K
+          </kbd>
+        </button>
+
+        {/* Collapse Sidebar Button */}
+        {onToggleCollapse && (
+          <button
+            onClick={onToggleCollapse}
+            className="p-2.5 rounded-2xl bg-[#FAF5F0] hover:bg-[#EADBCE]/50 border border-[#EADBCE] text-[#5A544E] hover:text-[#121217] transition shadow-xs shrink-0"
+            title="Collapse chat history"
+          >
+            <PanelLeftClose className="w-4 h-4 text-[#8E847C]" />
+          </button>
+        )}
+      </div>
 
       {/* Search Threads */}
       {sessions.length > 3 && (

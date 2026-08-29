@@ -28,6 +28,7 @@ const INITIAL_STARTER_SESSIONS: ChatSessionItem[] = [
 export default function ChatDashboardPage() {
   const [sessions, setSessions] = useState<ChatSessionItem[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Fetch all chat sessions with localStorage caching
@@ -54,7 +55,6 @@ export default function ChatDashboardPage() {
           localStorage.setItem("adviza_chat_sessions", JSON.stringify(data.sessions));
         } catch {}
       } else {
-        // Fallback to starter threads if no history exists yet
         setSessions((prev) => {
           if (prev.length > 0) return prev;
           try {
@@ -65,7 +65,6 @@ export default function ChatDashboardPage() {
       }
     } catch (err) {
       console.error("Failed to load chat sessions:", err);
-      // Fallback
       setSessions((prev) => (prev.length > 0 ? prev : INITIAL_STARTER_SESSIONS));
     } finally {
       setLoading(false);
@@ -131,9 +130,13 @@ export default function ChatDashboardPage() {
   };
 
   return (
-    <div className="h-[calc(100vh-140px)] flex flex-col md:flex-row gap-5">
-      {/* Left Sidebar: Claude & Gemini style Chat History */}
-      <div className="w-full md:w-72 lg:w-80 h-full shrink-0">
+    <div className="h-[calc(100vh-140px)] flex flex-col md:flex-row gap-5 transition-all duration-300">
+      {/* Left Sidebar: Collapsible Claude & Gemini style Chat History */}
+      <div
+        className={`h-full shrink-0 transition-all duration-300 ${
+          isSidebarCollapsed ? "w-16" : "w-full md:w-72 lg:w-80"
+        }`}
+      >
         <ChatSidebar
           sessions={sessions}
           activeSessionId={activeSessionId}
@@ -141,11 +144,13 @@ export default function ChatDashboardPage() {
           onNewChat={handleNewChat}
           onDeleteSession={handleDeleteSession}
           loading={loading}
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapse={() => setIsSidebarCollapsed((prev) => !prev)}
         />
       </div>
 
       {/* Main Full-Size Chat Panel */}
-      <div className="flex-1 h-full min-h-[500px]">
+      <div className="flex-1 h-full min-h-[500px] transition-all duration-300">
         <ChatPanel
           sessionId={activeSessionId}
           onSessionCreated={handleSessionCreated}
