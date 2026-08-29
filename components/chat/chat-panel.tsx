@@ -87,6 +87,22 @@ export function ChatPanel({ onClose, isFloating = false }: ChatPanelProps) {
     }
   }, []);
 
+  // Handle return from connector authorization
+  useEffect(() => {
+    const connectedParam = searchParams.get("connected");
+    if (connectedParam) {
+      fetch("/api/integrations/composio/connections", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ appSlug: connectedParam, appName: connectedParam }),
+      })
+        .then(() => {
+          handleSendMessage(`How many client meetings do I have scheduled?`);
+        })
+        .catch((err) => console.error("Auto-resume error:", err));
+    }
+  }, [searchParams]);
+
   const handleSendMessage = async (textToSend?: string) => {
     const query = textToSend || input.trim();
     if (!query || loading) return;
