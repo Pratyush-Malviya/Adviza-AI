@@ -64,6 +64,7 @@ export default function WorkflowEditorPage() {
   const [nodes, setNodes] = useState<WorkflowNode[]>([]);
   const [edges, setEdges] = useState<WorkflowEdge[]>([]);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
 
   // AI Generation State
   const [aiPrompt, setAiPrompt] = useState("");
@@ -464,7 +465,9 @@ export default function WorkflowEditorPage() {
             nodes={nodes}
             edges={edges}
             selectedNodeId={selectedNodeId}
+            selectedNodeIds={selectedNodeIds}
             onSelectNode={setSelectedNodeId}
+            onSelectNodes={setSelectedNodeIds}
             onUpdateNodes={setNodes}
             onUpdateEdges={setEdges}
             onAddNodeFromTemplate={(tpl, pos) => handleAddNodeFromTemplate(tpl, pos)}
@@ -472,6 +475,13 @@ export default function WorkflowEditorPage() {
               setNodes((prev) => prev.filter((n) => n.id !== nodeId));
               setEdges((prev) => prev.filter((e) => e.sourceNodeId !== nodeId && e.targetNodeId !== nodeId));
               if (selectedNodeId === nodeId) setSelectedNodeId(null);
+              setSelectedNodeIds((prev) => prev.filter((id) => id !== nodeId));
+            }}
+            onDeleteNodes={(nodeIds) => {
+              setNodes((prev) => prev.filter((n) => !nodeIds.includes(n.id)));
+              setEdges((prev) => prev.filter((e) => !nodeIds.includes(e.sourceNodeId) && !nodeIds.includes(e.targetNodeId)));
+              setSelectedNodeId(null);
+              setSelectedNodeIds([]);
             }}
             onDuplicateNode={(nodeId) => {
               const source = nodes.find((n) => n.id === nodeId);
@@ -482,6 +492,45 @@ export default function WorkflowEditorPage() {
                 position: { x: source.position.x + 40, y: source.position.y + 40 },
               };
               setNodes((prev) => [...prev, cloned]);
+              setSelectedNodeId(cloned.id);
+              setSelectedNodeIds([cloned.id]);
+            }}
+            onDuplicateNodes={(nodeIds) => {
+              const selectedNodes = nodes.filter((n) => nodeIds.includes(n.id));
+              const idMap = new Map<string, string>();
+              const newNodes: WorkflowNode[] = [];
+
+              selectedNodes.forEach((node) => {
+                const newId = `node-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+                idMap.set(node.id, newId);
+                newNodes.push({
+                  ...node,
+                  id: newId,
+                  position: { x: node.position.x + 40, y: node.position.y + 40 },
+                  inputs: node.inputs.map((p) => ({ ...p, id: `${newId}-${p.id.split("-").pop()}` })),
+                  outputs: node.outputs.map((p) => ({ ...p, id: `${newId}-${p.id.split("-").pop()}` })),
+                });
+              });
+
+              const internalEdges = edges.filter(
+                (e) => nodeIds.includes(e.sourceNodeId) && nodeIds.includes(e.targetNodeId)
+              );
+
+              const newEdges: WorkflowEdge[] = internalEdges.map((e) => {
+                const newSource = idMap.get(e.sourceNodeId)!;
+                const newTarget = idMap.get(e.targetNodeId)!;
+                return {
+                  ...e,
+                  id: `edge-${newSource}-${newTarget}-${Date.now()}`,
+                  sourceNodeId: newSource,
+                  targetNodeId: newTarget,
+                };
+              });
+
+              setNodes((prev) => [...prev, ...newNodes]);
+              setEdges((prev) => [...prev, ...newEdges]);
+              setSelectedNodeIds(newNodes.map((n) => n.id));
+              setSelectedNodeId(newNodes[newNodes.length - 1]?.id ?? null);
             }}
           />
         </div>

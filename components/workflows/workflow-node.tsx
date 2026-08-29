@@ -66,7 +66,7 @@ export function WorkflowNodeComponent({
     if (status === "running") return "ring-2 ring-violet-500 shadow-lg shadow-violet-200";
     if (status === "success") return "ring-2 ring-emerald-500 shadow-lg shadow-emerald-100";
     if (status === "error") return "ring-2 ring-rose-500 shadow-lg shadow-rose-100";
-    if (isSelected) return "ring-2 ring-rose-500 shadow-lg shadow-rose-100/50";
+    if (isSelected) return "ring-2 ring-violet-600 border-violet-400 shadow-lg shadow-violet-200/70";
     return "hover:border-[#D8CCC2]";
   };
 
