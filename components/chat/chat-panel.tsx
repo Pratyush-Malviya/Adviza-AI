@@ -390,13 +390,13 @@ export function ChatPanel({
                   {msg.missingConnectors.map((mc, idx) => (
                     <MissingConnectorCard
                       key={idx}
-                      connectorId={mc.connectorId}
-                      connectorName={mc.connectorName}
-                      description={mc.description}
+                      connectorId={mc.connectorId || mc.appSlug}
+                      connectorName={mc.connectorName || mc.appName}
+                      description={mc.description || `Connect ${mc.appName || mc.appSlug} to enable this capability.`}
                       reason={mc.reason}
                       capabilityId={mc.capabilityId}
                       onConnectedAndResume={() => {
-                        handleSendMessage(`Resume request: ${mc.reason || mc.connectorName}`);
+                        handleSendMessage(`Resume request: ${mc.reason || mc.connectorName || mc.appName}`);
                       }}
                     />
                   ))}
@@ -409,20 +409,20 @@ export function ChatPanel({
                   {msg.hitlPrompts.map((hp, idx) => (
                     <HITLApprovalCard
                       key={idx}
-                      capabilityId={hp.capabilityId}
-                      capabilityName={hp.capabilityName}
-                      reason={hp.reason}
-                      parameters={hp.parameters}
-                      riskLevel={hp.riskLevel}
-                      summary={hp.summary}
+                      capabilityId={hp.capabilityId || hp.payload?.capabilityId}
+                      capabilityName={hp.capabilityName || hp.title}
+                      reason={hp.reason || hp.description}
+                      parameters={hp.parameters || hp.payload?.parameters}
+                      riskLevel={hp.riskLevel || "high"}
+                      summary={hp.summary || hp.description}
                       onDecision={(dec) => {
                         if (dec === "approved") {
                           setMessages((m) => [
                             ...m,
                             {
-                              id: `appr_${Date.now()}`,
+                              id: `hitl_appr_${Date.now()}`,
                               role: "assistant",
-                              content: `Action Approved and Logged to Compliance WORM Trail: ${hp.capabilityName}`,
+                              content: `Approved: ${hp.capabilityName || hp.title}. Action queued for execution.`,
                               timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
                             },
                           ]);
