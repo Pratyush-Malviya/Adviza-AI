@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Zap,
   Workflow,
+  Sparkles,
   Menu,
   X,
   PanelLeftClose,
@@ -24,6 +25,7 @@ import { cn, getInitials } from "@/lib/utils";
 
 export const NAV_ITEMS = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/dashboard/chat", icon: Sparkles, label: "AI Chat" },
   { href: "/dashboard/clients", icon: Users, label: "Clients" },
   { href: "/dashboard/meetings", icon: Calendar, label: "Meetings" },
   { href: "/dashboard/workflows", icon: Workflow, label: "Workflows" },

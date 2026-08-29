@@ -494,6 +494,75 @@ export interface Database {
           }
         ];
       };
+      chat_sessions: {
+        Row: {
+          id: string;
+          firm_id: string;
+          user_id: string;
+          title: string;
+          context_metadata: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          firm_id: string;
+          user_id: string;
+          title?: string;
+          context_metadata?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          firm_id?: string;
+          user_id?: string;
+          title?: string;
+          context_metadata?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      chat_messages: {
+        Row: {
+          id: string;
+          session_id: string;
+          firm_id: string;
+          user_id: string | null;
+          role: "user" | "assistant" | "system" | "tool";
+          content: string;
+          capability_calls: Json;
+          hitl_decision: Json | null;
+          metadata: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          session_id: string;
+          firm_id: string;
+          user_id?: string | null;
+          role: "user" | "assistant" | "system" | "tool";
+          content: string;
+          capability_calls?: Json;
+          hitl_decision?: Json | null;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          session_id?: string;
+          firm_id?: string;
+          user_id?: string | null;
+          role?: "user" | "assistant" | "system" | "tool";
+          content?: string;
+          capability_calls?: Json;
+          hitl_decision?: Json | null;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -510,3 +579,5 @@ export type ActionItem = Database["public"]["Tables"]["action_items"]["Row"];
 export type AuditLog = Database["public"]["Tables"]["audit_logs"]["Row"];
 export type WorkflowRecord = Database["public"]["Tables"]["workflows"]["Row"];
 export type WorkflowRun = Database["public"]["Tables"]["workflow_runs"]["Row"];
+export type ChatSession = Database["public"]["Tables"]["chat_sessions"]["Row"];
+export type ChatMessageRecord = Database["public"]["Tables"]["chat_messages"]["Row"];

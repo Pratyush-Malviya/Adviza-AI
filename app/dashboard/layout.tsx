@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { DashboardHeader } from "@/components/dashboard/header";
+import { ChatPanelWrapper } from "@/components/chat/chat-panel-wrapper";
 
 export default async function DashboardLayout({
   children,
@@ -28,7 +29,10 @@ export default async function DashboardLayout({
       <DashboardSidebar profile={profile} />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#FAF5F0]">
         <DashboardHeader profile={profile} user={user} />
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 pb-20 md:pb-8">{children}</main>
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 pb-20 md:pb-8 relative">
+          {children}
+          <ChatPanelWrapper />
+        </main>
       </div>
     </div>
   );
