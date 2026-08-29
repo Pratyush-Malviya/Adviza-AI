@@ -528,8 +528,12 @@ export async function executeComposioAction(
   try {
     // 1. Resolve target app
     let targetApp = "googlecalendar";
-    if (actionName.toLowerCase().includes("gmail") || actionName.toLowerCase().includes("email") || actionName.toLowerCase().includes("mail")) {
+    if (actionName.toLowerCase().includes("sheet") || actionName.toLowerCase().includes("googlesheets")) {
+      targetApp = "googlesheets";
+    } else if (actionName.toLowerCase().includes("gmail") || actionName.toLowerCase().includes("email") || actionName.toLowerCase().includes("mail")) {
       targetApp = "gmail";
+    } else if (actionName.toLowerCase().includes("notion")) {
+      targetApp = "notion";
     } else if (actionName.toLowerCase().includes("salesforce")) {
       targetApp = "salesforce";
     } else if (actionName.toLowerCase().includes("wealthbox")) {
@@ -556,7 +560,12 @@ export async function executeComposioAction(
     let toolSlug = "GOOGLECALENDAR_EVENTS_LIST";
     let toolArgs: Record<string, any> = {};
 
-    if (targetApp === "gmail") {
+    if (targetApp === "googlesheets") {
+      toolSlug = "GOOGLESHEETS_CREATE_GOOGLE_SHEET1";
+      toolArgs = {
+        title: params.title || "Lead Management Demo - Adviza AI",
+      };
+    } else if (targetApp === "gmail") {
       if (
         actionName.toLowerCase().includes("send") ||
         actionName.toLowerCase().includes("draft") ||
@@ -578,6 +587,15 @@ export async function executeComposioAction(
           max_results: params.maxResults || 10,
         };
       }
+    } else if (targetApp === "slack") {
+      toolSlug = "SLACK_POST_MESSAGE";
+      toolArgs = {
+        channel: params.channel || "general",
+        text: params.text || params.message || "Message from Adviza AI",
+      };
+    } else if (targetApp === "notion") {
+      toolSlug = "NOTION_CREATE_PAGE";
+      toolArgs = params;
     } else {
       toolArgs = {
         calendarId: "primary",

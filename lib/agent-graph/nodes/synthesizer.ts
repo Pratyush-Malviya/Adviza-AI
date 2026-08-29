@@ -25,10 +25,19 @@ export async function synthesizerNode(
 
     if (preview?.recipient || preview?.body) {
       previewText = `\n\n### 📝 Drafted Message Preview\n- **To:** \`${preview.recipient || "Recipient"}\`\n- **Subject:** *${preview.subject || "Adviza AI Update"}*\n\n> ${preview.body?.replace(/\n/g, "\n> ")}\n\n`;
+    } else if (preview?.details?.rows && Array.isArray(preview.details.rows)) {
+      const rows = preview.details.rows;
+      const headers = rows[0] || [];
+      const dataRows = rows.slice(1);
+      const headerLine = `| ${headers.join(" | ")} |`;
+      const sepLine = `| ${headers.map(() => "---").join(" | ")} |`;
+      const bodyLines = dataRows.map((r: any[]) => `| ${r.join(" | ")} |`).join("\n");
+
+      previewText = `\n\n### 📊 Prepared Google Sheet: *${preview.details.title || "Lead Records"}*\n\n${headerLine}\n${sepLine}\n${bodyLines}\n\n`;
     }
 
     return {
-      finalResponse: `I have analyzed your request and prepared the action.${previewText}To dispatch this automatically, please connect any of the available connectors below. Once connected, Adviza AI will instantly execute and deliver this for you.`,
+      finalResponse: `I have analyzed your request and drafted the dataset.${previewText}To automatically create this Google Sheet and insert these records, please connect Google Sheets below. Once connected, Adviza AI will instantly create the spreadsheet on your account and return the live link.`,
     };
   }
 

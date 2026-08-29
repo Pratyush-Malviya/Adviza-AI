@@ -11,7 +11,7 @@ export interface CapabilityDefinition {
   name: string;
   description: string;
   source: "agent_fleet" | "composio_connector" | "saved_workflow";
-  category: "briefing" | "meeting" | "compliance" | "calendar" | "crm" | "email" | "communication" | "portfolio" | "workflow";
+  category: "briefing" | "meeting" | "compliance" | "calendar" | "crm" | "email" | "communication" | "portfolio" | "workflow" | "productivity" | "storage";
   requiredConnector?: string; // e.g. "googlecalendar", "gmail", "salesforce"
   requiresHITL: boolean; // Outbound communications or trade-adjacent actions require advisor sign-off
   executionType: "sync" | "async_inngest" | "agent_fleet";
@@ -207,17 +207,45 @@ export const CAPABILITY_REGISTRY: CapabilityDefinition[] = [
     },
   },
   {
-    id: "composio_googlesheets_append_data",
-    name: "Google Sheets: Append Portfolio Row",
-    description: "Logs portfolio asset allocation or rebalance trade orders into a central spreadsheet.",
+    id: "composio_googlesheets_create_sheet",
+    name: "Google Sheets: Create Spreadsheet & Add Rows",
+    description: "Creates a new Google Spreadsheet on Google Drive and populates rows of lead data, client portfolios, or contact tables.",
     source: "composio_connector",
-    category: "portfolio",
+    category: "productivity",
+    requiredConnector: "googlesheets",
+    requiresHITL: false,
+    executionType: "sync",
+    parameters: {
+      title: { type: "string", description: "Spreadsheet title (e.g. 'Lead Pipeline - 5 Demo Leads')", required: true },
+      rows: { type: "array", description: "2D array of rows with headers and records", required: false },
+    },
+  },
+  {
+    id: "composio_googlesheets_append_data",
+    name: "Google Sheets: Append Data Rows",
+    description: "Appends rows of lead data, portfolio asset allocations, or rebalance orders into a spreadsheet.",
+    source: "composio_connector",
+    category: "productivity",
     requiredConnector: "googlesheets",
     requiresHITL: false,
     executionType: "sync",
     parameters: {
       spreadsheetId: { type: "string", description: "Google Sheets spreadsheet ID", required: false },
       rowData: { type: "string", description: "JSON array or CSV row to append", required: true },
+    },
+  },
+  {
+    id: "composio_slack_post_message",
+    name: "Slack: Post Channel Message",
+    description: "Posts notifications, meeting debriefs, or advisor alerts to a designated Slack channel.",
+    source: "composio_connector",
+    category: "communication",
+    requiredConnector: "slack",
+    requiresHITL: false,
+    executionType: "sync",
+    parameters: {
+      channel: { type: "string", description: "Channel name (e.g. general)", required: true },
+      text: { type: "string", description: "Message body text", required: true },
     },
   },
 

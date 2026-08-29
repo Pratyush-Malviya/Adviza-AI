@@ -75,8 +75,45 @@ function fallbackResolver(
 ): Partial<AdvizaAgentStateType> {
   const lower = message.toLowerCase();
 
-  // 1. Email Intent
-  // 1. Send / Write Email Intent
+  // 1. Google Sheets / Spreadsheets / Leads Intent
+  if (
+    lower.includes("sheet") ||
+    lower.includes("spreadsheet") ||
+    lower.includes("excel") ||
+    lower.includes("csv") ||
+    (lower.includes("lead") && (lower.includes("create") || lower.includes("add") || lower.includes("demo")))
+  ) {
+    const demoRows = [
+      ["Lead Name", "Company / Affiliation", "Email Address", "Phone", "Status", "Estimated Net Worth"],
+      ["Arthur Pendelton", "Pendelton Capital", "arthur@pendeltoncap.com", "+1 (555) 234-5678", "Qualified Prospect", "$4,200,000"],
+      ["Sarah Jenkins", "Highland BioTech", "sarah.j@highlandbio.io", "+1 (555) 876-5432", "Discovery Scheduled", "$2,850,000"],
+      ["Marcus Brody", "Apex Global Trading", "marcus.brody@apexgt.com", "+1 (555) 345-6789", "Proposal Review", "$6,100,000"],
+      ["Elena Rostova", "Nordic Maritime Fund", "elena@nordicmf.com", "+1 (555) 901-2345", "Contacted", "$3,500,000"],
+      ["David Chen", "Vanguard Horizons", "david.chen@vanguardh.com", "+1 (555) 456-7890", "Warm Referral", "$5,000,000"],
+    ];
+
+    return {
+      conversationalIntro: "Creating a new Google Sheet with 5 demo lead records...",
+      capabilityCalls: [
+        {
+          capability_id: "composio_googlesheets_create_sheet",
+          parameters: {
+            title: "Adviza Wealth - 5 Demo Leads Pipeline",
+            rows: demoRows,
+          },
+          reason: "Create Google Spreadsheet and populate 5 demo lead records",
+          requiresHITL: false,
+        },
+      ],
+      plan: {
+        intent: "Create Google Sheet with 5 demo leads",
+        targetCapabilities: ["composio_googlesheets_create_sheet"],
+        reasoning: "Matched spreadsheet / lead creation instruction",
+      },
+    };
+  }
+
+  // 2. Send / Write Email Intent
   if (
     (lower.includes("send") || lower.includes("write") || lower.includes("compose") || lower.includes("draft")) &&
     (lower.includes("email") || lower.includes("mail") || lower.includes("@"))
