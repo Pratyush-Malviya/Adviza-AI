@@ -81,6 +81,7 @@ export function WorkflowNodeComponent({
         getStatusBorder()
       )}
       style={{
+        cursor: "grab",
         transform: `translate3d(${node.position.x}px, ${node.position.y}px, 0)`,
       }}
     >

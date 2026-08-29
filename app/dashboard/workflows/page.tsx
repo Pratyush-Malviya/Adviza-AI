@@ -342,7 +342,7 @@ export default function WorkflowsPage() {
           {/* Prebuilt Templates Modal Trigger */}
           <button
             onClick={() => setIsTemplateModalOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#645F5A] hover:text-[#121217] bg-[#FAF5F0] hover:bg-[#EADBCE]/60 border border-[#EADBCE] rounded-xl transition shadow-xs"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#645F5A] hover:text-[#121217] bg-[#FAF5F0] hover:bg-[#EADBCE]/60 border border-[#EADBCE] rounded-xl transition shadow-xs cursor-pointer"
           >
             <FolderOpen className="w-3.5 h-3.5 text-rose-500" />
             <span className="hidden sm:inline">Templates</span>
@@ -359,7 +359,7 @@ export default function WorkflowsPage() {
           <button
             onClick={() => fileInputRef.current?.click()}
             title="Import JSON"
-            className="p-1.5 text-[#645F5A] hover:text-[#121217] bg-[#FAF5F0] hover:bg-[#EADBCE]/60 border border-[#EADBCE] rounded-xl transition"
+            className="p-1.5 text-[#645F5A] hover:text-[#121217] bg-[#FAF5F0] hover:bg-[#EADBCE]/60 border border-[#EADBCE] rounded-xl transition cursor-pointer"
           >
             <Upload className="w-4 h-4" />
           </button>
@@ -368,7 +368,7 @@ export default function WorkflowsPage() {
           <button
             onClick={handleExportJSON}
             title="Export JSON"
-            className="p-1.5 text-[#645F5A] hover:text-[#121217] bg-[#FAF5F0] hover:bg-[#EADBCE]/60 border border-[#EADBCE] rounded-xl transition"
+            className="p-1.5 text-[#645F5A] hover:text-[#121217] bg-[#FAF5F0] hover:bg-[#EADBCE]/60 border border-[#EADBCE] rounded-xl transition cursor-pointer"
           >
             <Download className="w-4 h-4" />
           </button>
@@ -376,7 +376,7 @@ export default function WorkflowsPage() {
           {/* Save Workflow */}
           <button
             onClick={handleSaveWorkflow}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#121217] bg-white hover:bg-[#FAF5F0] border border-[#EADBCE] rounded-xl shadow-xs transition"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#121217] bg-white hover:bg-[#FAF5F0] border border-[#EADBCE] rounded-xl shadow-xs transition cursor-pointer"
           >
             <Save className="w-3.5 h-3.5 text-violet-600" />
             <span className="hidden sm:inline">Save</span>
@@ -389,7 +389,7 @@ export default function WorkflowsPage() {
               handleStartSimulation();
             }}
             disabled={isExecuting}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-violet-600 to-rose-500 hover:from-violet-700 hover:to-rose-600 text-white text-xs font-semibold rounded-xl shadow-sm hover:shadow transition transform active:scale-95 disabled:opacity-60"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-violet-600 to-rose-500 hover:from-violet-700 hover:to-rose-600 text-white text-xs font-semibold rounded-xl shadow-sm hover:shadow transition transform active:scale-95 disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed"
           >
             <Play className="w-3.5 h-3.5 fill-current" />
             <span>Test Pipeline</span>

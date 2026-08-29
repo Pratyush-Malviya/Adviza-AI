@@ -316,19 +316,23 @@ export function WorkflowCanvas({
       onMouseUp={handleMouseUp}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
-      className="relative flex-1 h-full w-full bg-[#FAF5F0] overflow-hidden select-none cursor-grab active:cursor-grabbing"
+      className={cn(
+        "relative flex-1 h-full w-full bg-[#FAF5F0] overflow-hidden select-none",
+        isPanning ? "cursor-grabbing" : "cursor-default"
+      )}
       style={{
+        cursor: isPanning ? "grabbing" : "default",
         backgroundImage: `radial-gradient(#D8CCC2 1px, transparent 1px)`,
         backgroundSize: `${24 * scale}px ${24 * scale}px`,
         backgroundPosition: `${pan.x}px ${pan.y}px`,
       }}
     >
       {/* Zoom / View Control Floating Bar */}
-      <div className="absolute top-4 right-4 z-20 flex items-center gap-1 bg-white/90 backdrop-blur-md p-1.5 rounded-2xl border border-[#EADBCE] shadow-md">
+      <div className="absolute top-4 right-4 z-20 flex items-center gap-1 bg-white/90 backdrop-blur-md p-1.5 rounded-2xl border border-[#EADBCE] shadow-md pointer-events-auto">
         <button
           onClick={() => handleZoom(0.15)}
           title="Zoom In"
-          className="p-1.5 text-[#645F5A] hover:text-[#121217] hover:bg-[#FAF5F0] rounded-xl transition"
+          className="p-1.5 text-[#645F5A] hover:text-[#121217] hover:bg-[#FAF5F0] rounded-xl transition cursor-pointer"
         >
           <ZoomIn className="w-4 h-4" />
         </button>
@@ -338,7 +342,7 @@ export function WorkflowCanvas({
         <button
           onClick={() => handleZoom(-0.15)}
           title="Zoom Out"
-          className="p-1.5 text-[#645F5A] hover:text-[#121217] hover:bg-[#FAF5F0] rounded-xl transition"
+          className="p-1.5 text-[#645F5A] hover:text-[#121217] hover:bg-[#FAF5F0] rounded-xl transition cursor-pointer"
         >
           <ZoomOut className="w-4 h-4" />
         </button>
@@ -346,14 +350,14 @@ export function WorkflowCanvas({
         <button
           onClick={handleFitView}
           title="Fit View"
-          className="p-1.5 text-[#645F5A] hover:text-[#121217] hover:bg-[#FAF5F0] rounded-xl transition"
+          className="p-1.5 text-[#645F5A] hover:text-[#121217] hover:bg-[#FAF5F0] rounded-xl transition cursor-pointer"
         >
           <Maximize2 className="w-4 h-4" />
         </button>
         <button
           onClick={handleResetView}
           title="Reset View"
-          className="p-1.5 text-[#645F5A] hover:text-[#121217] hover:bg-[#FAF5F0] rounded-xl transition"
+          className="p-1.5 text-[#645F5A] hover:text-[#121217] hover:bg-[#FAF5F0] rounded-xl transition cursor-pointer"
         >
           <RotateCcw className="w-4 h-4" />
         </button>
@@ -368,7 +372,7 @@ export function WorkflowCanvas({
             </span>
             <button
               onClick={() => setShowMiniMap(false)}
-              className="text-[#8E847C] hover:text-[#121217]"
+              className="text-[#8E847C] hover:text-[#121217] cursor-pointer"
             >
               <X className="w-3 h-3" />
             </button>
@@ -400,8 +404,8 @@ export function WorkflowCanvas({
           transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})`,
         }}
       >
-        {/* SVG Edges Layer */}
-        <svg className="absolute inset-0 w-[5000px] h-[5000px] pointer-events-auto overflow-visible">
+        {/* SVG Edges Layer - pointer-events-none so it doesn't block canvas mouse */}
+        <svg className="absolute inset-0 w-[5000px] h-[5000px] pointer-events-none overflow-visible">
           <defs>
             <linearGradient id="edge-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="#8B5CF6" />
@@ -440,13 +444,14 @@ export function WorkflowCanvas({
             const isSelected = selectedEdgeId === edge.id;
 
             return (
-              <g key={edge.id} className="group cursor-pointer">
+              <g key={edge.id} className="group pointer-events-auto cursor-pointer">
                 {/* Thick invisible stroke for easy clicking */}
                 <path
                   d={path}
                   fill="none"
                   stroke="transparent"
                   strokeWidth="16"
+                  className="cursor-pointer"
                   onClick={(e) => {
                     e.stopPropagation();
                     setSelectedEdgeId(edge.id);
@@ -462,7 +467,7 @@ export function WorkflowCanvas({
                   strokeWidth={isSelected ? "3.5" : "2.5"}
                   strokeDasharray={edge.animated ? "6 4" : undefined}
                   className={cn(
-                    "transition-all",
+                    "transition-all cursor-pointer",
                     edge.animated && "animate-[dash_1.5s_linear_infinite]"
                   )}
                   markerEnd={isSelected ? "url(#arrowhead-selected)" : "url(#arrowhead)"}
@@ -507,12 +512,12 @@ export function WorkflowCanvas({
         </svg>
 
         {/* Interactive Node Components Layer */}
-        <div className="absolute inset-0 pointer-events-auto">
+        <div className="absolute inset-0 pointer-events-none">
           {nodes.map((node) => (
             <div
               key={node.id}
               onMouseDown={(e) => handleNodeMouseDown(node.id, e)}
-              className="absolute left-0 top-0"
+              className="absolute left-0 top-0 pointer-events-auto"
             >
               <WorkflowNodeComponent
                 node={node}

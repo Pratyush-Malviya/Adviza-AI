@@ -135,7 +135,8 @@ export function WorkflowPalette({ onAddNode }: WorkflowPaletteProps) {
                 draggable
                 onDragStart={(e) => handleDragStart(e, template)}
                 onClick={() => onAddNode(template)}
-                className="group relative p-3 bg-white hover:bg-white/90 border border-[#EADBCE] hover:border-rose-300 rounded-xl shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing flex items-start gap-3"
+                className="group relative p-3 bg-white hover:bg-white/90 border border-[#EADBCE] hover:border-rose-300 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer flex items-start gap-3"
+                style={{ cursor: "pointer" }}
               >
                 <div
                   className="w-8 h-8 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm"
