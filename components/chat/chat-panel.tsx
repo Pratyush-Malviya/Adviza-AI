@@ -20,6 +20,8 @@ import {
 import { MissingConnectorCard } from "./missing-connector-card";
 import { HITLApprovalCard } from "./hitl-approval-card";
 import { BriefingCard } from "./briefing-card";
+import { ExecutionPreviewCard } from "./execution-preview-card";
+import { WorkflowProgressStepper } from "./workflow-progress-stepper";
 
 export interface ChatMessage {
   id: string;
@@ -455,72 +457,22 @@ export function ChatPanel({
                 </div>
               )}
 
-              {/* Render Executed Structured Results */}
+              {/* Render Executed Structured Results & Rich Previews */}
               {msg.executedResults && msg.executedResults.length > 0 && (
-                <div className="mt-2 space-y-2">
+                <div className="mt-3 space-y-2.5">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-[#8E847C]">
+                    Execution Output & Preview
+                  </div>
                   {msg.executedResults.map((er, idx) => (
                     <div key={idx}>
                       {er.category === "briefing" && (
-                        <BriefingCard data={er.result} type="briefing" />
+                        <BriefingCard data={er.result || er.data} type="briefing" />
                       )}
                       {er.category === "compliance" && (
-                        <BriefingCard data={er.result} type="compliance" />
+                        <BriefingCard data={er.result || er.data} type="compliance" />
                       )}
-                      {er.category === "calendar" && (
-                        <div className="p-3 bg-white/90 rounded-xl border border-emerald-500/30 text-[11px] space-y-2 shadow-xs">
-                          <div className="flex items-center justify-between">
-                            <div className="font-bold text-foreground flex items-center gap-1.5">
-                              <Calendar className="w-3.5 h-3.5 text-emerald-600" />
-                              <span>{er.name}</span>
-                            </div>
-                            <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[9px] font-bold border border-emerald-200">
-                              🟢 Live Sync
-                            </span>
-                          </div>
-
-                          <div className="text-[10px] text-muted-foreground font-mono">
-                            Account: {er.result?.accountEmail || "Google Calendar"}
-                          </div>
-
-                          {(!er.result?.events || er.result.events.length === 0) ? (
-                            <div className="p-2.5 bg-[#FAF5F0] rounded-lg border border-[#EADBCE] text-center text-xs text-muted-foreground">
-                              🗓️ No upcoming client meetings scheduled today.
-                            </div>
-                          ) : (
-                            <div className="space-y-1.5">
-                              {er.result.events.map((ev: any, evIdx: number) => {
-                                const start = ev.start?.dateTime
-                                  ? new Date(ev.start.dateTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                                  : ev.start?.date || "All Day";
-                                return (
-                                  <div
-                                    key={evIdx}
-                                    className="p-2 rounded-lg bg-zinc-50 border border-zinc-200/80 flex items-center justify-between"
-                                  >
-                                    <div className="font-semibold text-zinc-900 truncate">
-                                      {ev.summary || "Client Meeting"}
-                                    </div>
-                                    <span className="text-[10px] text-rose-600 font-mono font-bold shrink-0">
-                                      {start}
-                                    </span>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {er.category !== "briefing" && er.category !== "compliance" && er.category !== "calendar" && (
-                        <div className="p-2.5 bg-background/80 rounded-xl border border-border/50 text-[11px]">
-                          <div className="font-semibold text-foreground flex items-center gap-1">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                            {er.name}
-                          </div>
-                          <div className="mt-1 p-2 bg-muted/40 rounded text-[10px]">
-                            {er.result?.message || "Executed successfully."}
-                          </div>
-                        </div>
+                      {er.category !== "briefing" && er.category !== "compliance" && (
+                        <ExecutionPreviewCard execution={er} />
                       )}
                     </div>
                   ))}
@@ -529,7 +481,7 @@ export function ChatPanel({
 
               <span
                 className={`text-[9px] block mt-1.5 ${
-                  msg.role === "user" ? "text-rose-200 text-right" : "text-muted-foreground"
+                  msg.role === "user" ? "text-rose-200 text-right" : "text-[#8E847C]"
                 }`}
               >
                 {msg.timestamp}
@@ -537,19 +489,16 @@ export function ChatPanel({
             </div>
 
             {msg.role === "user" && (
-              <div className="w-7 h-7 rounded-lg bg-rose-600 text-white flex items-center justify-center shrink-0 mt-0.5">
+              <div className="w-7 h-7 rounded-xl bg-gradient-to-r from-rose-500 to-rose-600 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
                 <User className="w-4 h-4" />
               </div>
             )}
           </div>
         ))}
 
-        {/* Loading Indicator */}
+        {/* Animated Multi-Step Execution Loader */}
         {loading && (
-          <div className="flex items-center gap-2 text-xs text-rose-600 dark:text-rose-400 p-2 bg-rose-500/5 rounded-xl border border-rose-500/20 animate-pulse">
-            <Loader2 className="w-4 h-4 animate-spin shrink-0" />
-            <span>{statusMessage || "Adviza AI is orchestrating..."}</span>
-          </div>
+          <WorkflowProgressStepper statusMessage={statusMessage} />
         )}
 
         <div ref={messagesEndRef} />

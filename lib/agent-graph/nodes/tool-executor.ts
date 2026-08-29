@@ -37,9 +37,14 @@ export async function toolExecutorNode(
         const result = await executeComposioAction(userId, call.capability_id, call.parameters);
         return {
           capabilityId: call.capability_id,
+          name: cap.name,
+          category: cap.category,
           success: true,
-          data: result,
-        };
+          data: {
+            ...call.parameters,
+            ...result,
+          },
+        } as any;
       }
 
       // 2. Specialized Fleet: Meeting Briefing Agent
