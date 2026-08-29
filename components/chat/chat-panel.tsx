@@ -533,24 +533,6 @@ export function ChatPanel({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Suggested Quick Prompts */}
-      {messages.length < 3 && (
-        <div className="px-5 py-2.5 border-t border-[#EADBCE] bg-[#FAF5F0]/50 flex flex-wrap gap-1.5">
-          {[
-            "How many client meetings do I have today?",
-            "Prepare briefing dossier for Sarah Jenkins",
-            "Run compliance suitability check",
-          ].map((prompt, i) => (
-            <button
-              key={i}
-              onClick={() => handleSendMessage(prompt)}
-              className="text-[11px] px-3 py-1 bg-white hover:bg-[#FAF5F0] border border-[#EADBCE] rounded-xl text-[#5A544E] hover:text-[#121217] transition shadow-2xs font-medium"
-            >
-              {prompt}
-            </button>
-          ))}
-        </div>
-      )}
 
       {/* Input Form */}
       <div className="p-3.5 border-t border-[#EADBCE] bg-white">
