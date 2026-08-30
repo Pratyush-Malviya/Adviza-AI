@@ -35,6 +35,8 @@ export interface HITLPrompt {
 
 export interface ExecutedResult {
   capabilityId: string;
+  name?: string;
+  category?: string;
   success: boolean;
   data: any;
   error?: string;

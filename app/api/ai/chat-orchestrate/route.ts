@@ -36,7 +36,11 @@ export async function POST(req: NextRequest) {
       .eq("id", user.id)
       .single();
 
-    const firmId = profile?.firm_id;
+    let firmId = profile?.firm_id;
+    if (!firmId) {
+      const { data: firms } = await supabase.from("firms").select("id").limit(1);
+      firmId = firms?.[0]?.id || "00000000-0000-0000-0000-000000000000";
+    }
 
     const body: ChatOrchestratorPayload = await req.json();
     const { message, sessionId, ambientContext, actionType = "user_message", hitlActionData, history = [] } = body;
@@ -49,7 +53,7 @@ export async function POST(req: NextRequest) {
         await executeComposioAction(user.id, hitlActionData.capabilityId, hitlActionData.parameters);
       }
 
-      if (sessionId && firmId) {
+      if (sessionId) {
         await supabase.from("chat_messages").insert({
           session_id: sessionId,
           firm_id: firmId,
@@ -83,14 +87,18 @@ export async function POST(req: NextRequest) {
     }
 
     // Persist User Message to DB
-    if (sessionId && firmId) {
-      await supabase.from("chat_messages").insert({
-        session_id: sessionId,
-        firm_id: firmId,
-        user_id: user.id,
-        role: "user",
-        content: message,
-      });
+    if (sessionId) {
+      try {
+        await supabase.from("chat_messages").insert({
+          session_id: sessionId,
+          firm_id: firmId,
+          user_id: user.id,
+          role: "user",
+          content: message,
+        });
+      } catch (insertErr) {
+        console.warn("Failed to persist user message:", insertErr);
+      }
     }
 
     // Execute Adviza Fiduciary LangGraph Multi-Agent State Machine
@@ -102,6 +110,32 @@ export async function POST(req: NextRequest) {
       messages: history,
       ambientContext,
     });
+
+    // Persist Assistant Response to DB
+    if (sessionId) {
+      try {
+        await supabase.from("chat_messages").insert({
+          session_id: sessionId,
+          firm_id: firmId,
+          user_id: user.id,
+          role: "assistant",
+          content: graphState.finalResponse,
+          capability_calls: graphState.capabilityCalls || [],
+          metadata: {
+            executedResults: graphState.executedResults || [],
+            missingConnectors: graphState.missingConnectors || [],
+            hitlPrompts: graphState.hitlPrompts || [],
+          },
+        });
+
+        await supabase
+          .from("chat_sessions")
+          .update({ updated_at: new Date().toISOString() })
+          .eq("id", sessionId);
+      } catch (persistErr) {
+        console.warn("Failed to persist assistant response:", persistErr);
+      }
+    }
 
     return NextResponse.json({
       type: "orchestrated_response",

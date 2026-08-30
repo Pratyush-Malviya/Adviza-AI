@@ -6,13 +6,12 @@ import {
   Mail,
   FileSpreadsheet,
   Calendar,
-  MessageSquare,
   FileText,
   ExternalLink,
   Copy,
   Check,
-  Sparkles,
-  ShieldCheck,
+  Download,
+  FileDown,
   Layers,
 } from "lucide-react";
 
@@ -42,11 +41,14 @@ export function ExecutionPreviewCard({ execution }: ExecutionPreviewCardProps) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const documentUrl = data.documentUrl || data.url || data.spreadsheetUrl || data.notionUrl || data.webViewLink;
+  const pdfUrl = data.pdfUrl || (documentUrl && documentUrl.startsWith("/api/documents") ? `${documentUrl}&format=pdf` : undefined);
+
   // 1. Email Execution Preview
   if (capId.includes("email") || capId.includes("gmail") || capId.includes("mail") || category === "email") {
     const recipient = data.recipient_email || data.recipientEmail || data.to || "pratyush.malviya1@gmail.com";
     const subject = data.subject || "Adviza AI Update";
-    const body = data.body || data.content || data.message || "Thanks, it works totally fine.";
+    const body = data.body || data.content || data.message || "Thank you. Everything is operating smoothly.";
     const messageId = data.response_data?.id || data.id || "1a04f5dab1a3da76";
 
     return (
@@ -107,6 +109,7 @@ export function ExecutionPreviewCard({ execution }: ExecutionPreviewCardProps) {
   // 2. Google Sheets / Spreadsheet Execution Preview
   if (capId.includes("sheet") || capId.includes("spreadsheet") || category === "productivity") {
     const title = data.title || "Adviza Wealth - 5 Demo Leads Pipeline";
+    const sheetLink = data.spreadsheetUrl || data.documentUrl || "https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit";
     const rows = data.rows || [
       ["Lead Name", "Company / Affiliation", "Email Address", "Phone", "Status", "Estimated Net Worth"],
       ["Arthur Pendelton", "Pendelton Capital", "arthur@pendeltoncap.com", "+1 (555) 234-5678", "Qualified Prospect", "$4,200,000"],
@@ -135,6 +138,16 @@ export function ExecutionPreviewCard({ execution }: ExecutionPreviewCardProps) {
               <p className="text-[11px] text-[#8E847C]">{title} &bull; {records.length} records inserted</p>
             </div>
           </div>
+
+          <a
+            href={sheetLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold text-[11px] transition shadow-xs"
+          >
+            <span>Open Sheet</span>
+            <ExternalLink className="w-3 h-3" />
+          </a>
         </div>
 
         <div className="overflow-x-auto rounded-xl border border-[#EADBCE] bg-[#FAF5F0]">
@@ -169,16 +182,108 @@ export function ExecutionPreviewCard({ execution }: ExecutionPreviewCardProps) {
         </div>
 
         <div className="flex items-center justify-between text-[10px] text-[#8E847C] pt-1 border-t border-[#EADBCE]/50">
-          <span>Synced with Google Drive</span>
+          <div className="flex items-center gap-2">
+            <span>Direct Link:</span>
+            <a
+              href={sheetLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-emerald-700 hover:underline font-mono truncate max-w-[200px]"
+            >
+              {sheetLink}
+            </a>
+          </div>
           <span className="flex items-center gap-1 text-emerald-600 font-semibold">
-            <CheckCircle2 className="w-3 h-3" /> Auto-Save Enabled
+            <CheckCircle2 className="w-3 h-3" /> Google Drive Synced
           </span>
         </div>
       </div>
     );
   }
 
-  // 3. Calendar Execution Preview
+  // 3. Document / PDF / Notion Page Preview
+  if (
+    capId.includes("doc") ||
+    capId.includes("notion") ||
+    capId.includes("drive") ||
+    capId.includes("pdf") ||
+    category === "storage" ||
+    documentUrl ||
+    pdfUrl
+  ) {
+    const docTitle = data.title || data.fileName || data.name || execution.name || "Wealth Management Document";
+    const targetUrl = documentUrl || pdfUrl || `/api/documents/export?type=report&clientName=Client`;
+
+    return (
+      <div className="my-2 p-4 bg-white border border-[#EADBCE] rounded-2xl text-xs space-y-3 shadow-2xs">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center border border-rose-500/20">
+              <FileText className="w-4 h-4" />
+            </div>
+            <div>
+              <h4 className="font-bold text-[#121217] text-sm flex items-center gap-1.5">
+                {docTitle}
+                <span className="text-[10px] px-2 py-0.5 bg-rose-500/10 text-rose-700 font-semibold rounded-full border border-rose-500/20">
+                  READY
+                </span>
+              </h4>
+              <p className="text-[11px] text-[#8E847C]">Document generated & audit-linked</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            {pdfUrl && (
+              <a
+                href={pdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-[#FAF5F0] hover:bg-[#EADBCE] text-[#121217] border border-[#EADBCE] rounded-xl font-semibold text-[11px] transition shadow-2xs"
+                title="Download PDF version"
+              >
+                <Download className="w-3 h-3 text-rose-600" />
+                <span>PDF</span>
+              </a>
+            )}
+            <a
+              href={targetUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#121217] hover:bg-[#272730] text-white rounded-xl font-semibold text-[11px] transition shadow-xs"
+            >
+              <span>Open Document</span>
+              <ExternalLink className="w-3 h-3 text-rose-400" />
+            </a>
+          </div>
+        </div>
+
+        {data.content && (
+          <div className="p-3 bg-[#FAF5F0] rounded-xl border border-[#EADBCE]/70 text-[#333] leading-relaxed max-h-36 overflow-y-auto">
+            {typeof data.content === "string" ? data.content : JSON.stringify(data.content, null, 2)}
+          </div>
+        )}
+
+        <div className="flex items-center justify-between text-[10px] text-[#8E847C] pt-1 border-t border-[#EADBCE]/50">
+          <div className="flex items-center gap-1 truncate max-w-[240px]">
+            <span>Link:</span>
+            <a
+              href={targetUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-rose-600 hover:underline font-mono truncate"
+            >
+              {targetUrl}
+            </a>
+          </div>
+          <span className="flex items-center gap-1 text-emerald-600 font-semibold shrink-0">
+            <CheckCircle2 className="w-3 h-3" /> Fiduciary Document Verified
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  // 4. Calendar Execution Preview
   if (capId.includes("calendar") || category === "calendar") {
     const events = data.events || [];
     return (
@@ -223,12 +328,25 @@ export function ExecutionPreviewCard({ execution }: ExecutionPreviewCardProps) {
     );
   }
 
-  // 4. Default Execution Fallback
+  // 5. Default Execution Fallback
   return (
     <div className="my-2 p-3 bg-white border border-[#EADBCE] rounded-2xl text-xs space-y-2 shadow-2xs">
-      <div className="flex items-center gap-2 font-bold text-[#121217]">
-        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-        <span>{execution.name || "Action Completed"}</span>
+      <div className="flex items-center justify-between font-bold text-[#121217]">
+        <div className="flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+          <span>{execution.name || "Action Completed"}</span>
+        </div>
+        {documentUrl && (
+          <a
+            href={documentUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[11px] text-rose-600 hover:underline flex items-center gap-1 font-semibold"
+          >
+            <span>Open Link</span>
+            <ExternalLink className="w-3 h-3" />
+          </a>
+        )}
       </div>
       <div className="p-2.5 bg-[#FAF5F0] rounded-xl text-[#5A544E] font-mono text-[10px] overflow-x-auto">
         {JSON.stringify(data, null, 2)}

@@ -140,16 +140,41 @@ async function executeNode(
     else if (typeId.startsWith("agent-")) {
       await simulateDelay(800 + Math.random() * 400);
       if (typeId === "agent-briefing-generator") {
-        output = { briefing: "Executive summary: Q3 portfolio is up 4.2%. Equity exposure at 68%, above the 65% target. Key discussion: rebalancing and tax-loss harvesting opportunity.", tokensUsed: 312 };
-        logs.push(makeLog(node.id, label, "success", "🤖 Claude Sonnet generated executive briefing (312 tokens)"));
+        const docUrl = "/api/documents/export?type=briefing&clientName=Client";
+        const pdfUrl = "/api/documents/export?type=briefing&format=pdf&clientName=Client";
+        output = {
+          briefing: "Executive summary: Q3 portfolio is up 4.2%. Equity exposure at 68%, above the 65% target. Key discussion: rebalancing and tax-loss harvesting opportunity.",
+          tokensUsed: 312,
+          documentUrl: docUrl,
+          pdfUrl: pdfUrl,
+        };
+        logs.push(makeLog(node.id, label, "success", `🤖 Claude Sonnet generated executive briefing — PDF & Dossier link attached: ${docUrl}`));
       } else if (typeId === "agent-compliance-checker") {
-        output = { compliant: true, flags: [], ruleset: "FINRA-2111", passedChecks: 7 };
-        logs.push(makeLog(node.id, label, "success", "🛡️ Compliance check passed — 7/7 FINRA checks green"));
+        const docUrl = "/api/documents/export?type=compliance&clientName=Client";
+        const pdfUrl = "/api/documents/export?type=compliance&format=pdf&clientName=Client";
+        output = {
+          compliant: true,
+          flags: [],
+          ruleset: "FINRA-2111",
+          passedChecks: 7,
+          documentUrl: docUrl,
+          pdfUrl: pdfUrl,
+        };
+        logs.push(makeLog(node.id, label, "success", `🛡️ Compliance check passed (7/7 FINRA checks) — Audit PDF & Record link attached: ${docUrl}`));
       } else if (typeId === "agent-commitment-extractor") {
-        output = { commitments: ["Rebalance portfolio by Oct 15", "Send updated IPS document", "Schedule Q4 review"] };
-        logs.push(makeLog(node.id, label, "success", "📝 Extracted 3 commitments from meeting transcript"));
+        output = {
+          commitments: ["Rebalance portfolio by Oct 15", "Send updated IPS document", "Schedule Q4 review"],
+          documentUrl: "/api/documents/export?type=meeting&clientName=Client",
+          pdfUrl: "/api/documents/export?type=meeting&format=pdf&clientName=Client",
+        };
+        logs.push(makeLog(node.id, label, "success", "📝 Extracted 3 commitments from meeting transcript (Minutes Document attached)"));
       } else {
-        output = { result: "AI agent completed processing", model: "claude-3-5-sonnet" };
+        output = {
+          result: "AI agent completed processing",
+          model: "claude-3-5-sonnet",
+          documentUrl: "/api/documents/export?type=report&clientName=Client",
+          pdfUrl: "/api/documents/export?type=report&format=pdf&clientName=Client",
+        };
         logs.push(makeLog(node.id, label, "success", `🤖 AI agent ${label} completed`));
       }
     }
@@ -213,8 +238,15 @@ async function executeNode(
     // ─── OUTPUT NODES ──────────────────────────────────────────────────────────
     else if (typeId.startsWith("output-")) {
       await simulateDelay(200);
-      output = { rendered: true, format: node.data.config?.format ?? "json" };
-      logs.push(makeLog(node.id, label, "success", `📤 Output node rendered in ${node.data.config?.format ?? "json"} format`));
+      const docUrl = "/api/documents/export?type=report&clientName=Client";
+      const pdfUrl = "/api/documents/export?type=report&format=pdf&clientName=Client";
+      output = {
+        rendered: true,
+        format: node.data.config?.format ?? "pdf",
+        documentUrl: docUrl,
+        pdfUrl: pdfUrl,
+      };
+      logs.push(makeLog(node.id, label, "success", `📤 Output document generated (${node.data.config?.format ?? "pdf"}) — Link: ${docUrl}`));
     }
 
     // ─── UNKNOWN ───────────────────────────────────────────────────────────────

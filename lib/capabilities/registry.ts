@@ -207,6 +207,34 @@ export const CAPABILITY_REGISTRY: CapabilityDefinition[] = [
     },
   },
   {
+    id: "composio_googledocs_create_document",
+    name: "Google Docs: Create Client Document & Dossier",
+    description: "Creates and formats a new Google Document on Google Drive for meeting notes, briefing dossiers, or investment policy statements.",
+    source: "composio_connector",
+    category: "storage",
+    requiredConnector: "googledrive",
+    requiresHITL: false,
+    executionType: "sync",
+    parameters: {
+      title: { type: "string", description: "Document title (e.g. 'Sarah Jenkins - Q3 Investment Review')", required: true },
+      content: { type: "string", description: "Text or markdown content for the document", required: false },
+    },
+  },
+  {
+    id: "composio_googledrive_upload_file",
+    name: "Google Drive: Upload / Archive Document & PDF",
+    description: "Uploads and stores generated client PDF dossiers, audit compliance records, or meeting transcripts into Google Drive.",
+    source: "composio_connector",
+    category: "storage",
+    requiredConnector: "googledrive",
+    requiresHITL: false,
+    executionType: "sync",
+    parameters: {
+      fileName: { type: "string", description: "File name (e.g. 'FINRA_Compliance_Audit.pdf')", required: true },
+      fileContent: { type: "string", description: "Content or base64 file data", required: false },
+    },
+  },
+  {
     id: "composio_googlesheets_create_sheet",
     name: "Google Sheets: Create Spreadsheet & Add Rows",
     description: "Creates a new Google Spreadsheet on Google Drive and populates rows of lead data, client portfolios, or contact tables.",
@@ -300,12 +328,14 @@ When an advisor asks a question or gives an instruction:
 2. For calendar or meeting queries:
    - Always map meeting queries, schedules, appointments, reviews, or queries like "how many meetings did I have in July / last week / today" to "composio_googlecalendar_list_events".
    - Compute the exact ISO timestamps for "timeMin" and "timeMax". For example, if asked about July 2026, set timeMin="2026-07-01T00:00:00Z" and timeMax="2026-07-31T23:59:59Z". If asked about "last week", calculate the start and end dates of the previous 7 days based on Current System Date.
-3. If no external tool is needed (e.g. general wealth management concept, greeting), answer directly with natural conversational guidance.
-4. Output your plan as structured JSON with:
-   - "conversational_intro": String explaining what you are doing (e.g. "Checking your calendar schedule for the requested timeframe...")
+3. For document, spreadsheet, PDF, dossier, or record generation:
+   - When creating or editing any document, spreadsheet, PDF, briefing dossier, or compliance audit, ensure that direct document links and PDF download links are attached so the advisor can immediately open and download the file.
+4. If no external tool is needed (e.g. general wealth management concept, greeting), answer directly with natural conversational guidance.
+5. Output your plan as structured JSON with:
+   - "conversational_intro": String explaining what you are doing (e.g. "Preparing your client briefing dossier and generating the PDF package...")
    - "capability_calls": Array of objects:
      - "capability_id": ID from registry
-     - "parameters": Key-value dictionary matching capability parameters (e.g. { "timeMin": "2026-07-01T00:00:00Z", "timeMax": "2026-07-31T23:59:59Z" })
+     - "parameters": Key-value dictionary matching capability parameters
      - "reason": Why this tool is being invoked
    - "direct_answer": String containing the direct response if no tool call is needed.`;
 }

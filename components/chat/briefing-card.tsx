@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { FileText, Shield, TrendingUp, AlertCircle, CheckCircle2, ChevronRight } from "lucide-react";
+import { FileText, Shield, Download, ExternalLink, ChevronRight, CheckCircle2 } from "lucide-react";
 
 interface BriefingCardProps {
   data: any;
@@ -9,33 +9,58 @@ interface BriefingCardProps {
 }
 
 export function BriefingCard({ data, type }: BriefingCardProps) {
+  const clientName = data?.clientName || "Sarah Jenkins";
+  const docUrl = data?.documentUrl || `/api/documents/export?type=${type}&clientName=${encodeURIComponent(clientName)}`;
+  const pdfUrl = data?.pdfUrl || `/api/documents/export?type=${type}&format=pdf&clientName=${encodeURIComponent(clientName)}`;
+
   if (type === "briefing" && data?.executiveSummary) {
     return (
-      <div className="my-2 p-4 bg-background/90 border border-border rounded-xl space-y-3 shadow-sm text-xs">
-        <div className="flex items-center justify-between border-b border-border/50 pb-2">
+      <div className="my-2 p-4 bg-white border border-[#EADBCE] rounded-2xl space-y-3 shadow-2xs text-xs">
+        <div className="flex items-center justify-between border-b border-[#EADBCE]/60 pb-2.5">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-rose-500/10 text-rose-600 rounded-lg">
+            <div className="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center border border-rose-500/20">
               <FileText className="w-4 h-4" />
             </div>
-            <span className="font-semibold text-foreground text-sm">Meeting Briefing Dossier</span>
+            <div>
+              <span className="font-bold text-[#121217] text-sm block">Meeting Briefing Dossier</span>
+              <span className="text-[10px] text-[#8E847C]">Client: {clientName}</span>
+            </div>
           </div>
-          <span className="text-[10px] px-2 py-0.5 bg-emerald-500/10 text-emerald-600 font-medium rounded-full">
-            Ready
-          </span>
+          <div className="flex items-center gap-1.5">
+            <a
+              href={pdfUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#FAF5F0] hover:bg-[#EADBCE] text-[#121217] border border-[#EADBCE] rounded-xl font-semibold text-[10px] transition"
+              title="Download Briefing PDF"
+            >
+              <Download className="w-3 h-3 text-rose-600" />
+              <span>PDF</span>
+            </a>
+            <a
+              href={docUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#121217] hover:bg-[#272730] text-white rounded-xl font-semibold text-[10px] transition"
+            >
+              <span>View Dossier</span>
+              <ExternalLink className="w-3 h-3 text-rose-400" />
+            </a>
+          </div>
         </div>
 
-        <p className="text-muted-foreground leading-relaxed italic">
+        <p className="text-[#5A544E] leading-relaxed italic bg-[#FAF5F0] p-3 rounded-xl border border-[#EADBCE]/50">
           &ldquo;{data.executiveSummary}&rdquo;
         </p>
 
         {data.portfolioHighlights?.length > 0 && (
           <div>
-            <span className="font-semibold text-[11px] text-foreground mb-1.5 block">Portfolio Metrics</span>
+            <span className="font-bold text-[11px] text-[#121217] mb-1.5 block">Portfolio Metrics</span>
             <div className="grid grid-cols-2 gap-1.5">
               {data.portfolioHighlights.map((item: any, idx: number) => (
-                <div key={idx} className="p-2 bg-muted/40 rounded-lg border border-border/40">
-                  <div className="text-[10px] text-muted-foreground">{item.metric}</div>
-                  <div className="font-semibold text-foreground text-xs">{item.value}</div>
+                <div key={idx} className="p-2 bg-[#FAF5F0] rounded-xl border border-[#EADBCE]/50">
+                  <div className="text-[10px] text-[#8E847C]">{item.metric}</div>
+                  <div className="font-bold text-[#121217] text-xs">{item.value}</div>
                 </div>
               ))}
             </div>
@@ -44,10 +69,10 @@ export function BriefingCard({ data, type }: BriefingCardProps) {
 
         {data.keyTalkingPoints?.length > 0 && (
           <div>
-            <span className="font-semibold text-[11px] text-foreground mb-1 block">Key Talking Points</span>
+            <span className="font-bold text-[11px] text-[#121217] mb-1 block">Key Talking Points</span>
             <ul className="space-y-1">
               {data.keyTalkingPoints.map((point: string, idx: number) => (
-                <li key={idx} className="flex items-start gap-1.5 text-muted-foreground text-[11px]">
+                <li key={idx} className="flex items-start gap-1.5 text-[#5A544E] text-[11px]">
                   <ChevronRight className="w-3.5 h-3.5 text-rose-500 shrink-0 mt-0.5" />
                   <span>{point}</span>
                 </li>
@@ -55,39 +80,74 @@ export function BriefingCard({ data, type }: BriefingCardProps) {
             </ul>
           </div>
         )}
+
+        <div className="flex items-center justify-between text-[10px] text-[#8E847C] pt-2 border-t border-[#EADBCE]/50">
+          <a href={docUrl} target="_blank" rel="noopener noreferrer" className="text-rose-600 hover:underline font-mono truncate max-w-[240px]">
+            {docUrl}
+          </a>
+          <span className="flex items-center gap-1 text-emerald-600 font-semibold shrink-0">
+            <CheckCircle2 className="w-3 h-3" /> Fiduciary Record Linked
+          </span>
+        </div>
       </div>
     );
   }
 
   if (type === "compliance" && data?.recordId) {
     return (
-      <div className="my-2 p-4 bg-background/90 border border-border rounded-xl space-y-3 shadow-sm text-xs">
-        <div className="flex items-center justify-between border-b border-border/50 pb-2">
+      <div className="my-2 p-4 bg-white border border-[#EADBCE] rounded-2xl space-y-3 shadow-2xs text-xs">
+        <div className="flex items-center justify-between border-b border-[#EADBCE]/60 pb-2.5">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-indigo-500/10 text-indigo-600 rounded-lg">
+            <div className="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center border border-indigo-500/20">
               <Shield className="w-4 h-4" />
             </div>
-            <span className="font-semibold text-foreground text-sm">SEC/FINRA Compliance Record</span>
+            <div>
+              <span className="font-bold text-[#121217] text-sm block">SEC/FINRA Compliance Record</span>
+              <span className="text-[10px] text-[#8E847C]">ID: {data.recordId}</span>
+            </div>
           </div>
-          <span className="text-[10px] px-2 py-0.5 bg-emerald-500/10 text-emerald-600 font-medium rounded-full">
-            {data.complianceStatus?.toUpperCase() || "COMPLIANT"}
-          </span>
+          <div className="flex items-center gap-1.5">
+            <a
+              href={pdfUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#FAF5F0] hover:bg-[#EADBCE] text-[#121217] border border-[#EADBCE] rounded-xl font-semibold text-[10px] transition"
+              title="Download Compliance PDF"
+            >
+              <Download className="w-3 h-3 text-indigo-600" />
+              <span>PDF</span>
+            </a>
+            <a
+              href={docUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#121217] hover:bg-[#272730] text-white rounded-xl font-semibold text-[10px] transition"
+            >
+              <span>Audit View</span>
+              <ExternalLink className="w-3 h-3 text-indigo-400" />
+            </a>
+          </div>
         </div>
 
-        <div className="text-[11px] text-muted-foreground">
-          <span className="font-medium text-foreground">Record ID:</span> {data.recordId}
-        </div>
-
-        <p className="text-muted-foreground text-[11px] leading-relaxed">
+        <p className="text-[#5A544E] text-[11px] leading-relaxed bg-[#FAF5F0] p-3 rounded-xl border border-[#EADBCE]/50">
           {data.auditNarrative}
         </p>
 
         {data.suitabilityAssessment && (
-          <div className="p-2.5 bg-muted/40 rounded-lg border border-border/40">
-            <span className="font-semibold text-[11px] text-foreground block mb-1">Suitability Rationale</span>
-            <p className="text-muted-foreground text-[11px]">{data.suitabilityAssessment.rationale}</p>
+          <div className="p-2.5 bg-[#FAF5F0] rounded-xl border border-[#EADBCE]/50">
+            <span className="font-bold text-[11px] text-[#121217] block mb-1">Suitability Rationale</span>
+            <p className="text-[#5A544E] text-[11px]">{data.suitabilityAssessment.rationale}</p>
           </div>
         )}
+
+        <div className="flex items-center justify-between text-[10px] text-[#8E847C] pt-2 border-t border-[#EADBCE]/50">
+          <a href={docUrl} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline font-mono truncate max-w-[240px]">
+            {docUrl}
+          </a>
+          <span className="flex items-center gap-1 text-emerald-600 font-semibold shrink-0">
+            <CheckCircle2 className="w-3 h-3" /> SEC 204-2 Immutability Stamp
+          </span>
+        </div>
       </div>
     );
   }

@@ -21,17 +21,11 @@ export async function GET() {
 
     const firmId = profile?.firm_id;
 
-    let query = supabase
+    const { data: sessions, error } = await supabase
       .from("chat_sessions")
       .select("id, title, context_metadata, created_at, updated_at")
       .eq("user_id", user.id)
       .order("updated_at", { ascending: false });
-
-    if (firmId) {
-      query = query.eq("firm_id", firmId);
-    }
-
-    const { data: sessions, error } = await query;
 
     if (error) {
       console.warn("Error fetching chat sessions from Supabase:", error);

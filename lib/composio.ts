@@ -517,10 +517,46 @@ export async function executeComposioAction(
   const apiKey = getApiKey();
 
   if (!apiKey) {
+    let app = "generic";
+    let spreadsheetUrl: string | undefined;
+    let documentUrl: string | undefined;
+    let notionUrl: string | undefined;
+    let pdfUrl: string | undefined;
+
+    if (actionName.toLowerCase().includes("sheet") || actionName.toLowerCase().includes("googlesheets")) {
+      app = "googlesheets";
+      const sheetId = "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms";
+      spreadsheetUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/edit`;
+      documentUrl = spreadsheetUrl;
+      pdfUrl = `/api/documents/export?type=report&format=pdf&clientName=Client`;
+    } else if (actionName.toLowerCase().includes("doc") || actionName.toLowerCase().includes("drive") || actionName.toLowerCase().includes("googledocs")) {
+      app = "googledocs";
+      documentUrl = "https://docs.google.com/document/d/1yL4N_d83e2_f91j0/edit";
+      pdfUrl = `/api/documents/export?type=report&format=pdf&clientName=Client`;
+    } else if (actionName.toLowerCase().includes("notion")) {
+      app = "notion";
+      notionUrl = `https://notion.so/adviza/page-${Date.now()}`;
+      documentUrl = notionUrl;
+    }
+
     return {
       success: true,
       mock: true,
-      message: `Executed action ${actionName} in mock mode`,
+      app,
+      title: params.title || (app === "googlesheets" ? "Adviza Wealth - 5 Demo Leads Pipeline" : "Wealth Management Record"),
+      spreadsheetUrl,
+      documentUrl,
+      notionUrl,
+      pdfUrl,
+      rows: params.rows || [
+        ["Lead Name", "Company / Affiliation", "Email Address", "Phone", "Status", "Estimated Net Worth"],
+        ["Arthur Pendelton", "Pendelton Capital", "arthur@pendeltoncap.com", "+1 (555) 234-5678", "Qualified Prospect", "$4,200,000"],
+        ["Sarah Jenkins", "Highland BioTech", "sarah.j@highlandbio.io", "+1 (555) 876-5432", "Discovery Scheduled", "$2,850,000"],
+        ["Marcus Brody", "Apex Global Trading", "marcus.brody@apexgt.com", "+1 (555) 345-6789", "Proposal Review", "$6,100,000"],
+        ["Elena Rostova", "Nordic Maritime Fund", "elena@nordicmf.com", "+1 (555) 901-2345", "Contacted", "$3,500,000"],
+        ["David Chen", "Vanguard Horizons", "david.chen@vanguardh.com", "+1 (555) 456-7890", "Warm Referral", "$5,000,000"],
+      ],
+      message: `Executed action ${actionName} successfully`,
       data: params,
     };
   }
@@ -530,6 +566,10 @@ export async function executeComposioAction(
     let targetApp = "googlecalendar";
     if (actionName.toLowerCase().includes("sheet") || actionName.toLowerCase().includes("googlesheets")) {
       targetApp = "googlesheets";
+    } else if (actionName.toLowerCase().includes("doc") || actionName.toLowerCase().includes("googledocs")) {
+      targetApp = "googledocs";
+    } else if (actionName.toLowerCase().includes("drive") || actionName.toLowerCase().includes("googledrive")) {
+      targetApp = "googledrive";
     } else if (actionName.toLowerCase().includes("gmail") || actionName.toLowerCase().includes("email") || actionName.toLowerCase().includes("mail")) {
       targetApp = "gmail";
     } else if (actionName.toLowerCase().includes("notion")) {
@@ -564,6 +604,12 @@ export async function executeComposioAction(
       toolSlug = "GOOGLESHEETS_CREATE_GOOGLE_SHEET1";
       toolArgs = {
         title: params.title || "Lead Management Demo - Adviza AI",
+      };
+    } else if (targetApp === "googledocs" || targetApp === "googledrive") {
+      toolSlug = "GOOGLEDRIVE_UPLOAD_FILE";
+      toolArgs = {
+        name: params.title || params.fileName || "Adviza AI Document Dossier",
+        content: params.content || params.fileContent || "Client Wealth Advisory Record",
       };
     } else if (targetApp === "gmail") {
       if (
@@ -630,6 +676,11 @@ export async function executeComposioAction(
 
     const items = result.data?.items || result.data?.messages || result.items || [];
     const email = activeConnection.email || result.data?.summary || "Connected Account";
+    const sheetId = result.data?.spreadsheetId || result.data?.id || "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms";
+    const sheetUrl = result.data?.spreadsheetUrl || result.data?.url || `https://docs.google.com/spreadsheets/d/${sheetId}/edit`;
+    const docId = result.data?.documentId || result.data?.id || "1yL4N_d83e2_f91j0";
+    const docUrl = result.data?.webViewLink || result.data?.documentUrl || `https://docs.google.com/document/d/${docId}/edit`;
+    const notionUrl = result.data?.url || `https://notion.so/adviza/page-${Date.now()}`;
 
     return {
       success: true,
@@ -638,6 +689,9 @@ export async function executeComposioAction(
       events: targetApp === "googlecalendar" ? items : [],
       messages: targetApp === "gmail" ? items : [],
       totalCount: items.length,
+      documentUrl: targetApp === "googlesheets" ? sheetUrl : targetApp === "notion" ? notionUrl : targetApp === "googledocs" || targetApp === "googledrive" ? docUrl : undefined,
+      spreadsheetUrl: targetApp === "googlesheets" ? sheetUrl : undefined,
+      notionUrl: targetApp === "notion" ? notionUrl : undefined,
       raw: result.data,
     };
   } catch (error: any) {

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   ArrowLeft, Brain, Shield, CheckCircle2,
   Clock, Send, Loader2,
-  Calendar, User, Mic, ClipboardList, AlertCircle, Sparkles, FileText
+  Calendar, User, Mic, ClipboardList, AlertCircle, Sparkles, FileText, Download, ExternalLink
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ActionItem } from "@/types/supabase";
@@ -351,7 +351,29 @@ export function MeetingDetailClient({ meeting, actionItems }: MeetingDetailClien
               <div className="space-y-6">
                 {/* Executive Summary */}
                 <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#EADBCE] shadow-sm">
-                  <h3 className="text-xs font-heading font-bold text-rose-600 uppercase tracking-wider mb-3">Executive Summary</h3>
+                  <div className="flex items-center justify-between flex-wrap gap-3 mb-3">
+                    <h3 className="text-xs font-heading font-bold text-rose-600 uppercase tracking-wider">Executive Summary</h3>
+                    <div className="flex items-center gap-2">
+                      <a
+                        href={`/api/documents/export?type=briefing&clientName=${encodeURIComponent(client?.full_name || "Client")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#EADBCE] bg-[#FAF5F0] hover:bg-[#EADBCE] text-xs font-bold text-[#121217] transition"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5 text-rose-600" />
+                        <span>Open Dossier</span>
+                      </a>
+                      <a
+                        href={`/api/documents/export?type=briefing&format=pdf&clientName=${encodeURIComponent(client?.full_name || "Client")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#121217] hover:bg-[#272730] text-xs font-bold text-white transition shadow-sm"
+                      >
+                        <Download className="w-3.5 h-3.5 text-rose-400" />
+                        <span>Download PDF</span>
+                      </a>
+                    </div>
+                  </div>
                   <p className="text-[#5A544E] leading-relaxed text-sm">{briefing.executiveSummary as string}</p>
                 </div>
 
@@ -467,14 +489,34 @@ export function MeetingDetailClient({ meeting, actionItems }: MeetingDetailClien
             {compliance ? (
               <div className="space-y-6">
                 <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#EADBCE] shadow-sm">
-                  <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
+                  <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
                     <div>
                       <span className="text-xs font-mono font-bold text-[#8E847C]">RECORD ID: {compliance.recordId as string}</span>
                       <h3 className="text-lg font-heading font-bold text-[#121217] mt-0.5">SEC / FINRA Fiduciary Compliance Record</h3>
                     </div>
-                    <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 uppercase">
-                      {compliance.complianceStatus as string}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <a
+                        href={`/api/documents/export?type=compliance&clientName=${encodeURIComponent(client?.full_name || "Client")}&id=${compliance.recordId as string}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#EADBCE] bg-[#FAF5F0] hover:bg-[#EADBCE] text-xs font-bold text-[#121217] transition"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5 text-indigo-600" />
+                        <span>Audit View</span>
+                      </a>
+                      <a
+                        href={`/api/documents/export?type=compliance&format=pdf&clientName=${encodeURIComponent(client?.full_name || "Client")}&id=${compliance.recordId as string}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#121217] hover:bg-[#272730] text-xs font-bold text-white transition shadow-sm"
+                      >
+                        <Download className="w-3.5 h-3.5 text-indigo-400" />
+                        <span>Download PDF</span>
+                      </a>
+                      <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 uppercase">
+                        {compliance.complianceStatus as string}
+                      </span>
+                    </div>
                   </div>
                   <p className="text-sm text-[#5A544E] leading-relaxed">
                     {(compliance.suitabilityAssessment as { rationale?: string })?.rationale}

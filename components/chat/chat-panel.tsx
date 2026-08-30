@@ -56,10 +56,24 @@ export function ChatPanel({
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(sessionId || null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const isSendingRef = useRef(false);
+  const currentSessionIdRef = useRef<string | null>(sessionId || null);
+
+  // Keep ref in sync
+  useEffect(() => {
+    currentSessionIdRef.current = activeSessionId;
+  }, [activeSessionId]);
 
   // Sync external sessionId prop
   useEffect(() => {
+    // If we're currently in the middle of sending a message in this session, don't reset state
+    if (isSendingRef.current && sessionId && sessionId === currentSessionIdRef.current) {
+      return;
+    }
+
     setActiveSessionId(sessionId || null);
+    currentSessionIdRef.current = sessionId || null;
+
     if (sessionId) {
       // 1. Instant check from localStorage
       try {
@@ -82,7 +96,7 @@ export function ChatPanel({
               localStorage.setItem("adviza_chat_msg_" + sessionId, JSON.stringify(data.messages));
             } catch {}
           } else if (!localStorage.getItem("adviza_chat_msg_" + sessionId)) {
-            // Pre-seed starter thread messages
+            // Pre-seed starter thread messages if applicable
             let seedMessages: ChatMessage[] = [];
             if (sessionId === "sess_calendar_today") {
               seedMessages = [
@@ -125,8 +139,30 @@ export function ChatPanel({
                 {
                   id: "msg_a3",
                   role: "assistant",
-                  content: "Generated Pre-Meeting Executive Briefing for Sarah Jenkins (Portfolio: $1,850,000 | Growth & Income). Talking points and municipal bond rebalancing recommendations compiled.",
+                  content: "Generated Pre-Meeting Executive Briefing for Sarah Jenkins (Portfolio: $1,850,000 | Growth & Income).\n\n### 🔗 Document Deliverables & Direct Links\n📄 **Live Document Dossier:** [Open Full Dossier](/api/documents/export?type=briefing&clientName=Sarah%20Jenkins)\n📥 **PDF Export:** [Download / Save as PDF](/api/documents/export?type=briefing&format=pdf&clientName=Sarah%20Jenkins)",
                   timestamp: "2 days ago",
+                  executedResults: [
+                    {
+                      capabilityId: "agent_meeting_briefing",
+                      name: "Pre-Meeting Briefing Dossier",
+                      category: "briefing",
+                      success: true,
+                      data: {
+                        clientName: "Sarah Jenkins",
+                        executiveSummary: "Pre-meeting briefing dossier compiled for comprehensive fiduciary review. High-net-worth portfolio analysis indicates strong performance (+4.2% QTD).",
+                        portfolioHighlights: [
+                          { metric: "Total Portfolio Value", value: "$1,850,000" },
+                          { metric: "Equity Allocation", value: "68.4%" },
+                        ],
+                        keyTalkingPoints: [
+                          "Municipal Bond Ladder deployment",
+                          "Tax-loss harvesting on emerging market positions",
+                        ],
+                        documentUrl: "/api/documents/export?type=briefing&clientName=Sarah%20Jenkins",
+                        pdfUrl: "/api/documents/export?type=briefing&format=pdf&clientName=Sarah%20Jenkins",
+                      },
+                    },
+                  ],
                 },
               ];
             }
@@ -237,10 +273,11 @@ export function ChatPanel({
     setMessages(newHistory);
     if (!textToSend) setInput("");
     setLoading(true);
+    isSendingRef.current = true;
     setStatusMessage("Resolving intent against Capability Registry...");
 
     try {
-      let currentSession = activeSessionId;
+      let currentSession = activeSessionId || currentSessionIdRef.current;
 
       // Auto-create session on first prompt if none selected
       if (!currentSession) {
@@ -249,18 +286,25 @@ export function ChatPanel({
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              title: query.length > 32 ? query.slice(0, 32) + "..." : query,
+              title: query.length > 36 ? query.slice(0, 36) + "..." : query,
             }),
           });
           const createData = await createRes.json();
           if (createData.session?.id) {
             currentSession = createData.session.id;
+            currentSessionIdRef.current = currentSession;
             setActiveSessionId(currentSession);
             onSessionCreated?.(createData.session);
           }
         } catch (sessErr) {
           console.warn("Session auto-create error (non-fatal):", sessErr);
         }
+      }
+
+      if (currentSession) {
+        try {
+          localStorage.setItem("adviza_chat_msg_" + currentSession, JSON.stringify(newHistory));
+        } catch {}
       }
 
       const ambientContext = getAmbientContext();
@@ -294,6 +338,7 @@ export function ChatPanel({
 
       const updatedMessages = [...newHistory, assistantMsg];
       setMessages(updatedMessages);
+
       if (currentSession) {
         try {
           localStorage.setItem("adviza_chat_msg_" + currentSession, JSON.stringify(updatedMessages));
@@ -312,11 +357,17 @@ export function ChatPanel({
       ]);
     } finally {
       setLoading(false);
+      isSendingRef.current = false;
       setStatusMessage(null);
     }
   };
 
   const handleClearHistory = () => {
+    if (activeSessionId) {
+      try {
+        localStorage.removeItem("adviza_chat_msg_" + activeSessionId);
+      } catch {}
+    }
     setMessages([
       {
         id: `welcome_${Date.now()}`,
@@ -401,7 +452,9 @@ export function ChatPanel({
                   : "bg-[#FAF5F0] text-[#121217] border border-[#EADBCE] rounded-bl-sm shadow-2xs"
               }`}
             >
-              <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+              <div className="leading-relaxed whitespace-pre-wrap">
+                {msg.content}
+              </div>
 
               {/* Render Missing Connector Cards */}
               {msg.missingConnectors && msg.missingConnectors.length > 0 && (
@@ -503,7 +556,6 @@ export function ChatPanel({
 
         <div ref={messagesEndRef} />
       </div>
-
 
       {/* Input Form */}
       <div className="p-3.5 border-t border-[#EADBCE] bg-white">

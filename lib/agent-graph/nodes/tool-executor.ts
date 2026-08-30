@@ -61,10 +61,19 @@ export async function toolExecutorNode(
             investmentGoals: ["Tax Minimization", "Retirement Income", "Capital Preservation"],
           },
         });
+        const docUrl = `/api/documents/export?type=briefing&clientName=${encodeURIComponent(clientName)}`;
+        const pdfUrl = `/api/documents/export?type=briefing&format=pdf&clientName=${encodeURIComponent(clientName)}`;
         return {
           capabilityId: call.capability_id,
+          name: cap?.name || "Pre-Meeting Briefing Dossier",
+          category: "briefing",
           success: true,
-          data: briefing,
+          data: {
+            ...briefing,
+            clientName,
+            documentUrl: docUrl,
+            pdfUrl: pdfUrl,
+          },
         };
       }
 
@@ -88,21 +97,37 @@ export async function toolExecutorNode(
             flaggedItems: [],
           },
         });
+        const recordId = record.recordId || `rec_${Date.now()}`;
+        const docUrl = `/api/documents/export?type=compliance&clientName=${encodeURIComponent(clientName)}&id=${recordId}`;
+        const pdfUrl = `/api/documents/export?type=compliance&format=pdf&clientName=${encodeURIComponent(clientName)}&id=${recordId}`;
         return {
           capabilityId: call.capability_id,
+          name: cap?.name || "SEC / FINRA Compliance Audit Record",
+          category: "compliance",
           success: true,
-          data: record,
+          data: {
+            ...record,
+            clientName,
+            documentUrl: docUrl,
+            pdfUrl: pdfUrl,
+          },
         };
       }
 
       // 4. Fallback execution
+      const fallbackDocUrl = `/api/documents/export?type=report&clientName=Client`;
+      const fallbackPdfUrl = `/api/documents/export?type=report&format=pdf&clientName=Client`;
       return {
         capabilityId: call.capability_id,
+        name: cap?.name || call.capability_id,
+        category: cap?.category || "workflow",
         success: true,
         data: {
           status: "completed",
           message: `Executed ${cap?.name || call.capability_id}`,
           params: call.parameters,
+          documentUrl: fallbackDocUrl,
+          pdfUrl: fallbackPdfUrl,
         },
       };
     } catch (err: any) {
