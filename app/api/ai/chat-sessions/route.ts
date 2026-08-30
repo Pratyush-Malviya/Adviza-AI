@@ -57,10 +57,10 @@ export async function POST(req: NextRequest) {
       .eq("id", user.id)
       .single();
 
-    let firmId = profile?.firm_id;
+    let firmId: string = profile?.firm_id || "";
     if (!firmId) {
       const { data: firms } = await supabase.from("firms").select("id").limit(1);
-      if (firms && firms.length > 0) {
+      if (firms && firms.length > 0 && firms[0].id) {
         firmId = firms[0].id;
       } else {
         const { data: newFirm } = await supabase
@@ -68,9 +68,9 @@ export async function POST(req: NextRequest) {
           .insert({ name: "Advisory Firm", slug: `firm-${Date.now()}` })
           .select()
           .single();
-        firmId = newFirm?.id;
+        firmId = newFirm?.id || "00000000-0000-0000-0000-000000000000";
       }
-      if (firmId) {
+      if (firmId && firmId !== "00000000-0000-0000-0000-000000000000") {
         await supabase.from("profiles").update({ firm_id: firmId }).eq("id", user.id);
       }
     }

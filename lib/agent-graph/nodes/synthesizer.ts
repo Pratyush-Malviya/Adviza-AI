@@ -41,7 +41,7 @@ export async function synthesizerNode(
       previewText = `\n\n**Prepared Spreadsheet Preview (${preview.details.title || "Lead Records"}):**\n\n${headerLine}\n${sepLine}\n${bodyLines}\n\n`;
     }
 
-    const appName = missingConnectors[0]?.connectorName || missingConnectors[0]?.appName || "the app";
+    const appName = missingConnectors[0]?.appName || "the app";
     return {
       finalResponse: formatHumanResponse(`I've analyzed your request and prepared everything!${previewText}To automatically push this to ${appName}, simply click connect below and I'll create the live spreadsheet for you right away.`),
     };
