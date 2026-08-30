@@ -130,12 +130,12 @@ export function ExecutionPreviewCard({ execution }: ExecutionPreviewCardProps) {
             </div>
             <div>
               <h4 className="font-bold text-[#121217] text-sm flex items-center gap-1.5">
-                Google Sheet Created & Populated
+                {records.length <= 2 ? "Google Sheet Updated" : "Google Sheet Created & Populated"}
                 <span className="text-[10px] px-2 py-0.5 bg-emerald-500/10 text-emerald-700 font-semibold rounded-full border border-emerald-500/20">
                   LIVE
                 </span>
               </h4>
-              <p className="text-[11px] text-[#8E847C]">{title} &bull; {records.length} records inserted</p>
+              <p className="text-[11px] text-[#8E847C]">{title} &bull; {records.length} {records.length === 1 ? "record" : "records"}</p>
             </div>
           </div>
 

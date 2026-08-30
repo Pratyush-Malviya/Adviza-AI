@@ -96,8 +96,9 @@ Provide a direct, confident, professional response focused on outcomes:
         const data = res.data || {};
 
         if (capId.includes("sheet") || res.category === "productivity") {
-          lines.push(`\n✅ **Google Sheet created successfully:** *${data.title || "Adviza Wealth Leads Pipeline"}*`);
-          lines.push(`- **Inserted Records:** ${(data.rows?.length || 6) - 1} demo leads added`);
+          const count = data.rows ? Math.max(0, data.rows.length - 1) : 5;
+          lines.push(`\n✅ **Google Sheet Updated:** *${data.title || "Adviza Wealth Leads Pipeline"}*`);
+          lines.push(`- **Active Records:** ${count} record(s) in spreadsheet`);
         } else if (capId.includes("email") || res.category === "email") {
           lines.push(`\n📧 **Email Dispatched:** Sent to \`${data.recipient_email || data.to || "Client"}\``);
         } else if (capId.includes("briefing") || res.category === "briefing") {

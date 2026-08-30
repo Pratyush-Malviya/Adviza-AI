@@ -346,8 +346,38 @@ ${toolsFormatted}
    - "direct_answer": String containing the direct response if no tool call is needed.`;
 }
 
-export function findCapability(id: string): CapabilityDefinition | undefined {
-  return CAPABILITY_REGISTRY.find((c) => c.id === id);
+export function findCapability(id?: string): CapabilityDefinition | undefined {
+  if (!id) return undefined;
+  const exact = CAPABILITY_REGISTRY.find((c) => c.id.toLowerCase() === id.toLowerCase());
+  if (exact) return exact;
+
+  const lower = id.toLowerCase();
+  if (lower.includes("sheet") || lower.includes("spreadsheet") || lower.includes("excel") || lower.includes("table")) {
+    if (lower.includes("append") || lower.includes("row") || lower.includes("insert")) {
+      return CAPABILITY_REGISTRY.find((c) => c.id === "composio_googlesheets_append_data");
+    }
+    return CAPABILITY_REGISTRY.find((c) => c.id === "composio_googlesheets_create_sheet");
+  }
+  if (lower.includes("doc") || lower.includes("drive") || lower.includes("file") || lower.includes("upload")) {
+    return CAPABILITY_REGISTRY.find((c) => c.id === "composio_googledocs_create_document");
+  }
+  if (lower.includes("mail") || lower.includes("email") || lower.includes("message")) {
+    return CAPABILITY_REGISTRY.find((c) => c.id === "composio_gmail_send_email");
+  }
+  if (lower.includes("calendar") || lower.includes("event") || lower.includes("schedule")) {
+    return CAPABILITY_REGISTRY.find((c) => c.id === "composio_googlecalendar_list_events");
+  }
+  if (lower.includes("briefing") || lower.includes("dossier")) {
+    return CAPABILITY_REGISTRY.find((c) => c.id === "agent_meeting_briefing");
+  }
+  if (lower.includes("compliance") || lower.includes("audit") || lower.includes("sec") || lower.includes("finra")) {
+    return CAPABILITY_REGISTRY.find((c) => c.id === "agent_compliance_audit");
+  }
+  if (lower.includes("minute") || lower.includes("transcript")) {
+    return CAPABILITY_REGISTRY.find((c) => c.id === "agent_meeting_intelligence");
+  }
+
+  return undefined;
 }
 
 export function getAppForConnector(connectorId?: string) {
