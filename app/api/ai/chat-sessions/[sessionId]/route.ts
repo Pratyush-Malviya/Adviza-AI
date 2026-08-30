@@ -1,12 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
+function isValidUUID(str?: string | null): boolean {
+  if (!str) return false;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str);
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> }
 ) {
   try {
     const { sessionId } = await params;
+    if (!sessionId || !isValidUUID(sessionId)) {
+      return NextResponse.json({ sessionId, messages: [] });
+    }
+
     const supabase = await createClient();
     const {
       data: { user },
@@ -25,7 +34,7 @@ export async function GET(
 
     if (error) {
       console.error("Error fetching session messages:", error);
-      return NextResponse.json({ messages: [] });
+      return NextResponse.json({ sessionId, messages: [] });
     }
 
     return NextResponse.json({

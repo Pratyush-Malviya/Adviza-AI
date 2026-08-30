@@ -304,6 +304,17 @@ export function ChatPanel({
         }
       }
 
+      // If still no session (e.g. offline or unauthenticated), generate local fallback session
+      if (!currentSession) {
+        currentSession = `sess_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+        currentSessionIdRef.current = currentSession;
+        setActiveSessionId(currentSession);
+        onSessionCreated?.({
+          id: currentSession,
+          title: query.length > 36 ? query.slice(0, 36) + "..." : query,
+        });
+      }
+
       if (currentSession) {
         try {
           localStorage.setItem("adviza_chat_msg_" + currentSession, JSON.stringify(newHistory));
@@ -329,6 +340,17 @@ export function ChatPanel({
 
       const data = await res.json();
 
+      // If orchestrator created or assigned a new UUID session
+      if (data.sessionId && data.sessionId !== currentSession) {
+        currentSession = data.sessionId;
+        currentSessionIdRef.current = data.sessionId;
+        setActiveSessionId(data.sessionId);
+        onSessionCreated?.({
+          id: data.sessionId,
+          title: query.length > 36 ? query.slice(0, 36) + "..." : query,
+        });
+      }
+
       const assistantMsg: ChatMessage = {
         id: `asst_${Date.now()}`,
         role: "assistant",
@@ -345,7 +367,34 @@ export function ChatPanel({
       if (currentSession) {
         try {
           localStorage.setItem("adviza_chat_msg_" + currentSession, JSON.stringify(updatedMessages));
-        } catch {}
+
+          // Also update session list in local cache
+          const rawSessions = localStorage.getItem("adviza_chat_sessions");
+          let sessionsList = rawSessions ? JSON.parse(rawSessions) : [];
+          if (!Array.isArray(sessionsList)) sessionsList = [];
+
+          const existingIdx = sessionsList.findIndex((s: any) => s.id === currentSession);
+          const sessionObj = {
+            id: currentSession,
+            title: query.length > 36 ? query.slice(0, 36) + "..." : query,
+            updated_at: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+            lastMessage: assistantMsg.content.slice(0, 60),
+          };
+
+          if (existingIdx >= 0) {
+            sessionsList[existingIdx] = {
+              ...sessionsList[existingIdx],
+              updated_at: new Date().toISOString(),
+              lastMessage: assistantMsg.content.slice(0, 60),
+            };
+          } else {
+            sessionsList.unshift(sessionObj);
+          }
+          localStorage.setItem("adviza_chat_sessions", JSON.stringify(sessionsList));
+        } catch (storageErr) {
+          console.warn("Local storage cache write error:", storageErr);
+        }
       }
     } catch (err: any) {
       console.error("Chat error:", err);

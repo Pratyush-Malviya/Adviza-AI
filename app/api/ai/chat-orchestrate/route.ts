@@ -40,11 +40,77 @@ export async function POST(req: NextRequest) {
     let firmId = profile?.firm_id;
     if (!firmId) {
       const { data: firms } = await supabase.from("firms").select("id").limit(1);
-      firmId = firms?.[0]?.id || "00000000-0000-0000-0000-000000000000";
+      if (firms && firms.length > 0) {
+        firmId = firms[0].id;
+      } else {
+        const { data: newFirm } = await supabase
+          .from("firms")
+          .insert({ name: "Advisory Firm", slug: `firm-${Date.now()}` })
+          .select()
+          .single();
+        firmId = newFirm?.id;
+      }
+      if (firmId) {
+        await supabase.from("profiles").update({ firm_id: firmId }).eq("id", user.id);
+      }
     }
 
     const body: ChatOrchestratorPayload = await req.json();
-    const { message, sessionId, ambientContext, actionType = "user_message", hitlActionData, history = [] } = body;
+    const { message, sessionId: rawSessionId, ambientContext, actionType = "user_message", hitlActionData, history = [] } = body;
+
+    // Ensure we have a valid UUID chat_sessions record
+    const isValidUUID = (str?: string | null) =>
+      Boolean(str && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str));
+
+    let effectiveSessionId: string | null = null;
+
+    if (isValidUUID(rawSessionId)) {
+      effectiveSessionId = rawSessionId!;
+      // Check if session exists in DB; if not, create it
+      const { data: existingSession } = await supabase
+        .from("chat_sessions")
+        .select("id")
+        .eq("id", effectiveSessionId)
+        .single();
+
+      if (!existingSession) {
+        await supabase.from("chat_sessions").insert({
+          id: effectiveSessionId,
+          firm_id: firmId,
+          user_id: user.id,
+          title: message.length > 36 ? message.slice(0, 36) + "..." : message,
+          context_metadata: ambientContext || {},
+        });
+      }
+    } else if (rawSessionId) {
+      // Non-UUID session ID (e.g. from local storage fallback) - create a real UUID session
+      const { data: newSession } = await supabase
+        .from("chat_sessions")
+        .insert({
+          firm_id: firmId,
+          user_id: user.id,
+          title: message.length > 36 ? message.slice(0, 36) + "..." : message,
+          context_metadata: { originalId: rawSessionId, ...(ambientContext || {}) },
+        })
+        .select()
+        .single();
+
+      effectiveSessionId = newSession?.id || null;
+    } else {
+      // Auto-create new session if none provided
+      const { data: newSession } = await supabase
+        .from("chat_sessions")
+        .insert({
+          firm_id: firmId,
+          user_id: user.id,
+          title: message.length > 36 ? message.slice(0, 36) + "..." : message,
+          context_metadata: ambientContext || {},
+        })
+        .select()
+        .single();
+
+      effectiveSessionId = newSession?.id || null;
+    }
 
     // Handle HITL Action Approval Execution
     if (actionType === "approve_hitl" && hitlActionData) {
@@ -54,9 +120,9 @@ export async function POST(req: NextRequest) {
         await executeComposioAction(user.id, hitlActionData.capabilityId, hitlActionData.parameters);
       }
 
-      if (sessionId) {
+      if (effectiveSessionId) {
         await supabase.from("chat_messages").insert({
-          session_id: sessionId,
+          session_id: effectiveSessionId,
           firm_id: firmId,
           user_id: user.id,
           role: "assistant",
@@ -77,6 +143,7 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({
         type: "hitl_executed",
+        sessionId: effectiveSessionId,
         message: `Approved and executed: ${cap?.name || hitlActionData.capabilityId}`,
         result: {
           status: "success",
@@ -88,10 +155,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Persist User Message to DB
-    if (sessionId) {
+    if (effectiveSessionId) {
       try {
         await supabase.from("chat_messages").insert({
-          session_id: sessionId,
+          session_id: effectiveSessionId,
           firm_id: firmId,
           user_id: user.id,
           role: "user",
@@ -104,7 +171,7 @@ export async function POST(req: NextRequest) {
 
     // Execute Adviza Fiduciary LangGraph Multi-Agent State Machine
     const graphState = await advizaChatGraph.invoke({
-      sessionId,
+      sessionId: effectiveSessionId || undefined,
       userId: user.id,
       firmId,
       message,
@@ -113,10 +180,10 @@ export async function POST(req: NextRequest) {
     });
 
     // Persist Assistant Response to DB
-    if (sessionId) {
+    if (effectiveSessionId) {
       try {
         await supabase.from("chat_messages").insert({
-          session_id: sessionId,
+          session_id: effectiveSessionId,
           firm_id: firmId,
           user_id: user.id,
           role: "assistant",
@@ -132,7 +199,7 @@ export async function POST(req: NextRequest) {
         await supabase
           .from("chat_sessions")
           .update({ updated_at: new Date().toISOString() })
-          .eq("id", sessionId);
+          .eq("id", effectiveSessionId);
       } catch (persistErr) {
         console.warn("Failed to persist assistant response:", persistErr);
       }
@@ -146,12 +213,13 @@ export async function POST(req: NextRequest) {
           { role: "user", content: message },
           { role: "assistant", content: graphState.finalResponse },
         ],
-        { sessionId, firmId }
+        { sessionId: effectiveSessionId || undefined, firmId }
       ).catch((memErr) => console.warn("[mem0-auto-extract] Non-fatal memory extraction error:", memErr));
     }
 
     return NextResponse.json({
       type: "orchestrated_response",
+      sessionId: effectiveSessionId,
       intro: graphState.finalResponse,
       text: graphState.finalResponse,
       executedResults: graphState.executedResults || [],

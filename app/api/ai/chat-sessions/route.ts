@@ -60,7 +60,19 @@ export async function POST(req: NextRequest) {
     let firmId = profile?.firm_id;
     if (!firmId) {
       const { data: firms } = await supabase.from("firms").select("id").limit(1);
-      firmId = firms?.[0]?.id || "00000000-0000-0000-0000-000000000000";
+      if (firms && firms.length > 0) {
+        firmId = firms[0].id;
+      } else {
+        const { data: newFirm } = await supabase
+          .from("firms")
+          .insert({ name: "Advisory Firm", slug: `firm-${Date.now()}` })
+          .select()
+          .single();
+        firmId = newFirm?.id;
+      }
+      if (firmId) {
+        await supabase.from("profiles").update({ firm_id: firmId }).eq("id", user.id);
+      }
     }
 
     const body = await req.json().catch(() => ({}));
@@ -79,7 +91,7 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (error) {
-      console.error("Error creating chat session:", error);
+      console.error("Error creating chat session in DB:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
