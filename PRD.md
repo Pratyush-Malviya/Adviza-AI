@@ -373,17 +373,17 @@ graph LR
 - [x] Automated per-turn memory extraction and semantic memory recall in intent planning.
 - [x] Interactive Memory & Persona Manager in Settings with category filtering and semantic search.
 
-### Phase 4: Autonomous Execution & Live Connectors — Q4 2026 *(Target Horizon)*
-- [ ] 🟢 **Committed** — Live Composio OAuth connection flows for Salesforce FSC and Wealthbox.
-- [ ] 🟢 **Committed** — Direct Composio proxy execution replacing simulated fallback data when accounts are connected.
-- [ ] 🟢 **Committed** — Inngest background worker deployment for long-running workflows.
-- [ ] 🟡 **Planned** — Voice-to-action meeting audio upload directly within client views.
-- [ ] 🟡 **Planned** — Mem0 native pgvector embedding search for local vector retrieval.
+### Phase 4: Autonomous Execution & Live Connectors *(Completed)*
+- [x] 🟢 **Committed** — Live Composio OAuth connection flows for Salesforce FSC, HubSpot, and Wealthbox.
+- [x] 🟢 **Committed** — Direct Composio proxy execution with high-fidelity fallback simulation when accounts are unlinked.
+- [x] 🟢 **Committed** — Inngest background worker deployment (`executeWorkflowPipeline`) for durable multi-step workflows.
+- [x] 🟡 **Planned** — Voice-to-action meeting audio upload directly within client views (`/api/meetings/transcribe`).
+- [x] 🟡 **Planned** — Mem0 native pgvector embedding search for local vector retrieval (`match_user_memories`).
 
-### Phase 5: Advanced Intelligence & Enterprise Governance — H1 2027 *(Target Horizon)*
-- [ ] 🟡 **Planned** — Automated FINRA advertising submission export package (PDF with audit trail).
+### Phase 5: Advanced Intelligence & Enterprise Governance *(In Progress)*
+- [x] 🟡 **Planned** — Automated FINRA advertising submission export package (PDF with audit trail — `/api/compliance/export-finra`).
+- [x] 🟡 **Planned** — Mem0 cross-session entity linking (client profiles, recurring patterns).
 - [ ] 🟡 **Planned** — Multi-advisor collaborative canvas with live cursor presence.
-- [ ] 🟡 **Planned** — Mem0 cross-session entity linking (client profiles, recurring patterns).
 - [ ] 🔴 **Exploratory** — Custodian automated trade order generation (Schwab / Fidelity FIX protocol — *subject to regulatory feasibility & partner agreements*).
 - [ ] 🔴 **Exploratory** — Portfolio drift & automated rebalancing agent with live custodian data feeds.
 
