@@ -21,15 +21,19 @@ export async function intentPlannerNode(
   const { message, messages, ambientContext, userId, userName } = state;
   const effectiveUserName = userName || ambientContext?.userName;
 
-  // Retrieve relevant Mem0 long-term memories for this user/client
+  // Retrieve relevant Mem0 long-term memories with fast timeout
   let memoryPrompt = "";
   let recalledMemories: any[] = [];
   if (userId) {
     try {
-      recalledMemories = await searchMemories(userId, `${message} ${ambientContext?.clientName || ""}`, 4);
-      memoryPrompt = formatMemoriesForPrompt(recalledMemories);
+      const memoryPromise = searchMemories(userId, `${message} ${ambientContext?.clientName || ""}`, 4);
+      const timeoutPromise = new Promise<any[]>((resolve) => setTimeout(() => resolve([]), 600));
+      recalledMemories = await Promise.race([memoryPromise, timeoutPromise]);
+      if (recalledMemories && recalledMemories.length > 0) {
+        memoryPrompt = formatMemoriesForPrompt(recalledMemories);
+      }
     } catch (memErr) {
-      console.warn("[intent-planner] Memory retrieval non-fatal error:", memErr);
+      console.warn("[intent-planner] Memory retrieval non-fatal note:", memErr);
     }
   }
 

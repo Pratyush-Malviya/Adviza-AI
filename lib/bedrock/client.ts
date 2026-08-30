@@ -66,15 +66,13 @@ export async function invokeNvidia(
   const payload = {
     model,
     messages: formattedMessages,
-    max_tokens: 16384,
-    temperature: forceJson ? 0.2 : 0.7,
-    seed: 0,
+    max_tokens: forceJson ? 2048 : 4096,
+    temperature: forceJson ? 0.1 : 0.6,
     stream: false,
-    reasoning_effort: "max",
   };
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 45000);
+  const timeoutId = setTimeout(() => controller.abort(), 25000);
 
   try {
     const res = await fetch(endpoint, {
@@ -147,11 +145,9 @@ export async function invokeNvidiaStream(
   const payload = {
     model,
     messages: formattedMessages,
-    max_tokens: 16384,
-    temperature: 0.7,
-    seed: 0,
+    max_tokens: 4096,
+    temperature: 0.6,
     stream: true,
-    reasoning_effort: "max",
   };
 
   const res = await fetch(endpoint, {
