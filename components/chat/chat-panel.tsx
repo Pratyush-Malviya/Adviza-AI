@@ -180,7 +180,7 @@ export function ChatPanel({
                 {
                   id: "welcome",
                   role: "assistant",
-                  content: "Welcome to Adviza Chat Orchestrator. Ask for client briefings, calendar lookups, compliance checks, or automated workflow runs.",
+                  content: "Hey there! I'm your AI Chief of Staff. How can I help you today? Feel free to ask about your upcoming meetings, client briefings, portfolio reviews, or ask me to draft emails and update your CRM.",
                   timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
                 },
               ]);
@@ -193,7 +193,7 @@ export function ChatPanel({
         {
           id: "welcome",
           role: "assistant",
-          content: "Welcome to Adviza Chat Orchestrator. Ask for client briefings, calendar lookups, compliance checks, or automated workflow runs.",
+          content: "Hey there! I'm your AI Chief of Staff. How can I help you today? Feel free to ask about your upcoming meetings, client briefings, portfolio reviews, or ask me to draft emails and update your CRM.",
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         },
       ]);

@@ -3,15 +3,7 @@ import { invokeModel, LLMMessage } from "@/lib/bedrock/client";
 
 export function formatHumanResponse(text: string): string {
   if (!text) return "";
-  return text
-    // Remove markdown bold/italic asterisks
-    .replace(/\*\*(.*?)\*\*/g, "$1")
-    .replace(/\*(.*?)\*/g, "$1")
-    // Replace em dashes and double hyphens with clean spaced hyphens
-    .replace(/—/g, " - ")
-    .replace(/–/g, " - ")
-    .replace(/\s--\s/g, " - ")
-    .trim();
+  return text.trim();
 }
 
 export async function synthesizerNode(
@@ -37,7 +29,7 @@ export async function synthesizerNode(
     let previewText = "";
 
     if (preview?.recipient || preview?.body) {
-      previewText = `\n\nDrafted Message Preview:\nTo: ${preview.recipient || "Recipient"}\nSubject: ${preview.subject || "Adviza AI Update"}\n\n${preview.body}\n\n`;
+      previewText = `\n\n**Draft Preview:**\n- **To:** ${preview.recipient || "Recipient"}\n- **Subject:** ${preview.subject || "Adviza AI Update"}\n\n${preview.body}\n\n`;
     } else if (preview?.details?.rows && Array.isArray(preview.details.rows)) {
       const rows = preview.details.rows;
       const headers = rows[0] || [];
@@ -46,18 +38,19 @@ export async function synthesizerNode(
       const sepLine = `| ${headers.map(() => "---").join(" | ")} |`;
       const bodyLines = dataRows.map((r: any[]) => `| ${r.join(" | ")} |`).join("\n");
 
-      previewText = `\n\nPrepared Google Sheet: ${preview.details.title || "Lead Records"}\n\n${headerLine}\n${sepLine}\n${bodyLines}\n\n`;
+      previewText = `\n\n**Prepared Spreadsheet Preview (${preview.details.title || "Lead Records"}):**\n\n${headerLine}\n${sepLine}\n${bodyLines}\n\n`;
     }
 
+    const appName = missingConnectors[0]?.connectorName || missingConnectors[0]?.appName || "the app";
     return {
-      finalResponse: formatHumanResponse(`I analyzed your request and prepared the dataset.${previewText}To automatically create this Google Sheet and insert these records, please connect Google Sheets below. Once connected, Adviza AI will instantly create the spreadsheet on your account and return the live link.`),
+      finalResponse: formatHumanResponse(`I've analyzed your request and prepared everything!${previewText}To automatically push this to ${appName}, simply click connect below and I'll create the live spreadsheet for you right away.`),
     };
   }
 
   // 3. HITL prompt awaiting sign-off
   if (hitlPrompts && hitlPrompts.length > 0 && (!executedResults || executedResults.length === 0)) {
     return {
-      finalResponse: formatHumanResponse(`I have prepared the required fiduciary action. Please review the details and sign off below before it is dispatched.`),
+      finalResponse: formatHumanResponse(`I've put together the requested action for your review. Take a look at the details below, and once you approve, I'll go ahead and dispatch it right away!`),
     };
   }
 
@@ -66,19 +59,18 @@ export async function synthesizerNode(
 
   if (executedResults && executedResults.length > 0) {
     try {
-      const summaryPrompt = `You are Adviza, an Enterprise AI Operating System and digital Chief of Staff.
+      const summaryPrompt = `You are Adviza, a friendly, sharp, and highly capable AI partner and digital Chief of Staff for wealth management advisors.
 The user requested: "${message}"
 
 Below are the live, verified execution results from connected systems:
 ${JSON.stringify(executedResults, null, 2)}
 
-Provide a natural, conversational, professional response focused on outcomes:
-- Sound like a helpful human colleague speaking naturally. Avoid robotic phrasing, robotic apologies, or generic disclaimers.
-- Do NOT use asterisk signs (* or **) for bold or italic formatting. Use clean plain text.
-- Do NOT use em dashes (— or --). Use clean commas, colons, or standard hyphens.
-- Clearly present the results of completed actions in clean sentences or clean numbered points.
-- If a Google Sheet, Google Doc, or Notion page was created/updated, state the title, records, and include direct links.
-- If an email was sent, state the recipient, subject, and confirmation.`;
+Provide a warm, articulate, and natural conversational response:
+- Speak like a knowledgeable, helpful human colleague.
+- Avoid robotic, cold, or bureaucratic phrasing (do not say "Execution complete", "I have processed your request", or robotic disclaimers).
+- Clearly explain what was accomplished and highlight key numbers, dates, client names, or takeaways.
+- Use natural markdown formatting (bolding, readable bullet points, headers) where helpful.
+- If a Google Sheet, Doc, or CRM record was updated, mention it naturally so the advisor knows where to find it.`;
 
       const synthesisMessages: LLMMessage[] = [
         { role: "user", content: summaryPrompt },

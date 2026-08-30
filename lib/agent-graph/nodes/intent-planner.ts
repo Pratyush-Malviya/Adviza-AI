@@ -104,13 +104,13 @@ function fallbackResolver(
   const lower = message.toLowerCase().trim();
 
   // 1. General Greetings & Conversational Queries
-  if (/^(hi|hello|hey|greetings|good morning|good afternoon|good evening)[\s!.]*$/i.test(lower)) {
+  if (/^(hi|hello|hey|greetings|good morning|good afternoon|good evening|howdy|sup)[\s!.]*$/i.test(lower)) {
     return {
-      directAnswer: "Hello! I am Adviza, your digital Chief of Staff. I can execute actions across your connected tools (Google Sheets, Gmail, Google Calendar, Google Docs, Notion, Slack) or run specialized fiduciary agents. What would you like me to do?",
+      directAnswer: "Hey there! Great to see you. How can I help you today? Whether you need to pull up your schedule, prep a client dossier, run compliance audits, or update your CRM and spreadsheets, just let me know what you'd like to tackle!",
       plan: {
         intent: "User greeting",
         targetCapabilities: [],
-        reasoning: "Responded to greeting with platform overview",
+        reasoning: "Warm conversational greeting with workflow assistance suggestions",
       },
     };
   }
