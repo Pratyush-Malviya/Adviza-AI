@@ -141,15 +141,15 @@ Return a JSON object with this exact structure:
 }`;
 
   try {
-    const hasGemini =
-      !!process.env.GEMINI_API_KEY &&
-      !process.env.GEMINI_API_KEY.includes("your_");
+    const hasNvidia =
+      (!!process.env.NVIDIA_API_KEY && !process.env.NVIDIA_API_KEY.includes("your_")) ||
+      (!!process.env.GEMINI_API_KEY && !process.env.GEMINI_API_KEY.includes("your_"));
     const hasBedrock =
       !!process.env.AWS_ACCESS_KEY_ID &&
       !process.env.AWS_ACCESS_KEY_ID.includes("your_") &&
       process.env.AWS_ACCESS_KEY_ID !== "placeholder_key";
 
-    if (!hasGemini && !hasBedrock) {
+    if (!hasNvidia && !hasBedrock) {
       return generateFallbackBriefing(input);
     }
 
