@@ -13,6 +13,7 @@ interface ChatOrchestratorPayload {
     clientName?: string;
     workflowId?: string;
     page?: string;
+    userName?: string;
   };
   actionType?: "user_message" | "approve_hitl" | "resume_after_connect";
   hitlActionData?: any;
