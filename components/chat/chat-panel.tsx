@@ -85,118 +85,30 @@ export function ChatPanel({
           const parsed = JSON.parse(cached);
           if (Array.isArray(parsed) && parsed.length > 0) {
             setMessages(parsed);
+          } else {
+            setMessages([]);
           }
+        } else {
+          setMessages([]);
         }
-      } catch {}
+      } catch {
+        setMessages([]);
+      }
 
       // 2. Fetch saved messages for this session from DB
       fetch(`/api/ai/chat-sessions/${sessionId}`)
         .then((res) => res.json())
         .then((data) => {
-          if (data.messages && data.messages.length > 0) {
+          if (data.messages && Array.isArray(data.messages) && data.messages.length > 0) {
             setMessages(data.messages);
             try {
               localStorage.setItem("adviza_chat_msg_" + sessionId, JSON.stringify(data.messages));
             } catch {}
-          } else if (!localStorage.getItem("adviza_chat_msg_" + sessionId)) {
-            // Pre-seed starter thread messages if applicable
-            let seedMessages: ChatMessage[] = [];
-            if (sessionId === "sess_calendar_today") {
-              seedMessages = [
-                {
-                  id: "msg_u1",
-                  role: "user",
-                  content: "How many client meetings do I have scheduled for today?",
-                  timestamp: "01:09 AM",
-                },
-                {
-                  id: "msg_a1",
-                  role: "assistant",
-                  content: "I checked **malviya.pratyush26@gmail.com**. You have 3 meetings scheduled for today:\n\n1. **Train to NEW DELHI (NDLS)** (10:30 PM)\n2. **Effective Communication as a PM : Part 1** (11:00 AM)\n3. **Pallavi Dhamapurkar: Mentor Session** (05:00 PM)",
-                  timestamp: "01:09 AM",
-                },
-              ];
-            } else if (sessionId === "sess_july_audit") {
-              seedMessages = [
-                {
-                  id: "msg_u2",
-                  role: "user",
-                  content: "How many meetings did I have in the month of July?",
-                  timestamp: "Yesterday",
-                },
-                {
-                  id: "msg_a2",
-                  role: "assistant",
-                  content: "I checked **malviya.pratyush26@gmail.com** and found **10 meetings** in July 2026 including Portfolio Reviews and Discovery calls.",
-                  timestamp: "Yesterday",
-                },
-              ];
-            } else if (sessionId === "sess_briefing_sarah") {
-              seedMessages = [
-                {
-                  id: "msg_u3",
-                  role: "user",
-                  content: "Prepare pre-meeting briefing dossier for Sarah Jenkins",
-                  timestamp: "2 days ago",
-                },
-                {
-                  id: "msg_a3",
-                  role: "assistant",
-                  content: "Generated Pre-Meeting Executive Briefing for Sarah Jenkins (Portfolio: $1,850,000 | Growth & Income).\n\n### 🔗 Document Deliverables & Direct Links\n📄 **Live Document Dossier:** [Open Full Dossier](/api/documents/export?type=briefing&clientName=Sarah%20Jenkins)\n📥 **PDF Export:** [Download / Save as PDF](/api/documents/export?type=briefing&format=pdf&clientName=Sarah%20Jenkins)",
-                  timestamp: "2 days ago",
-                  executedResults: [
-                    {
-                      capabilityId: "agent_meeting_briefing",
-                      name: "Pre-Meeting Briefing Dossier",
-                      category: "briefing",
-                      success: true,
-                      data: {
-                        clientName: "Sarah Jenkins",
-                        executiveSummary: "Pre-meeting briefing dossier compiled for comprehensive fiduciary review. High-net-worth portfolio analysis indicates strong performance (+4.2% QTD).",
-                        portfolioHighlights: [
-                          { metric: "Total Portfolio Value", value: "$1,850,000" },
-                          { metric: "Equity Allocation", value: "68.4%" },
-                        ],
-                        keyTalkingPoints: [
-                          "Municipal Bond Ladder deployment",
-                          "Tax-loss harvesting on emerging market positions",
-                        ],
-                        documentUrl: "/api/documents/export?type=briefing&clientName=Sarah%20Jenkins",
-                        pdfUrl: "/api/documents/export?type=briefing&format=pdf&clientName=Sarah%20Jenkins",
-                      },
-                    },
-                  ],
-                },
-              ];
-            }
-
-            if (seedMessages.length > 0) {
-              setMessages(seedMessages);
-              try {
-                localStorage.setItem("adviza_chat_msg_" + sessionId, JSON.stringify(seedMessages));
-              } catch {}
-            } else {
-              setMessages([
-                {
-                  id: "welcome",
-                  role: "assistant",
-                  content: "Hey there! I'm your AI Chief of Staff. How can I help you today? Feel free to ask about your upcoming meetings, client briefings, portfolio reviews, or ask me to draft emails and update your CRM.",
-                  timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-                },
-              ]);
-            }
           }
         })
-        .catch((err) => console.error("Failed to load session messages:", err));
+        .catch((err) => console.warn("Session lookup note:", err));
     } else {
-      setMessages([
-        {
-          id: "welcome",
-          role: "assistant",
-          content: "Hey there! I'm your AI Chief of Staff. How can I help you today? Feel free to ask about your upcoming meetings, client briefings, portfolio reviews, or ask me to draft emails and update your CRM.",
-          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        },
-      ]);
+      setMessages([]);
     }
   }, [sessionId]);
 
@@ -420,14 +332,7 @@ export function ChatPanel({
         localStorage.removeItem("adviza_chat_msg_" + activeSessionId);
       } catch {}
     }
-    setMessages([
-      {
-        id: `welcome_${Date.now()}`,
-        role: "assistant",
-        content: "Conversation history cleared. How can I assist you with your advisory workflow?",
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      },
-    ]);
+    setMessages([]);
   };
 
   return (
@@ -497,6 +402,18 @@ export function ChatPanel({
 
       {/* Messages Scroll Area */}
       <div className="flex-1 overflow-y-auto p-5 space-y-4 text-xs scrollbar-thin">
+        {messages.length === 0 && (
+          <div className="h-full min-h-[260px] flex flex-col items-center justify-center text-center p-6 space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-rose-500 to-amber-500 flex items-center justify-center text-white shadow-md">
+              <Sparkles className="w-6 h-6" />
+            </div>
+            <h3 className="text-sm font-bold text-[#121217]">Adviza AI Assistant</h3>
+            <p className="text-xs text-[#8E847C] max-w-xs leading-relaxed">
+              Start a new conversation by typing a prompt below.
+            </p>
+          </div>
+        )}
+
         {messages.map((msg) => (
           <div
             key={msg.id}
