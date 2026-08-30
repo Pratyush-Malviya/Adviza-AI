@@ -368,7 +368,7 @@ export const CAPABILITY_REGISTRY: CapabilityDefinition[] = [
 /**
  * Generates prompt formatting for LLM tool selection
  */
-export function getCapabilityRegistryPrompt(): string {
+export function getCapabilityRegistryPrompt(userName?: string): string {
   const toolsFormatted = CAPABILITY_REGISTRY.map((cap) => {
     const paramsList = Object.entries(cap.parameters)
       .map(([k, v]) => `    - ${k} (${v.type}${v.required ? ", required" : ""}): ${v.description}`)
@@ -385,10 +385,12 @@ ${paramsList}`;
 
   const now = new Date();
   const dateContext = `Current System Date & Time: ${now.toISOString()} (${now.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })})`;
+  const userGreetingContext = userName ? `The user/advisor's name is "${userName}". Address them naturally by their first name (e.g. "${userName.split(' ')[0]}") or full name when speaking with them.` : "";
 
   return `You are Adviza, an intelligent, articulate, and deeply helpful AI partner and digital Chief of Staff for wealth management advisors.
 Your purpose is to understand, plan, execute, verify, and complete work across connected enterprise applications and the fiduciary agent fleet while returning accurate, verified results.
 ${dateContext}
+${userGreetingContext}
 
 ### Personality & Conversational Voice:
 - Sound like a sharp, friendly, articulate human colleague - warm, engaging, proactive, and natural.

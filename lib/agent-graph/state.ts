@@ -60,6 +60,7 @@ export interface PlanMetadata {
 export const AdvizaAgentAnnotation = Annotation.Root({
   sessionId: Annotation<string | undefined>(),
   userId: Annotation<string>(),
+  userName: Annotation<string | undefined>(),
   firmId: Annotation<string | undefined>(),
   message: Annotation<string>(),
   messages: Annotation<Array<{ role: "user" | "assistant" | "system"; content: string }>>({
@@ -71,6 +72,7 @@ export const AdvizaAgentAnnotation = Annotation.Root({
     clientName?: string;
     workflowId?: string;
     page?: string;
+    userName?: string;
   } | undefined>(),
   plan: Annotation<PlanMetadata | undefined>(),
   capabilityCalls: Annotation<CapabilityCall[]>({

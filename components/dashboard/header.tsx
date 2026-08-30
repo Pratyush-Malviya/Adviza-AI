@@ -21,7 +21,13 @@ export function DashboardHeader({ profile, user }: HeaderProps) {
     if (hour < 12) setGreeting("Good morning");
     else if (hour < 17) setGreeting("Good afternoon");
     else setGreeting("Good evening");
-  }, []);
+
+    if (profile?.full_name) {
+      try {
+        localStorage.setItem("adviza_user_name", profile.full_name);
+      } catch {}
+    }
+  }, [profile?.full_name]);
 
   const triggerSidebarToggle = () => {
     window.dispatchEvent(new CustomEvent("adviza:toggle-sidebar"));

@@ -117,6 +117,7 @@ export function ChatPanel({
     let clientName = "";
     let clientId = "";
     let workflowId = "";
+    let userName = "";
 
     if (pathname?.includes("/clients/")) {
       clientId = pathname.split("/clients/")[1]?.split("/")[0] || "";
@@ -126,11 +127,16 @@ export function ChatPanel({
       workflowId = pathname.split("/workflows/")[1]?.split("/")[0] || "";
     }
 
+    try {
+      userName = localStorage.getItem("adviza_user_name") || "";
+    } catch {}
+
     return {
       clientId,
       clientName,
       workflowId,
       page: pathname || "dashboard",
+      userName: userName || undefined,
     };
   };
 
@@ -555,9 +561,18 @@ export function ChatPanel({
           </div>
         ))}
 
-        {/* Animated Multi-Step Execution Loader */}
+        {/* Simple 3 Animated Bouncing Dots Loader */}
         {loading && (
-          <WorkflowProgressStepper statusMessage={statusMessage} />
+          <div className="flex gap-2.5 justify-start items-center animate-fade-in">
+            <div className="w-7 h-7 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center shrink-0 shadow-2xs">
+              <Bot className="w-4 h-4" />
+            </div>
+            <div className="bg-[#FAF5F0] border border-[#EADBCE] rounded-2xl rounded-bl-sm px-4 py-3 shadow-2xs flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-bounce [animation-delay:-0.3s]"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-bounce [animation-delay:-0.15s]"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-bounce"></span>
+            </div>
+          </div>
         )}
 
         <div ref={messagesEndRef} />

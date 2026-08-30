@@ -33,9 +33,11 @@ export async function POST(req: NextRequest) {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("firm_id")
+      .select("firm_id, full_name")
       .eq("id", user.id)
       .single();
+
+    const userName = profile?.full_name || user.user_metadata?.full_name || user.user_metadata?.name || (user.email ? user.email.split("@")[0] : undefined);
 
     let firmId: string = profile?.firm_id || "";
     if (!firmId) {
@@ -57,6 +59,8 @@ export async function POST(req: NextRequest) {
 
     const body: ChatOrchestratorPayload = await req.json();
     const { message, sessionId: rawSessionId, ambientContext, actionType = "user_message", hitlActionData, history = [] } = body;
+
+    const effectiveUserName = userName || ambientContext?.userName;
 
     // Ensure we have a valid UUID chat_sessions record
     const isValidUUID = (str?: string | null) =>
@@ -173,10 +177,14 @@ export async function POST(req: NextRequest) {
     const graphState = await advizaChatGraph.invoke({
       sessionId: effectiveSessionId || undefined,
       userId: user.id,
+      userName: effectiveUserName,
       firmId,
       message,
       messages: history,
-      ambientContext,
+      ambientContext: {
+        ...ambientContext,
+        userName: effectiveUserName,
+      },
     });
 
     // Persist Assistant Response to DB

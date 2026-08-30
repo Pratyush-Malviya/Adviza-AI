@@ -41,7 +41,11 @@ export async function synthesizerNode(
     hitlPrompts,
     conversationalIntro,
     directAnswer,
+    userName,
+    ambientContext,
   } = state;
+
+  const effectiveUserName = userName || ambientContext?.userName;
 
   // 1. Direct answer without tools
   if (directAnswer && (!executedResults || executedResults.length === 0)) {
@@ -84,9 +88,10 @@ export async function synthesizerNode(
 
   if (executedResults && executedResults.length > 0) {
     try {
+      const userInstruction = effectiveUserName ? `The user's name is "${effectiveUserName}". Address them naturally by name when appropriate.\n` : "";
       const summaryPrompt = `You are Adviza, a friendly, sharp, and highly capable AI partner and digital Chief of Staff for wealth management advisors.
 The user requested: "${message}"
-
+${userInstruction}
 Below are the live, verified execution results from connected systems:
 ${JSON.stringify(executedResults, null, 2)}
 

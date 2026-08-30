@@ -18,7 +18,8 @@ interface LLMDecision {
 export async function intentPlannerNode(
   state: AdvizaAgentStateType
 ): Promise<Partial<AdvizaAgentStateType>> {
-  const { message, messages, ambientContext, userId } = state;
+  const { message, messages, ambientContext, userId, userName } = state;
+  const effectiveUserName = userName || ambientContext?.userName;
 
   // Retrieve relevant Mem0 long-term memories for this user/client
   let memoryPrompt = "";
@@ -52,7 +53,7 @@ export async function intentPlannerNode(
     },
   ];
 
-  const systemPrompt = getCapabilityRegistryPrompt();
+  const systemPrompt = getCapabilityRegistryPrompt(effectiveUserName);
 
   try {
     const decision = await invokeModelJSON<LLMDecision>(llmMessages, systemPrompt);
