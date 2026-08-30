@@ -292,11 +292,14 @@ export function MeetingDetailClient({ meeting, actionItems }: MeetingDetailClien
         )}
       </div>
 
-      {/* Transcript Input with Quick Demo Presets */}
+      {/* Transcript & Audio Input with Quick Demo Presets */}
       {showTranscriptInput && (
-        <div className="bg-white rounded-3xl p-6 border border-[#EADBCE] shadow-md animate-slide-up space-y-4">
+        <div className="bg-white rounded-3xl p-6 border border-[#EADBCE] shadow-md animate-slide-up space-y-5">
           <div className="flex items-center justify-between flex-wrap gap-2">
-            <h3 className="text-xs font-heading font-bold text-[#8E847C] uppercase tracking-wider">Paste Meeting Transcript</h3>
+            <div>
+              <h3 className="text-xs font-heading font-bold text-[#8E847C] uppercase tracking-wider">Audio Recording & Transcript Upload</h3>
+              <p className="text-xs text-[#7A726A] mt-0.5">Upload meeting audio (.mp3, .m4a, .wav) for auto-transcription or paste text below</p>
+            </div>
             <button
               onClick={() => setTranscript(SAMPLE_DEMO_TRANSCRIPT)}
               className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 transition-colors"
@@ -305,18 +308,68 @@ export function MeetingDetailClient({ meeting, actionItems }: MeetingDetailClien
               <span>Load Sample Transcript (Demo)</span>
             </button>
           </div>
-          <textarea value={transcript} onChange={(e) => setTranscript(e.target.value)} rows={10}
+
+          {/* Audio Upload Dropzone */}
+          <div className="border-2 border-dashed border-[#EADBCE] hover:border-rose-300 rounded-2xl p-5 bg-[#FAF5F0]/40 transition-colors text-center">
+            <input
+              type="file"
+              id="meeting-audio-file"
+              accept="audio/*,.mp3,.m4a,.wav,.webm,.ogg"
+              className="hidden"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                setLoading("transcribing");
+                setError(null);
+                try {
+                  const formData = new FormData();
+                  formData.append("file", file);
+                  formData.append("meetingId", meeting.id);
+                  const res = await fetch("/api/meetings/transcribe", {
+                    method: "POST",
+                    body: formData,
+                  });
+                  const data = await res.json();
+                  if (!res.ok) throw new Error(data.error || "Transcription failed");
+                  setTranscript(data.transcript);
+                  setSuccess(`Transcribed ${file.name} successfully via Gemini Multimodal Speech!`);
+                } catch (err: any) {
+                  setError(err.message || "Failed to transcribe audio file");
+                } finally {
+                  setLoading(null);
+                }
+              }}
+            />
+            <label htmlFor="meeting-audio-file" className="cursor-pointer flex flex-col items-center justify-center gap-2">
+              <div className="w-12 h-12 rounded-2xl bg-white border border-[#EADBCE] flex items-center justify-center text-rose-600 shadow-sm">
+                {loading === "transcribing" ? <Loader2 className="w-6 h-6 animate-spin" /> : <Mic className="w-6 h-6" />}
+              </div>
+              <div>
+                <p className="text-xs font-bold text-[#121217]">
+                  {loading === "transcribing" ? "Transcribing meeting audio via Gemini..." : "Drop advisory meeting audio here or click to browse"}
+                </p>
+                <p className="text-[11px] text-[#7A726A] mt-0.5">Supports MP3, M4A, WAV, WEBM audio recordings (up to 50MB)</p>
+              </div>
+            </label>
+          </div>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-[#EADBCE]" /></div>
+            <div className="relative flex justify-center text-[10px] uppercase font-bold text-[#8E847C]"><span className="bg-white px-2">or edit verbatim transcript text</span></div>
+          </div>
+
+          <textarea value={transcript} onChange={(e) => setTranscript(e.target.value)} rows={8}
             placeholder="Paste your meeting transcript here... or click 'Load Sample Transcript' above to test Gemini AI immediately"
-            className="w-full px-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-2xl text-[#121217] placeholder-[#A89E95] text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors resize-none" />
+            className="w-full px-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-2xl text-[#121217] placeholder-[#A89E95] text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors resize-none font-mono text-xs leading-relaxed" />
           <div className="flex gap-3">
             <button onClick={() => setShowTranscriptInput(false)}
               className="px-5 py-2.5 bg-white border border-[#EADBCE] text-[#121217] text-sm font-bold rounded-full hover:bg-[#FAF5F0] transition-colors">
               Cancel
             </button>
-            <button id="process-transcript-confirm" onClick={processTranscript} disabled={!transcript.trim() || loading === "intelligence"}
+            <button id="process-transcript-confirm" onClick={processTranscript} disabled={!transcript.trim() || loading === "intelligence" || loading === "transcribing"}
               className="btn-hero-gradient flex items-center gap-2 px-6 py-2.5 disabled:opacity-50 text-white text-sm font-bold rounded-full transition-all shadow-md">
               {loading === "intelligence" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4" />}
-              <span>Extract Intelligence</span>
+              <span>Extract Intelligence & Actions</span>
             </button>
           </div>
         </div>
