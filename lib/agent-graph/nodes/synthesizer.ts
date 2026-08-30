@@ -99,6 +99,14 @@ Provide a direct, confident, professional response focused on outcomes:
           const count = data.rows ? Math.max(0, data.rows.length - 1) : 5;
           lines.push(`\n✅ **Google Sheet Updated:** *${data.title || "Adviza Wealth Leads Pipeline"}*`);
           lines.push(`- **Active Records:** ${count} record(s) in spreadsheet`);
+        } else if (capId.includes("salesforce") || capId.includes("hubspot") || capId.includes("wealthbox") || res.category === "crm") {
+          const crmName = capId.includes("salesforce") ? "Salesforce FSC" : capId.includes("hubspot") ? "HubSpot CRM" : "Wealthbox CRM";
+          const crmData = data.crmData || {};
+          lines.push(`\n💼 **${crmName} Record Synchronized:** *${crmData.name || data.title || "Client Record"}*`);
+          lines.push(`- **Record ID:** \`${data.crmRecordId || "REC-2026"}\` • **Status:** ${crmData.status || "Active"}`);
+          if (crmData.company || crmData.estimatedAum) {
+            lines.push(`- **Affiliation / AUM:** ${crmData.company || "Private Client"} (${crmData.estimatedAum || "HNW"})`);
+          }
         } else if (capId.includes("email") || res.category === "email") {
           lines.push(`\n📧 **Email Dispatched:** Sent to \`${data.recipient_email || data.to || "Client"}\``);
         } else if (capId.includes("briefing") || res.category === "briefing") {
@@ -112,7 +120,7 @@ Provide a direct, confident, professional response focused on outcomes:
     baseResponse = lines.join("\n");
   }
 
-  // 5. Append direct accessible Document and PDF Links guaranteed
+  // 5. Append direct accessible Document, CRM, and PDF Links guaranteed
   const attachedLinks: string[] = [];
   if (executedResults && executedResults.length > 0) {
     for (const res of executedResults) {
@@ -121,11 +129,16 @@ Provide a direct, confident, professional response focused on outcomes:
       const docUrl = data.documentUrl || (res.category === "briefing" || res.category === "compliance" ? `/api/documents/export?type=${res.category}&clientName=${encodeURIComponent(data.clientName || "Sarah Jenkins")}` : undefined);
       const pdfUrl = data.pdfUrl || (docUrl && docUrl.startsWith("/api/documents") ? `${docUrl}&format=pdf` : undefined);
       const notionUrl = data.notionUrl;
+      const crmUrl = data.crmUrl;
 
+      if (crmUrl && !baseResponse.includes(crmUrl)) {
+        const crmLabel = res.capabilityId?.toLowerCase().includes("salesforce") ? "Salesforce Financial Services Cloud" : res.capabilityId?.toLowerCase().includes("hubspot") ? "HubSpot CRM" : "Wealthbox CRM";
+        attachedLinks.push(`💼 **${crmLabel}:** [Open Record in CRM](${crmUrl})`);
+      }
       if (sheetUrl && !baseResponse.includes(sheetUrl)) {
         attachedLinks.push(`📊 **Google Sheet:** [Open Spreadsheet in Google Drive](${sheetUrl})`);
       }
-      if (docUrl && !baseResponse.includes(docUrl)) {
+      if (docUrl && !baseResponse.includes(docUrl) && docUrl !== crmUrl) {
         attachedLinks.push(`📄 **Live Document Dossier:** [Open Full Dossier](${docUrl})`);
       }
       if (pdfUrl && !baseResponse.includes(pdfUrl)) {

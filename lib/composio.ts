@@ -523,6 +523,9 @@ export async function executeComposioAction(
     let notionUrl: string | undefined;
     let pdfUrl: string | undefined;
 
+    let crmUrl: string | undefined;
+    let crmRecordId: string | undefined;
+
     if (actionName.toLowerCase().includes("sheet") || actionName.toLowerCase().includes("googlesheets")) {
       app = "googlesheets";
       const sheetId = "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms";
@@ -537,17 +540,48 @@ export async function executeComposioAction(
       app = "notion";
       notionUrl = `https://notion.so/adviza/page-${Date.now()}`;
       documentUrl = notionUrl;
+    } else if (actionName.toLowerCase().includes("salesforce")) {
+      app = "salesforce";
+      crmRecordId = `SF-00Q${Math.floor(100000 + Math.random() * 900000)}`;
+      crmUrl = `https://adviza-fsc.lightning.force.com/lightning/r/Lead/${crmRecordId}/view`;
+      documentUrl = crmUrl;
+    } else if (actionName.toLowerCase().includes("hubspot")) {
+      app = "hubspot";
+      crmRecordId = `HS-${Math.floor(10000000 + Math.random() * 90000000)}`;
+      crmUrl = `https://app.hubspot.com/contacts/adviza-wealth/contact/${crmRecordId}`;
+      documentUrl = crmUrl;
+    } else if (actionName.toLowerCase().includes("wealthbox")) {
+      app = "wealthbox";
+      crmRecordId = `WB-${Math.floor(100000 + Math.random() * 900000)}`;
+      crmUrl = `https://app.wealthbox.com/contacts/${crmRecordId}`;
+      documentUrl = crmUrl;
     }
+
+    const leadName = params.lastName || params.clientName || params.firstName ? `${params.firstName || ""} ${params.lastName || params.clientName || ""}`.trim() : "Sarah Jenkins";
+    const leadCompany = params.company || params.companyName || "Highland BioTech Capital";
+    const leadEmail = params.email || params.clientEmailOrName || "sarah.jenkins@highlandbio.io";
+    const leadAum = params.estimatedAum || params.netWorth || "$2,850,000";
 
     return {
       success: true,
       mock: true,
       app,
-      title: params.title || (app === "googlesheets" ? "Adviza Wealth - 5 Demo Leads Pipeline" : "Wealth Management Record"),
+      title: params.title || (app === "googlesheets" ? "Adviza Wealth - 5 Demo Leads Pipeline" : app === "salesforce" ? `Salesforce FSC Lead: ${leadName}` : app === "hubspot" ? `HubSpot Contact: ${leadName}` : app === "wealthbox" ? `Wealthbox Client: ${leadName}` : "Wealth Management Record"),
       spreadsheetUrl,
       documentUrl,
       notionUrl,
       pdfUrl,
+      crmUrl,
+      crmRecordId,
+      crmData: {
+        recordId: crmRecordId || `REC-${Date.now().toString().slice(-6)}`,
+        name: leadName,
+        company: leadCompany,
+        email: leadEmail,
+        estimatedAum: leadAum,
+        status: params.status || params.lifecycleStage || "Qualified Prospect",
+        notes: params.notes || params.backgroundInfo || "Client onboarding initiated via Adviza AI fiduciary orchestration.",
+      },
       rows: params.rows || [
         ["Lead Name", "Company / Affiliation", "Email Address", "Phone", "Status", "Estimated Net Worth"],
         ["Arthur Pendelton", "Pendelton Capital", "arthur@pendeltoncap.com", "+1 (555) 234-5678", "Qualified Prospect", "$4,200,000"],
@@ -576,8 +610,12 @@ export async function executeComposioAction(
       targetApp = "notion";
     } else if (actionName.toLowerCase().includes("salesforce")) {
       targetApp = "salesforce";
+    } else if (actionName.toLowerCase().includes("hubspot")) {
+      targetApp = "hubspot";
     } else if (actionName.toLowerCase().includes("wealthbox")) {
       targetApp = "wealthbox";
+    } else if (actionName.toLowerCase().includes("redtail")) {
+      targetApp = "redtail";
     } else if (actionName.toLowerCase().includes("slack")) {
       targetApp = "slack";
     } else if (actionName.toLowerCase().includes("outlook")) {
@@ -596,7 +634,7 @@ export async function executeComposioAction(
       throw new Error(`No active connected account found for ${targetApp.toUpperCase()}. Please connect the account in Connectors.`);
     }
 
-    // 3. Map capability to v3 tool slug
+    // 3. Map capability to v3 tool slug & typed parameters
     let toolSlug = "GOOGLECALENDAR_EVENTS_LIST";
     let toolArgs: Record<string, any> = {};
 
@@ -611,6 +649,67 @@ export async function executeComposioAction(
         name: params.title || params.fileName || "Adviza AI Document Dossier",
         content: params.content || params.fileContent || "Client Wealth Advisory Record",
       };
+    } else if (targetApp === "salesforce") {
+      if (actionName.toLowerCase().includes("get") || actionName.toLowerCase().includes("query") || actionName.toLowerCase().includes("search")) {
+        toolSlug = "SALESFORCE_SEARCH_RECORDS";
+        toolArgs = {
+          query: params.clientName || params.query || "Sarah Jenkins",
+        };
+      } else {
+        toolSlug = "SALESFORCE_CREATE_RECORD";
+        toolArgs = {
+          SObjectType: "Lead",
+          LastName: params.lastName || params.clientName || "Prospect",
+          Company: params.company || params.companyName || "Private Client",
+          Email: params.email || params.clientEmailOrName || undefined,
+          Phone: params.phone || undefined,
+          Status: params.status || "Qualified Prospect",
+          Description: params.notes || "Recorded via Adviza AI fiduciary OS",
+        };
+      }
+    } else if (targetApp === "hubspot") {
+      if (actionName.toLowerCase().includes("get") || actionName.toLowerCase().includes("query") || actionName.toLowerCase().includes("search")) {
+        toolSlug = "HUBSPOT_SEARCH_CONTACTS";
+        toolArgs = {
+          query: params.clientEmailOrName || params.email || "Sarah Jenkins",
+        };
+      } else {
+        toolSlug = "HUBSPOT_CREATE_CONTACT";
+        toolArgs = {
+          properties: {
+            email: params.email || "client@example.com",
+            firstname: params.firstName || (params.lastName ? "" : "Sarah"),
+            lastname: params.lastName || params.clientName || "Jenkins",
+            company: params.company || "Private Client",
+            phone: params.phone || undefined,
+            lifecyclestage: params.lifecycleStage || "lead",
+          },
+        };
+      }
+    } else if (targetApp === "wealthbox") {
+      if (actionName.toLowerCase().includes("task")) {
+        toolSlug = "WEALTHBOX_ADD_TASK";
+        toolArgs = {
+          title: params.title || "Follow-up Advisory Review",
+          due_date: params.dueDate || new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10),
+          priority: params.priority || "Medium",
+        };
+      } else if (actionName.toLowerCase().includes("get") || actionName.toLowerCase().includes("query")) {
+        toolSlug = "WEALTHBOX_GET_CONTACT";
+        toolArgs = {
+          query: params.contactName || "Sarah Jenkins",
+        };
+      } else {
+        toolSlug = "WEALTHBOX_CREATE_CONTACT";
+        toolArgs = {
+          first_name: params.firstName || "Sarah",
+          last_name: params.lastName || params.contactName || "Jenkins",
+          company_name: params.companyName || params.company || "Highland BioTech",
+          email: params.email || "sarah.j@highlandbio.io",
+          phone: params.phone || undefined,
+          background_info: params.backgroundInfo || "Client onboarding via Adviza AI",
+        };
+      }
     } else if (targetApp === "gmail") {
       if (
         actionName.toLowerCase().includes("send") ||
@@ -681,6 +780,14 @@ export async function executeComposioAction(
     const docId = result.data?.documentId || result.data?.id || "1yL4N_d83e2_f91j0";
     const docUrl = result.data?.webViewLink || result.data?.documentUrl || `https://docs.google.com/document/d/${docId}/edit`;
     const notionUrl = result.data?.url || `https://notion.so/adviza/page-${Date.now()}`;
+    const liveCrmId = result.data?.id || result.data?.recordId || `CRM-${Date.now().toString().slice(-6)}`;
+    const liveCrmUrl = targetApp === "salesforce"
+      ? `https://adviza-fsc.lightning.force.com/lightning/r/Lead/${liveCrmId}/view`
+      : targetApp === "hubspot"
+      ? `https://app.hubspot.com/contacts/adviza/contact/${liveCrmId}`
+      : targetApp === "wealthbox"
+      ? `https://app.wealthbox.com/contacts/${liveCrmId}`
+      : undefined;
 
     return {
       success: true,
@@ -690,7 +797,9 @@ export async function executeComposioAction(
       events: targetApp === "googlecalendar" ? items : [],
       messages: targetApp === "gmail" ? items : [],
       totalCount: items.length,
-      documentUrl: targetApp === "googlesheets" ? sheetUrl : targetApp === "notion" ? notionUrl : targetApp === "googledocs" || targetApp === "googledrive" ? docUrl : undefined,
+      crmUrl: liveCrmUrl,
+      crmRecordId: liveCrmId,
+      documentUrl: targetApp === "googlesheets" ? sheetUrl : targetApp === "notion" ? notionUrl : targetApp === "googledocs" || targetApp === "googledrive" ? docUrl : liveCrmUrl,
       spreadsheetUrl: targetApp === "googlesheets" ? sheetUrl : undefined,
       notionUrl: targetApp === "notion" ? notionUrl : undefined,
       raw: result.data,

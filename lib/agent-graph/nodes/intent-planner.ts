@@ -383,6 +383,101 @@ Describe what you want done, and I will execute and verify it for you.`,
     };
   }
 
+  // 10. CRM Intents (Salesforce FSC, HubSpot, Wealthbox)
+  if (lower.includes("salesforce") || lower.includes("fsc") || (lower.includes("crm") && lower.includes("lead"))) {
+    const clientName = ambientContext?.clientName || "Sarah Jenkins";
+    const isQuery = lower.includes("find") || lower.includes("search") || lower.includes("get") || lower.includes("query");
+    const capId = isQuery ? "composio_salesforce_get_client" : "composio_salesforce_create_lead";
+
+    return {
+      conversationalIntro: isQuery ? `Querying Salesforce FSC for ${clientName}...` : `Recording lead ${clientName} into Salesforce Financial Services Cloud...`,
+      capabilityCalls: [
+        {
+          capability_id: capId,
+          parameters: isQuery ? { clientName } : {
+            lastName: clientName,
+            company: "Highland BioTech Capital",
+            email: "sarah.j@highlandbio.io",
+            phone: "+1 (555) 876-5432",
+            status: "Qualified Prospect",
+            estimatedAum: "$2,850,000",
+            notes: "Lead recorded via Adviza AI fiduciary orchestration.",
+          },
+          reason: `Execute Salesforce FSC action for ${clientName}`,
+          requiresHITL: false,
+        },
+      ],
+      plan: {
+        intent: `Salesforce CRM ${isQuery ? "query" : "lead sync"} for ${clientName}`,
+        targetCapabilities: [capId],
+        reasoning: "Salesforce CRM keyword matched",
+      },
+    };
+  }
+
+  if (lower.includes("hubspot")) {
+    const clientName = ambientContext?.clientName || "Sarah Jenkins";
+    const isQuery = lower.includes("find") || lower.includes("search") || lower.includes("get") || lower.includes("query");
+    const capId = isQuery ? "composio_hubspot_get_contact" : "composio_hubspot_create_contact";
+
+    return {
+      conversationalIntro: isQuery ? `Looking up ${clientName} in HubSpot CRM...` : `Creating contact record for ${clientName} in HubSpot CRM...`,
+      capabilityCalls: [
+        {
+          capability_id: capId,
+          parameters: isQuery ? { clientEmailOrName: clientName } : {
+            email: "sarah.j@highlandbio.io",
+            firstName: "Sarah",
+            lastName: "Jenkins",
+            company: "Highland BioTech Capital",
+            lifecycleStage: "lead",
+          },
+          reason: `Execute HubSpot CRM action for ${clientName}`,
+          requiresHITL: false,
+        },
+      ],
+      plan: {
+        intent: `HubSpot CRM ${isQuery ? "lookup" : "contact sync"} for ${clientName}`,
+        targetCapabilities: [capId],
+        reasoning: "HubSpot CRM keyword matched",
+      },
+    };
+  }
+
+  if (lower.includes("wealthbox")) {
+    const clientName = ambientContext?.clientName || "Sarah Jenkins";
+    const isTask = lower.includes("task") || lower.includes("reminder");
+    const isQuery = !isTask && (lower.includes("find") || lower.includes("search") || lower.includes("get") || lower.includes("query"));
+    const capId = isTask ? "composio_wealthbox_add_task" : isQuery ? "composio_wealthbox_get_contact" : "composio_wealthbox_create_contact";
+
+    return {
+      conversationalIntro: isTask ? `Logging task in Wealthbox CRM...` : isQuery ? `Querying Wealthbox CRM for ${clientName}...` : `Creating client relationship card in Wealthbox CRM for ${clientName}...`,
+      capabilityCalls: [
+        {
+          capability_id: capId,
+          parameters: isTask ? {
+            title: `Follow up with ${clientName} on portfolio allocation`,
+            dueDate: new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10),
+            priority: "High",
+          } : isQuery ? { contactName: clientName } : {
+            firstName: "Sarah",
+            lastName: "Jenkins",
+            companyName: "Highland BioTech",
+            email: "sarah.j@highlandbio.io",
+            backgroundInfo: "RIA onboarding initiated via Adviza AI",
+          },
+          reason: `Execute Wealthbox CRM action for ${clientName}`,
+          requiresHITL: false,
+        },
+      ],
+      plan: {
+        intent: `Wealthbox CRM action for ${clientName}`,
+        targetCapabilities: [capId],
+        reasoning: "Wealthbox CRM keyword matched",
+      },
+    };
+  }
+
   // Default Fallback
   return {
     directAnswer: "I have processed your request. How can I assist you further with your advisory workflow or connected tools?",
