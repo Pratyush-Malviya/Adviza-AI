@@ -125,10 +125,10 @@ function fallbackResolver(
     lower.includes("what do you remember")
   ) {
     const memorySnippet = recalledMemories && recalledMemories.length > 0
-      ? `Here is what I currently have in your persistent fiduciary memory (Mem0):\n\n` +
-        recalledMemories.map((m: any) => `- **${m.category?.toUpperCase() || "MANDATE"}**: ${m.memory}`).join("\n") +
-        `\n\nYou can review, edit, or add persistent memory mandates anytime under **Settings → AI Memory & Personas**.`
-      : `I have initialized your fiduciary profile as an active Wealth Advisor on Adviza AI. As you interact with clients and execute tasks, I automatically extract and persist your key investment preferences, tax mandates, and operational guidelines into long-term memory (Mem0).`;
+      ? `Here is what I currently have in your persistent fiduciary memory:\n\n` +
+        recalledMemories.map((m: any) => `- ${m.category?.toUpperCase() || "MANDATE"}: ${m.memory}`).join("\n") +
+        `\n\nYou can review, edit, or add persistent memory mandates anytime under Settings > AI Memory & Personas.`
+      : `I have your profile configured as an active Wealth Advisor on Adviza AI. As you interact with clients and execute tasks, I automatically extract and persist your key investment preferences, tax mandates, and operational guidelines into your long-term memory.`;
 
     return {
       directAnswer: memorySnippet,
@@ -146,29 +146,29 @@ function fallbackResolver(
     (lower.includes("wealth") || lower.includes("management") || lower.includes("ria") || lower.includes("company") || lower.includes("advisor") || lower.includes("firm"))
   ) {
     return {
-      directAnswer: `Wealth management firms and RIAs typically implement automation across 5 high-impact operational pillars:
+      directAnswer: `Wealth management firms and RIAs typically implement automation across five key operational areas:
 
-1. **Client Onboarding & KYC/AML**:
-   - Automated digital disclosure delivery (Form ADV Part 2A, Form CRS).
-   - Automated custodian account opening and e-signature routing (Schwab / Fidelity / Pershing).
+1. Client Onboarding and Compliance:
+   - Automated digital delivery for Form ADV Part 2A and Form CRS.
+   - Custodian account opening and signature routing across Schwab, Fidelity, and Pershing.
 
-2. **Pre-Meeting Intelligence & Dossier Generation**:
-   - Automated aggregation of CRM records, recent custodian statements, and asset performance before client review meetings.
-   - AI executive briefing packs with tailored talking points and tax-harvesting opportunities.
+2. Pre-Meeting Intelligence and Dossier Preparation:
+   - Aggregating CRM records, custodian data, and recent asset performance before review meetings.
+   - Generating pre-meeting briefing packs with talking points and tax harvesting opportunities.
 
-3. **Post-Meeting Voice-to-Action**:
-   - Multimodal speech-to-text meeting transcription with automatic extraction of decisions and client commitments.
-   - Auto-creation of CRM tasks, follow-up emails, and action items with Human-in-the-Loop advisor approval.
+3. Post-Meeting Action and Follow-ups:
+   - Transcribing meeting audio to extract decisions and client commitments.
+   - Creating CRM tasks, follow-up email drafts, and action items for advisor review.
 
-4. **Fiduciary Compliance & Audit Trail (SEC / FINRA)**:
-   - Automated scanning of outbound client communications for promissory statements or missing suitability disclosures.
-   - WORM-compliant immutable audit logging with cryptographic SHA-256 signatures.
+4. Fiduciary Compliance and Audit Trails:
+   - Reviewing outbound client communications for regulatory disclosures.
+   - Immutable audit logging with cryptographic SHA-256 signatures.
 
-5. **Portfolio Rebalancing & Tax-Loss Harvesting**:
-   - Automated asset drift detection against target portfolio models.
-   - Tax-loss harvesting triggers when equity positions cross unrealized loss thresholds.
+5. Portfolio Rebalancing and Tax-Loss Harvesting:
+   - Monitoring asset drift against target model allocations.
+   - Flagging tax-loss harvesting opportunities when equity positions cross loss thresholds.
 
-You can orchestrate and automate all of these workflows directly inside Adviza AI's **Workflow Canvas** or via this chat!`,
+You can orchestrate and automate all of these workflows directly inside Adviza AI's Workflow Canvas or through this chat.`,
       plan: {
         intent: "Explain wealth management automations",
         targetCapabilities: [],
@@ -185,17 +185,17 @@ You can orchestrate and automate all of these workflows directly inside Adviza A
     lower.includes("who are you")
   ) {
     return {
-      directAnswer: `I am **Adviza**, your Enterprise AI Operating System and digital Chief of Staff. I understand commands, orchestrate tools, execute actions, and verify live outcomes:
+      directAnswer: `I am Adviza, your Enterprise AI Operating System and digital Chief of Staff. I understand commands, orchestrate tools, execute actions, and verify live outcomes:
 
-- **📊 Google Sheets & Spreadsheets:** Create lead pipelines, add demo/live records, rename sheets, append rows, and delete/filter data.
-- **📅 Google Calendar:** Query schedules, look up past/upcoming meetings, count reviews across any date range, and organize appointments.
-- **📧 Gmail & Outlook:** Search mailbox records, draft personalized fiduciary emails, and dispatch outbound communications.
-- **📋 Pre-Meeting Briefing Dossiers:** Generate executive client briefing packs with portfolio analytics and talking points.
-- **🛡️ SEC & FINRA Compliance Audits:** Create audit-ready suitability records with cryptographic WORM audit trail markers.
-- **⚡ Automated Workflows:** Execute multi-stage pipeline workflows (e.g. client onboarding, meeting prep, and debriefing).
-- **📄 Document & PDF Deliverables:** Every created or updated asset includes direct access URLs and PDF export links.
+- Google Sheets and Spreadsheets: Create lead pipelines, add demo/live records, rename sheets, append rows, and filter data.
+- Google Calendar: Query schedules, look up past and upcoming meetings, count reviews across any date range, and organize appointments.
+- Gmail and Outlook: Search mailbox records, draft personalized fiduciary emails, and dispatch outbound communications.
+- Pre-Meeting Briefing Dossiers: Generate executive client briefing packs with portfolio analytics and talking points.
+- SEC and FINRA Compliance Audits: Create audit-ready suitability records with cryptographic WORM audit trail markers.
+- Automated Workflows: Execute multi-stage pipeline workflows such as client onboarding, meeting prep, and debriefing.
+- Document and PDF Deliverables: Every created or updated asset includes direct access URLs and PDF export links.
 
-Describe what you want done, and I will execute and verify it for you.`,
+Tell me what you would like done, and I will take care of it for you.`,
       plan: {
         intent: "Explain capabilities",
         targetCapabilities: [],

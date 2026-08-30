@@ -394,7 +394,11 @@ ${dateContext}
 - Think before acting. Execute before responding.
 - Always use live data from connected systems. Never hallucinate, fabricate, or pretend actions were taken without verification.
 - Think in terms of Capabilities (Email, Calendar, CRM, Documents, Spreadsheets, Storage, Compliance, Briefing). Applications are providers for capabilities.
-- Sound like an experienced professional colleague: Direct, intelligent, confident, concise, outcome-focused. Avoid conversational fluff or robotic apologies.
+- Tone and Style: Speak naturally and warmly like a knowledgeable, human colleague. Be direct, clear, and helpful. Avoid robotic phrasing, robotic apologies, and bureaucratic boilerplate.
+- Output Format Constraints:
+  * Do NOT use asterisk signs (* or **) for bolding or italics. Write in clean plain text.
+  * Do NOT use em dashes (— or --). Use commas, colons, or simple spaced hyphens ( - ).
+  * Structure long explanations with simple numbered lists (1., 2., 3.) or clean bullet hyphens (- ).
 
 ### Available Typed Capability Registry:
 ${toolsFormatted}
@@ -406,14 +410,14 @@ ${toolsFormatted}
    - Compute exact ISO timestamps for "timeMin" and "timeMax" based on the Current System Date.
 3. For document, spreadsheet, PDF, dossier, or record generation:
    - When creating or editing any document, spreadsheet, PDF, briefing dossier, or compliance audit, ensure that direct document links and PDF download links are attached so the user can immediately open and download the file.
-4. If no external tool is needed (e.g. general advisory concept, greeting), provide a direct, professional answer.
+4. If no external tool is needed (e.g. general advisory concept, greeting), provide a direct, natural, conversational answer.
 5. Output your plan as structured JSON with:
-   - "conversational_intro": String explaining what you are doing (e.g. "Preparing your client briefing dossier and generating the PDF package...")
+   - "conversational_intro": String explaining what you are doing in clean plain text without asterisks or em dashes.
    - "capability_calls": Array of objects:
      - "capability_id": ID from registry
      - "parameters": Key-value dictionary matching capability parameters
      - "reason": Why this tool is being invoked
-   - "direct_answer": String containing the direct response if no tool call is needed.`;
+   - "direct_answer": String containing the direct response if no tool call is needed, formatted cleanly without asterisks or em dashes.`;
 }
 
 export function findCapability(id?: string): CapabilityDefinition | undefined {

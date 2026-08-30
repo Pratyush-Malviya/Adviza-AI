@@ -1,6 +1,19 @@
 import { AdvizaAgentStateType } from "../state";
 import { invokeModel, LLMMessage } from "@/lib/bedrock/client";
 
+export function formatHumanResponse(text: string): string {
+  if (!text) return "";
+  return text
+    // Remove markdown bold/italic asterisks
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/\*(.*?)\*/g, "$1")
+    // Replace em dashes and double hyphens with clean spaced hyphens
+    .replace(/—/g, " - ")
+    .replace(/–/g, " - ")
+    .replace(/\s--\s/g, " - ")
+    .trim();
+}
+
 export async function synthesizerNode(
   state: AdvizaAgentStateType
 ): Promise<Partial<AdvizaAgentStateType>> {
@@ -15,7 +28,7 @@ export async function synthesizerNode(
 
   // 1. Direct answer without tools
   if (directAnswer && (!executedResults || executedResults.length === 0)) {
-    return { finalResponse: directAnswer };
+    return { finalResponse: formatHumanResponse(directAnswer) };
   }
 
   // 2. Missing connectors with Drafted Action Preview
@@ -24,7 +37,7 @@ export async function synthesizerNode(
     let previewText = "";
 
     if (preview?.recipient || preview?.body) {
-      previewText = `\n\n### 📝 Drafted Message Preview\n- **To:** \`${preview.recipient || "Recipient"}\`\n- **Subject:** *${preview.subject || "Adviza AI Update"}*\n\n> ${preview.body?.replace(/\n/g, "\n> ")}\n\n`;
+      previewText = `\n\nDrafted Message Preview:\nTo: ${preview.recipient || "Recipient"}\nSubject: ${preview.subject || "Adviza AI Update"}\n\n${preview.body}\n\n`;
     } else if (preview?.details?.rows && Array.isArray(preview.details.rows)) {
       const rows = preview.details.rows;
       const headers = rows[0] || [];
@@ -33,18 +46,18 @@ export async function synthesizerNode(
       const sepLine = `| ${headers.map(() => "---").join(" | ")} |`;
       const bodyLines = dataRows.map((r: any[]) => `| ${r.join(" | ")} |`).join("\n");
 
-      previewText = `\n\n### 📊 Prepared Google Sheet: *${preview.details.title || "Lead Records"}*\n\n${headerLine}\n${sepLine}\n${bodyLines}\n\n`;
+      previewText = `\n\nPrepared Google Sheet: ${preview.details.title || "Lead Records"}\n\n${headerLine}\n${sepLine}\n${bodyLines}\n\n`;
     }
 
     return {
-      finalResponse: `I have analyzed your request and drafted the dataset.${previewText}To automatically create this Google Sheet and insert these records, please connect Google Sheets below. Once connected, Adviza AI will instantly create the spreadsheet on your account and return the live link.`,
+      finalResponse: formatHumanResponse(`I analyzed your request and prepared the dataset.${previewText}To automatically create this Google Sheet and insert these records, please connect Google Sheets below. Once connected, Adviza AI will instantly create the spreadsheet on your account and return the live link.`),
     };
   }
 
   // 3. HITL prompt awaiting sign-off
   if (hitlPrompts && hitlPrompts.length > 0 && (!executedResults || executedResults.length === 0)) {
     return {
-      finalResponse: `I have prepared the required fiduciary action. Please review the details and sign off below before it is dispatched.`,
+      finalResponse: formatHumanResponse(`I have prepared the required fiduciary action. Please review the details and sign off below before it is dispatched.`),
     };
   }
 
@@ -59,14 +72,13 @@ The user requested: "${message}"
 Below are the live, verified execution results from connected systems:
 ${JSON.stringify(executedResults, null, 2)}
 
-Provide a direct, confident, professional response focused on outcomes:
-- Sound like an experienced professional colleague. Never use robotic wording, generic disclaimers, or conversational filler.
-- Clearly present the results of the completed actions.
-- If a Google Sheet, Google Doc, or Notion page was created/updated, state the title and records, and include the direct link.
-- If an email was sent, state the recipient, subject, and confirmation.
-- If calendar events were fetched, state the count and list them with titles and times.
-- If briefing or compliance dossiers were generated, summarize key talking points/metrics and direct links.
-- Format with crisp, scannable markdown bullet points.`;
+Provide a natural, conversational, professional response focused on outcomes:
+- Sound like a helpful human colleague speaking naturally. Avoid robotic phrasing, robotic apologies, or generic disclaimers.
+- Do NOT use asterisk signs (* or **) for bold or italic formatting. Use clean plain text.
+- Do NOT use em dashes (— or --). Use clean commas, colons, or standard hyphens.
+- Clearly present the results of completed actions in clean sentences or clean numbered points.
+- If a Google Sheet, Google Doc, or Notion page was created/updated, state the title, records, and include direct links.
+- If an email was sent, state the recipient, subject, and confirmation.`;
 
       const synthesisMessages: LLMMessage[] = [
         { role: "user", content: summaryPrompt },
@@ -97,22 +109,22 @@ Provide a direct, confident, professional response focused on outcomes:
 
         if (capId.includes("sheet") || res.category === "productivity") {
           const count = data.rows ? Math.max(0, data.rows.length - 1) : 5;
-          lines.push(`\n✅ **Google Sheet Updated:** *${data.title || "Adviza Wealth Leads Pipeline"}*`);
-          lines.push(`- **Active Records:** ${count} record(s) in spreadsheet`);
+          lines.push(`\nGoogle Sheet Updated: ${data.title || "Adviza Wealth Leads Pipeline"}`);
+          lines.push(`Active Records: ${count} record(s) in spreadsheet`);
         } else if (capId.includes("salesforce") || capId.includes("hubspot") || capId.includes("wealthbox") || res.category === "crm") {
           const crmName = capId.includes("salesforce") ? "Salesforce FSC" : capId.includes("hubspot") ? "HubSpot CRM" : "Wealthbox CRM";
           const crmData = data.crmData || {};
-          lines.push(`\n💼 **${crmName} Record Synchronized:** *${crmData.name || data.title || "Client Record"}*`);
-          lines.push(`- **Record ID:** \`${data.crmRecordId || "REC-2026"}\` • **Status:** ${crmData.status || "Active"}`);
+          lines.push(`\n${crmName} Record Synchronized: ${crmData.name || data.title || "Client Record"}`);
+          lines.push(`Record ID: ${data.crmRecordId || "REC-2026"} | Status: ${crmData.status || "Active"}`);
           if (crmData.company || crmData.estimatedAum) {
-            lines.push(`- **Affiliation / AUM:** ${crmData.company || "Private Client"} (${crmData.estimatedAum || "HNW"})`);
+            lines.push(`Affiliation / AUM: ${crmData.company || "Private Client"} (${crmData.estimatedAum || "HNW"})`);
           }
         } else if (capId.includes("email") || res.category === "email") {
-          lines.push(`\n📧 **Email Dispatched:** Sent to \`${data.recipient_email || data.to || "Client"}\``);
+          lines.push(`\nEmail Dispatched: Sent to ${data.recipient_email || data.to || "Client"}`);
         } else if (capId.includes("briefing") || res.category === "briefing") {
-          lines.push(`\n📋 **Pre-Meeting Briefing Dossier Compiled:** *${data.clientName || "Sarah Jenkins"}*`);
+          lines.push(`\nPre-Meeting Briefing Dossier Compiled: ${data.clientName || "Sarah Jenkins"}`);
         } else if (capId.includes("compliance") || res.category === "compliance") {
-          lines.push(`\n🛡️ **SEC/FINRA Compliance Audit Record Generated:** Record ID \`${data.recordId || "REC-2026"}\``);
+          lines.push(`\nSEC/FINRA Compliance Audit Record Generated: Record ID ${data.recordId || "REC-2026"}`);
         }
       }
     }
@@ -133,34 +145,34 @@ Provide a direct, confident, professional response focused on outcomes:
 
       if (crmUrl && !baseResponse.includes(crmUrl)) {
         const crmLabel = res.capabilityId?.toLowerCase().includes("salesforce") ? "Salesforce Financial Services Cloud" : res.capabilityId?.toLowerCase().includes("hubspot") ? "HubSpot CRM" : "Wealthbox CRM";
-        attachedLinks.push(`💼 **${crmLabel}:** [Open Record in CRM](${crmUrl})`);
+        attachedLinks.push(`${crmLabel}: [Open Record in CRM](${crmUrl})`);
       }
       if (sheetUrl && !baseResponse.includes(sheetUrl)) {
-        attachedLinks.push(`📊 **Google Sheet:** [Open Spreadsheet in Google Drive](${sheetUrl})`);
+        attachedLinks.push(`Google Sheet: [Open Spreadsheet in Google Drive](${sheetUrl})`);
       }
       if (docUrl && !baseResponse.includes(docUrl) && docUrl !== crmUrl) {
-        attachedLinks.push(`📄 **Live Document Dossier:** [Open Full Dossier](${docUrl})`);
+        attachedLinks.push(`Live Document Dossier: [Open Full Dossier](${docUrl})`);
       }
       if (pdfUrl && !baseResponse.includes(pdfUrl)) {
-        attachedLinks.push(`📥 **PDF Export:** [Download / Save as PDF](${pdfUrl})`);
+        attachedLinks.push(`PDF Export: [Download / Save as PDF](${pdfUrl})`);
       }
       if (notionUrl && !baseResponse.includes(notionUrl)) {
-        attachedLinks.push(`📝 **Notion Page:** [View in Notion](${notionUrl})`);
+        attachedLinks.push(`Notion Page: [View in Notion](${notionUrl})`);
       }
     }
   }
 
   // Check if any results were executed via mock/simulation pathway
-  const hasMockExecutions = (executedResults || []).some((res) => res.data?.mock === true);
+  const hasMockExecutions = (executedResults || []).some((res: any) => res.data?.mock === true);
   if (hasMockExecutions && !baseResponse.includes("Demo Mode")) {
-    attachedLinks.push(`\n> 💡 *Note: Action executed in simulated preview mode. Connect your account in Connectors for live real-time synchronization.*`);
+    attachedLinks.push(`\nNote: Action executed in simulated preview mode. Connect your account in Connectors for live real-time synchronization.`);
   }
 
   if (attachedLinks.length > 0) {
-    baseResponse += `\n\n### 🔗 Document Deliverables & Direct Links\n${attachedLinks.join("\n")}`;
+    baseResponse += `\n\nDocument Deliverables & Direct Links:\n${attachedLinks.join("\n")}`;
   }
 
   return {
-    finalResponse: baseResponse,
+    finalResponse: formatHumanResponse(baseResponse),
   };
 }
