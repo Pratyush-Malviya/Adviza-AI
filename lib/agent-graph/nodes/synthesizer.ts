@@ -137,6 +137,12 @@ Provide a direct, confident, professional response focused on outcomes:
     }
   }
 
+  // Check if any results were executed via mock/simulation pathway
+  const hasMockExecutions = (executedResults || []).some((res) => res.data?.mock === true);
+  if (hasMockExecutions && !baseResponse.includes("Demo Mode")) {
+    attachedLinks.push(`\n> 💡 *Note: Action executed in simulated preview mode. Connect your account in Connectors for live real-time synchronization.*`);
+  }
+
   if (attachedLinks.length > 0) {
     baseResponse += `\n\n### 🔗 Document Deliverables & Direct Links\n${attachedLinks.join("\n")}`;
   }

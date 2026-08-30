@@ -12,6 +12,26 @@
 
 ---
 
+## 0. Current State Status Matrix (Live vs. Roadmap)
+
+> [!NOTE]
+> **Product Completeness Transparency**: The matrix below clearly delineates between fully implemented production capabilities, fallback simulation pathways, and roadmap architecture.
+
+| Module / Capability | Status | Implementation Details |
+| :--- | :--- | :--- |
+| **Chat OS & Multi-Agent Orchestration** | 🟢 **Live** | LangGraph 6-node state graph (Intent → Validator → HITL → Executor → Synth → Audit) |
+| **Mem0 Long-Term Memory Layer** | 🟢 **Live** | Dual engine: Mem0 Cloud API + native Gemini/Supabase extraction with per-user RLS |
+| **Visual Workflow Canvas** | 🟢 **Live** | Infinite canvas with pan/zoom, Bezier curves, marquee select, and AI prompt generation |
+| **Google Workspace Tools (Sheets, Docs, Gmail, Cal)** | 🟢 **Live** | Real Composio proxy dispatch when `COMPOSIO_API_KEY` & OAuth connected; fallback mode when absent |
+| **Document Export Engine** | 🟢 **Live** | PDF & HTML export with WORM-designed audit retention markers |
+| **Stripe Billing & Subscriptions** | 🟢 **Live** | Checkout, portal, webhooks, and tier enforcement fully implemented |
+| **CRM Connectors (Salesforce FSC, HubSpot)** | 🟡 **Mock Fallback** | Capability & parameter schema complete; executes via mock generator pending live OAuth |
+| **RIA CRM Connectors (Wealthbox, Redtail)** | 🟡 **Mock Fallback** | Registry definitions complete; simulated payload return |
+| **Inngest Durable Execution** | 🟡 **Architecture** | Inngest package & route handlers configured; long-running worker fleet in roadmap |
+| **Custodian Feeds (Schwab, Fidelity, Pershing)** | 🔴 **Planned** | Data ingestion schema drafted; FIX/API integration scheduled for Phase 5 |
+
+---
+
 ## 1. Executive Summary & Vision
 
 ### 1.1 Problem Statement
@@ -220,22 +240,41 @@ sequenceDiagram
 
 ### 4.6 Integrations Hub (Composio + Custodians)
 
-- **CRM Platforms**: Salesforce FSC, Wealthbox, HubSpot CRM.
-- **Communication & Calendar**: Google Calendar, Gmail, Outlook 365, Resend Email API, Slack Notifications.
-- **Productivity & Documents**: Google Sheets, Google Docs, Notion.
-- **Social & Content**: LinkedIn Publishing API via Composio.
-- **Custodian Connectors**: Prepared architecture for Schwab OpenView, Fidelity Wealthscape, and Pershing NetX360 data feeds.
+The integration surface operates across three distinct delivery tiers:
+
+#### 🟢 Live Active Connectors (Production Dispatch)
+- **Communication & Calendar**: Google Calendar (`GOOGLECALENDAR_*`), Gmail (`GMAIL_*`), Outlook 365, Resend Transactional Email API, Slack Notifications.
+- **Productivity & Documents**: Google Sheets (`GOOGLESHEETS_*`), Google Docs (`GOOGLEDRIVE_*`), Notion API.
+- **Social & Content**: LinkedIn Publishing API via Composio proxy.
+
+#### 🟡 Connector Architecture with Fallback Simulation
+*Full parameter schema and execution handlers configured; operates via high-fidelity mock generator when live OAuth connection is unlinked:*
+- **Enterprise CRM**: Salesforce Financial Services Cloud (`SALESFORCE_*`), HubSpot CRM (`HUBSPOT_*`).
+- **Specialized RIA CRMs**: Wealthbox CRM (`WEALTHBOX_*`), Redtail Technology (`REDTAIL_*`), Zoho CRM, Pipedrive.
+
+#### 🔴 Planned Architecture (Roadmap)
+*Data models defined; live gateway scheduled for Phase 5:*
+- **Custodian Connectors**: Schwab OpenView, Fidelity Wealthscape, Pershing NetX360 data feeds.
+- **Banking / Account Aggregation**: Plaid API.
 
 ---
 
 ## 5. Security, Fiduciary Compliance & Governance
 
 ### 5.1 Fiduciary Safeguards & Non-Negotiables
+
+> **Note on compliance language:** The safeguards below describe the platform's
+> architecture and design intent. Formal regulatory certification (SEC/FINRA),
+> WORM compliance attestation, and data-processing agreements with LLM providers
+> are pending legal and compliance review, and are not yet finalized. This
+> section should not be presented to prospects or regulators as a compliance
+> certification until that review is complete.
+
 - **Human-in-the-Loop (HITL) by Default**: Automated financial trades or external client communications cannot execute without explicit advisor approval unless configured otherwise by firm policy.
-- **SEC WORM-Compliant Audit Trails**: Every workflow execution, AI decision log, prompt, and output is recorded with immutable timestamps and user IDs in `compliance_audit_logs`.
-- **Multi-Tenant Isolation**: Strict PostgreSQL Row Level Security (RLS) guarantees data isolation across distinct wealth management firms (`firm_id`).
-- **Zero LLM Training Policy**: Client PII and financial records are processed through enterprise endpoints with contractual zero-data-retention for model training.
-- **Memory RLS**: The `user_memories` table enforces per-user Row Level Security; no cross-user memory leakage is possible.
+- **Audit Logging Designed for WORM Compliance**: Every workflow execution, AI decision log, prompt, and output is recorded with immutable timestamps and user IDs in `compliance_audit_logs`. This system is architected to support SEC WORM recordkeeping requirements; formal compliance certification is pending legal/compliance review.
+- **Multi-Tenant Isolation**: PostgreSQL Row Level Security (RLS) policies enforce data isolation across distinct wealth management firms (`firm_id`), consistent with the platform's multi-tenant design.
+- **Zero LLM Training Policy (Pending Contractual Verification)**: Client PII and financial records are processed through enterprise-tier LLM endpoints (AWS Bedrock, Google Gemini enterprise). Zero-data-retention for model training is the intended contractual posture; final confirmation depends on signed data processing agreements with each provider, to be verified by legal.
+- **Memory RLS**: The `user_memories` table enforces per-user Row Level Security, designed to prevent cross-user memory leakage.
 
 ---
 
@@ -260,16 +299,23 @@ sequenceDiagram
 
 ## 7. Non-Functional Requirements & Performance SLAs
 
+### 7.1 Customer-Facing SLAs (Buyer / CCO Review)
 | Metric | Requirement | Target SLA |
 | :--- | :--- | :--- |
-| **Canvas Frame Rate** | Smooth 60 FPS panning/zooming with up to 100 visual nodes | >= 60 FPS |
-| **AI Workflow Generation Time** | Prompt-to-graph complete topology compilation | < 3.5 seconds |
-| **AI Prompt Enhancement Time** | Natural language enhancement via LLM / heuristic | < 1.2 seconds |
-| **Memory Extraction Latency** | Non-blocking background memory extraction | < 2 seconds (async) |
 | **Uptime & Availability** | Core dashboard, workflow runtime, and API gateway | 99.95% |
-| **Type Safety & Build Cleanliness** | Strict TypeScript with 0 compiler errors | 100% clean |
-| **Mobile Responsiveness** | Fully functional chat, dashboard, and settings on all viewport sizes | Full responsive |
-| **Total Production Routes** | Next.js App Router routes in production build | 46 routes |
+| **AI Workflow Generation** | Natural language to complete visual node graph | < 3.5 seconds |
+| **Memory Recall Latency** | Semantic long-term memory retrieval per turn | < 2.0 seconds |
+| **Mobile Responsiveness** | Full functionality across desktop, tablet, and mobile viewports | Responsive |
+
+### 7.2 Internal Engineering Quality Targets
+> [!NOTE]
+> The metrics below represent internal engineering and code-hygiene standards for technical leadership and developers.
+| Metric | Requirement | Status / Target |
+| :--- | :--- | :--- |
+| **Canvas Frame Rate** | Smooth 60 FPS panning/zooming with up to 100 visual nodes | >= 60 FPS |
+| **AI Prompt Enhancement Time** | Natural language enhancement via LLM / heuristic | < 1.2 seconds |
+| **Type Safety & Build Cleanliness** | Strict TypeScript compiler validation (`tsc --noEmit`) | 0 compiler errors (100% clean) |
+| **Total Production Routes** | Next.js App Router routes compiled in release | 46 routes |
 
 ---
 
@@ -298,7 +344,7 @@ graph LR
    - Dedicated AWS Bedrock VPC / Private LLM deployment
    - Unlimited agent executions & memory records
    - Custom custodian feed connectors
-   - SOC2 Type II compliance audit packet and dedicated SLA
+   - SOC2 Type II compliance readiness support and dedicated SLA
    - Mem0 Cloud API integration with custom extraction pipeline
 
 ---
@@ -315,7 +361,7 @@ graph LR
 - [x] LangGraph Multi-Agent Architecture: Intent Planner → Tool Executor → Synthesizer.
 - [x] Capability-First Registry with fuzzy alias matching (150+ tools).
 - [x] Execution Preview Cards with live document URLs, spreadsheet links, and PDF downloads.
-- [x] WORM-compliant document export engine (`/api/documents/export`).
+- [x] WORM-designed document export engine (`/api/documents/export`).
 - [x] Human-in-the-Loop (HITL) approval gates and Missing Connector Cards.
 - [x] Briefing Dossiers and structured response generation.
 
@@ -327,19 +373,19 @@ graph LR
 - [x] Automated per-turn memory extraction and semantic memory recall in intent planning.
 - [x] Interactive Memory & Persona Manager in Settings with category filtering and semantic search.
 
-### Phase 4: Autonomous Execution & Custodian Sync *(Next)*
-- [ ] Inngest background worker execution for long-running workflows.
-- [ ] Real-time Composio OAuth connect modal for Salesforce FSC and Wealthbox.
-- [ ] Voice-to-action recording upload directly within client detail views.
-- [ ] Real Composio live tool execution (replacing mock response engine).
-- [ ] Mem0 embedding-based semantic similarity search using pgvector.
+### Phase 4: Autonomous Execution & Live Connectors — Q4 2026 *(Target Horizon)*
+- [ ] 🟢 **Committed** — Live Composio OAuth connection flows for Salesforce FSC and Wealthbox.
+- [ ] 🟢 **Committed** — Direct Composio proxy execution replacing simulated fallback data when accounts are connected.
+- [ ] 🟢 **Committed** — Inngest background worker deployment for long-running workflows.
+- [ ] 🟡 **Planned** — Voice-to-action meeting audio upload directly within client views.
+- [ ] 🟡 **Planned** — Mem0 native pgvector embedding search for local vector retrieval.
 
-### Phase 5: Advanced Intelligence & Enterprise Governance *(Planned)*
-- [ ] Automated FINRA advertising submission export package (PDF with audit trail).
-- [ ] Multi-advisor collaborative canvas with live cursor presence.
-- [ ] Custodian automated trade order generation (Schwab / Fidelity FIX protocol).
-- [ ] Portfolio drift & rebalancing agent with real custodian data feeds.
-- [ ] Mem0 cross-session entity linking (client profiles, recurring patterns).
+### Phase 5: Advanced Intelligence & Enterprise Governance — H1 2027 *(Target Horizon)*
+- [ ] 🟡 **Planned** — Automated FINRA advertising submission export package (PDF with audit trail).
+- [ ] 🟡 **Planned** — Multi-advisor collaborative canvas with live cursor presence.
+- [ ] 🟡 **Planned** — Mem0 cross-session entity linking (client profiles, recurring patterns).
+- [ ] 🔴 **Exploratory** — Custodian automated trade order generation (Schwab / Fidelity FIX protocol — *subject to regulatory feasibility & partner agreements*).
+- [ ] 🔴 **Exploratory** — Portfolio drift & automated rebalancing agent with live custodian data feeds.
 
 ---
 

@@ -684,6 +684,7 @@ export async function executeComposioAction(
 
     return {
       success: true,
+      mock: false,
       app: targetApp,
       accountEmail: email,
       events: targetApp === "googlecalendar" ? items : [],
