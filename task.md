@@ -71,5 +71,16 @@
 - [x] Dynamic Intent Planning with conversational intelligence, live sheet rename, and row deletion/filtering
 - [x] Full Chat History & Session Persistence in Supabase `chat_messages` and local storage
 - [x] Execution Preview Cards, Briefing Dossiers, and Human-in-the-Loop (HITL) approval cards
-- [x] 100% clean Next.js 16 Turbopack build across 45 routes with strict TypeScript verification
+- [x] Mobile-friendly chat with slide-in side drawer history
+- [x] 100% clean Next.js 16 Turbopack build across 46 routes with strict TypeScript verification
+
+## Phase 9: Mem0 Universal Long-Term Memory & Adaptive Persona Layer
+- [x] Mem0 Memory Engine (`lib/memory/mem0.ts`) with dual-engine cloud API & native Supabase pgvector fallback
+- [x] Supabase Migration `005_mem0_memory_schema.sql` (`user_memories` table with multi-tenant RLS & fast indexes)
+- [x] Automated Memory & Persona extraction in chat orchestrator (`/api/ai/chat-orchestrate`)
+- [x] Dynamic Semantic Memory Recall in LangGraph Intent Planner (`lib/agent-graph/nodes/intent-planner.ts`)
+- [x] Dedicated Memory Management API (`/api/ai/memory`) supporting search, manual insertion, and deletion
+- [x] Interactive Memory & Persona Manager component (`components/dashboard/memory-manager.tsx`) in `/dashboard/settings`
+- [x] Verified 100% clean Next.js 16 build across all 46 routes (0 errors)
+
 

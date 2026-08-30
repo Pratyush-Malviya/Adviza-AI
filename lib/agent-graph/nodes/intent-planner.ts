@@ -1,6 +1,7 @@
 import { AdvizaAgentStateType, CapabilityCall } from "../state";
 import { invokeModelJSON, LLMMessage } from "@/lib/bedrock/client";
 import { getCapabilityRegistryPrompt, findCapability } from "@/lib/capabilities/registry";
+import { searchMemories, formatMemoriesForPrompt } from "@/lib/memory/mem0";
 
 interface LLMDecision {
   thought_process?: string;
@@ -16,7 +17,18 @@ interface LLMDecision {
 export async function intentPlannerNode(
   state: AdvizaAgentStateType
 ): Promise<Partial<AdvizaAgentStateType>> {
-  const { message, messages, ambientContext } = state;
+  const { message, messages, ambientContext, userId } = state;
+
+  // Retrieve relevant Mem0 long-term memories for this user/client
+  let memoryPrompt = "";
+  if (userId) {
+    try {
+      const recalledMemories = await searchMemories(userId, `${message} ${ambientContext?.clientName || ""}`, 4);
+      memoryPrompt = formatMemoriesForPrompt(recalledMemories);
+    } catch (memErr) {
+      console.warn("[intent-planner] Memory retrieval non-fatal error:", memErr);
+    }
+  }
 
   const recentHistory = (messages || []).slice(-8);
   let ambientPrompt = "";
@@ -34,7 +46,7 @@ export async function intentPlannerNode(
     })),
     {
       role: "user",
-      content: `${message}${ambientPrompt}`,
+      content: `${message}${ambientPrompt}${memoryPrompt}`,
     },
   ];
 

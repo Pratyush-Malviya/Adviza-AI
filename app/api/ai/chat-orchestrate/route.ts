@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { advizaChatGraph } from "@/lib/agent-graph/graph";
 import { findCapability } from "@/lib/capabilities/registry";
 import { executeComposioAction } from "@/lib/composio";
+import { addMemories } from "@/lib/memory/mem0";
 
 interface ChatOrchestratorPayload {
   message: string;
@@ -135,6 +136,18 @@ export async function POST(req: NextRequest) {
       } catch (persistErr) {
         console.warn("Failed to persist assistant response:", persistErr);
       }
+    }
+
+    // Trigger Mem0 Universal Memory Extraction asynchronously (non-blocking)
+    if (graphState.finalResponse && graphState.finalResponse.length > 5) {
+      addMemories(
+        user.id,
+        [
+          { role: "user", content: message },
+          { role: "assistant", content: graphState.finalResponse },
+        ],
+        { sessionId, firmId }
+      ).catch((memErr) => console.warn("[mem0-auto-extract] Non-fatal memory extraction error:", memErr));
     }
 
     return NextResponse.json({

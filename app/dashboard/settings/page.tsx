@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { Brain, Building2, CreditCard, Shield, ArrowRight } from "lucide-react";
 import { BillingButton } from "@/components/dashboard/billing-button";
+import { MemoryManager } from "@/components/dashboard/memory-manager";
 
 export const metadata = { title: "Settings" };
 
@@ -97,6 +98,11 @@ export default async function SettingsPage() {
           <span>Open Connectors & Tools</span>
           <ArrowRight className="w-3.5 h-3.5" />
         </Link>
+      </div>
+
+      {/* Mem0 AI Long-Term Memory & Adaptive Persona */}
+      <div className="space-y-4">
+        <MemoryManager />
       </div>
 
       {/* AI Stack */}

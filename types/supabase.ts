@@ -602,6 +602,45 @@ export interface Database {
         };
         Relationships: [];
       };
+      user_memories: {
+        Row: {
+          id: string;
+          user_id: string;
+          firm_id: string | null;
+          agent_id: string | null;
+          session_id: string | null;
+          category: "preference" | "persona" | "fact" | "client_context" | "workflow_habit" | "general";
+          memory: string;
+          metadata: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          firm_id?: string | null;
+          agent_id?: string | null;
+          session_id?: string | null;
+          category?: "preference" | "persona" | "fact" | "client_context" | "workflow_habit" | "general";
+          memory: string;
+          metadata?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          firm_id?: string | null;
+          agent_id?: string | null;
+          session_id?: string | null;
+          category?: "preference" | "persona" | "fact" | "client_context" | "workflow_habit" | "general";
+          memory?: string;
+          metadata?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -621,3 +660,4 @@ export type WorkflowRun = Database["public"]["Tables"]["workflow_runs"]["Row"];
 export type ChatSession = Database["public"]["Tables"]["chat_sessions"]["Row"];
 export type ChatMessageRecord = Database["public"]["Tables"]["chat_messages"]["Row"];
 export type FirmConnectionRecord = Database["public"]["Tables"]["firm_connections"]["Row"];
+export type UserMemoryRecord = Database["public"]["Tables"]["user_memories"]["Row"];
