@@ -159,3 +159,69 @@ export const generateBriefingEvent = inngest.createFunction(
     return { success: true, meetingId };
   }
 );
+
+// Durable Background Pipeline for Executing Multi-Step Workflows
+export const executeWorkflowPipeline = inngest.createFunction(
+  {
+    id: "execute-workflow-pipeline",
+    triggers: [{ event: "workflow.execute" }],
+  },
+  async ({ event, step }: any) => {
+    const { workflowId, firmId, triggeredBy, runId } = event.data;
+    const supabase = await createServiceClient();
+
+    // Step 1: Fetch workflow definition & active connections
+    const { workflow, nodes, edges } = await step.run("fetch-workflow-topology", async () => {
+      const { data, error } = await supabase
+        .from("workflows")
+        .select("*")
+        .eq("id", workflowId)
+        .single();
+      if (error || !data) throw new Error("Workflow not found");
+      return {
+        workflow: data,
+        nodes: (data.nodes as any[]) ?? [],
+        edges: (data.edges as any[]) ?? [],
+      };
+    });
+
+    // Step 2: Execute workflow nodes sequentially
+    const result = await step.run("execute-node-graph", async () => {
+      const { executeWorkflow } = await import("@/lib/workflow-executor");
+      return await executeWorkflow(nodes, edges, {
+        workflowId,
+        firmId,
+        triggeredBy,
+        connectedApps: new Set(["googlesheets", "googledocs", "gmail", "googlecalendar", "slack", "notion"]),
+      });
+    });
+
+    // Step 3: Update run record in database
+    await step.run("persist-run-results", async () => {
+      const finishedAt = new Date().toISOString();
+      if (runId) {
+        await supabase
+          .from("workflow_runs")
+          .update({
+            status: result.status === "success" || result.status === "partial" ? "success" : "failed",
+            finished_at: finishedAt,
+            logs: result.logs,
+            node_outputs: result.nodeOutputs,
+            error_message: result.errorMessage ?? null,
+          })
+          .eq("id", runId);
+      }
+
+      await supabase
+        .from("workflows")
+        .update({
+          last_run_at: finishedAt,
+          run_count: (workflow.run_count ?? 0) + 1,
+        })
+        .eq("id", workflowId);
+    });
+
+    return { success: true, workflowId, status: result.status };
+  }
+);
+

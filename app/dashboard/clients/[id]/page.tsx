@@ -17,6 +17,8 @@ import {
   FileText,
 } from "lucide-react";
 import { formatCurrency, formatDate, getInitials } from "@/lib/utils";
+import { getClientMemories } from "@/lib/memory/mem0";
+import { Sparkles } from "lucide-react";
 
 export const metadata = { title: "Client Details — Adviza AI" };
 
@@ -47,8 +49,8 @@ export default async function ClientDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  // Fetch Client's Meetings & Action Items in Parallel
-  const [{ data: meetings }, { data: actionItems }] = await Promise.all([
+  // Fetch Client's Meetings, Action Items, and Mem0 Entity Memories in Parallel
+  const [{ data: meetings }, { data: actionItems }, clientMemories] = await Promise.all([
     supabase
       .from("meetings")
       .select("*")
@@ -59,6 +61,7 @@ export default async function ClientDetailPage({ params }: PageProps) {
       .select("*, meetings(title)")
       .eq("client_id", id)
       .order("created_at", { ascending: false }),
+    getClientMemories(user.id, client.full_name),
   ]);
 
   const riskColorMap: Record<string, string> = {
@@ -202,6 +205,39 @@ export default async function ClientDetailPage({ params }: PageProps) {
             <p className="text-xs sm:text-sm text-[#5A544E] leading-relaxed whitespace-pre-wrap">
               {client.notes || "No CRM notes on file. Add notes during your next meeting."}
             </p>
+          </div>
+
+          {/* Mem0 AI Client Memory & Mandates */}
+          <div className="bg-white rounded-3xl p-6 border border-rose-200/80 shadow-sm space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs font-heading font-bold uppercase tracking-wider text-rose-600">
+                <Brain className="w-4 h-4 text-rose-500" />
+                Persistent AI Memory (Mem0)
+              </div>
+              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-rose-700">
+                {clientMemories.length} Mandate{clientMemories.length === 1 ? "" : "s"}
+              </span>
+            </div>
+
+            {clientMemories.length > 0 ? (
+              <div className="space-y-2">
+                {clientMemories.map((mem) => (
+                  <div key={mem.id} className="p-2.5 rounded-xl bg-[#FAF5F0] border border-[#EADBCE] text-xs text-[#2A2520] flex items-start gap-2">
+                    <Sparkles className="w-3.5 h-3.5 text-rose-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-semibold">{mem.memory}</span>
+                      <div className="text-[10px] font-mono text-[#8E847C] mt-0.5 uppercase">
+                        {mem.category}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-[#7A726A] leading-relaxed">
+                No client-specific preferences extracted yet. Adviza will automatically remember preferences and mandates expressed during advisory meetings.
+              </p>
+            )}
           </div>
         </div>
 

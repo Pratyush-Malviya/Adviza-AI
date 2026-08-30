@@ -329,6 +329,48 @@ export async function searchMemories(
 }
 
 /**
+ * Retrieves all long-term memories linked to a specific client profile across all sessions
+ */
+export async function getClientMemories(
+  userId: string,
+  clientIdOrName: string
+): Promise<MemoryItem[]> {
+  if (!userId || !clientIdOrName) return [];
+  try {
+    const supabase = await createClient();
+    const cleanName = clientIdOrName.trim().toLowerCase();
+
+    const { data: memories, error } = await supabase
+      .from("user_memories")
+      .select("id, memory, category, metadata, created_at, updated_at")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+
+    if (error || !memories) return [];
+
+    // Filter memories explicitly mentioning the client or containing client_id in metadata
+    const linked = memories.filter((m) => {
+      const meta = m.metadata || {};
+      if (meta.client_id === clientIdOrName || meta.clientId === clientIdOrName) return true;
+      if (meta.client_name && typeof meta.client_name === "string" && meta.client_name.toLowerCase().includes(cleanName)) return true;
+      return m.memory.toLowerCase().includes(cleanName);
+    });
+
+    return linked.map((d) => ({
+      id: d.id,
+      memory: d.memory,
+      category: d.category,
+      metadata: d.metadata,
+      created_at: d.created_at,
+      updated_at: d.updated_at,
+    }));
+  } catch (err) {
+    console.error("[mem0] getClientMemories error:", err);
+    return [];
+  }
+}
+
+/**
  * Retrieves all stored long-term memories for a user
  */
 export async function getAllMemories(userId: string): Promise<MemoryItem[]> {

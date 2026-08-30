@@ -558,13 +558,13 @@ export function MeetingDetailClient({ meeting, actionItems }: MeetingDetailClien
                         <span>Audit View</span>
                       </a>
                       <a
-                        href={`/api/documents/export?type=compliance&format=pdf&clientName=${encodeURIComponent(client?.full_name || "Client")}&id=${compliance.recordId as string}`}
+                        href={`/api/compliance/export-finra?clientName=${encodeURIComponent(client?.full_name || "Client")}&format=pdf`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#121217] hover:bg-[#272730] text-xs font-bold text-white transition shadow-sm"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-xs font-bold text-white transition shadow-sm"
                       >
-                        <Download className="w-3.5 h-3.5 text-indigo-400" />
-                        <span>Download PDF</span>
+                        <Shield className="w-3.5 h-3.5" />
+                        <span>FINRA / SEC Packet</span>
                       </a>
                       <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 uppercase">
                         {compliance.complianceStatus as string}

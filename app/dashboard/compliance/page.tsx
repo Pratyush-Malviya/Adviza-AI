@@ -109,7 +109,19 @@ export default async function CompliancePage() {
                       <span className="capitalize">{meeting.meeting_type}</span>
                     </div>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-[#A89E95] group-hover:text-[#121217] transition-colors" />
+                  <div className="flex items-center gap-3">
+                    <a
+                      href={`/api/compliance/export-finra?clientName=${encodeURIComponent((meeting as { clients?: { full_name: string } }).clients?.full_name || "Sarah Jenkins")}&format=pdf`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3.5 py-1.5 rounded-full bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 text-xs font-bold transition-colors flex items-center gap-1.5"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Shield className="w-3.5 h-3.5" />
+                      <span>FINRA Audit Packet</span>
+                    </a>
+                    <ChevronRight className="w-4 h-4 text-[#A89E95] group-hover:text-[#121217] transition-colors" />
+                  </div>
                 </Link>
               );
             })}
