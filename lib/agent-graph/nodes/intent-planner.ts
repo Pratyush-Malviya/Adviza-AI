@@ -21,9 +21,10 @@ export async function intentPlannerNode(
 
   // Retrieve relevant Mem0 long-term memories for this user/client
   let memoryPrompt = "";
+  let recalledMemories: any[] = [];
   if (userId) {
     try {
-      const recalledMemories = await searchMemories(userId, `${message} ${ambientContext?.clientName || ""}`, 4);
+      recalledMemories = await searchMemories(userId, `${message} ${ambientContext?.clientName || ""}`, 4);
       memoryPrompt = formatMemoriesForPrompt(recalledMemories);
     } catch (memErr) {
       console.warn("[intent-planner] Memory retrieval non-fatal error:", memErr);
@@ -91,13 +92,14 @@ export async function intentPlannerNode(
     };
   } catch (err) {
     console.warn("[langgraph-planner] LLM planning failed, applying fallback resolver:", err);
-    return fallbackResolver(message, ambientContext);
+    return fallbackResolver(message, ambientContext, recalledMemories);
   }
 }
 
 function fallbackResolver(
   message: string,
-  ambientContext?: any
+  ambientContext?: any,
+  recalledMemories?: any[]
 ): Partial<AdvizaAgentStateType> {
   const lower = message.toLowerCase().trim();
 
@@ -109,6 +111,68 @@ function fallbackResolver(
         intent: "User greeting",
         targetCapabilities: [],
         reasoning: "Responded to greeting with platform overview",
+      },
+    };
+  }
+
+  // 2. User Profile & Memory Inquiries ("what you know about me")
+  if (
+    lower.includes("what you know about me") ||
+    lower.includes("what do you know about me") ||
+    lower.includes("about me") ||
+    lower.includes("my profile") ||
+    lower.includes("my memories") ||
+    lower.includes("what do you remember")
+  ) {
+    const memorySnippet = recalledMemories && recalledMemories.length > 0
+      ? `Here is what I currently have in your persistent fiduciary memory (Mem0):\n\n` +
+        recalledMemories.map((m: any) => `- **${m.category?.toUpperCase() || "MANDATE"}**: ${m.memory}`).join("\n") +
+        `\n\nYou can review, edit, or add persistent memory mandates anytime under **Settings → AI Memory & Personas**.`
+      : `I have initialized your fiduciary profile as an active Wealth Advisor on Adviza AI. As you interact with clients and execute tasks, I automatically extract and persist your key investment preferences, tax mandates, and operational guidelines into long-term memory (Mem0).`;
+
+    return {
+      directAnswer: memorySnippet,
+      plan: {
+        intent: "Recall user profile and memories",
+        targetCapabilities: [],
+        reasoning: "Retrieved user profile and long-term memory context",
+      },
+    };
+  }
+
+  // 3. Wealth Management Automations & Industry Insights
+  if (
+    (lower.includes("automation") || lower.includes("automate")) &&
+    (lower.includes("wealth") || lower.includes("management") || lower.includes("ria") || lower.includes("company") || lower.includes("advisor") || lower.includes("firm"))
+  ) {
+    return {
+      directAnswer: `Wealth management firms and RIAs typically implement automation across 5 high-impact operational pillars:
+
+1. **Client Onboarding & KYC/AML**:
+   - Automated digital disclosure delivery (Form ADV Part 2A, Form CRS).
+   - Automated custodian account opening and e-signature routing (Schwab / Fidelity / Pershing).
+
+2. **Pre-Meeting Intelligence & Dossier Generation**:
+   - Automated aggregation of CRM records, recent custodian statements, and asset performance before client review meetings.
+   - AI executive briefing packs with tailored talking points and tax-harvesting opportunities.
+
+3. **Post-Meeting Voice-to-Action**:
+   - Multimodal speech-to-text meeting transcription with automatic extraction of decisions and client commitments.
+   - Auto-creation of CRM tasks, follow-up emails, and action items with Human-in-the-Loop advisor approval.
+
+4. **Fiduciary Compliance & Audit Trail (SEC / FINRA)**:
+   - Automated scanning of outbound client communications for promissory statements or missing suitability disclosures.
+   - WORM-compliant immutable audit logging with cryptographic SHA-256 signatures.
+
+5. **Portfolio Rebalancing & Tax-Loss Harvesting**:
+   - Automated asset drift detection against target portfolio models.
+   - Tax-loss harvesting triggers when equity positions cross unrealized loss thresholds.
+
+You can orchestrate and automate all of these workflows directly inside Adviza AI's **Workflow Canvas** or via this chat!`,
+      plan: {
+        intent: "Explain wealth management automations",
+        targetCapabilities: [],
+        reasoning: "Provided comprehensive wealth management automation guide",
       },
     };
   }
