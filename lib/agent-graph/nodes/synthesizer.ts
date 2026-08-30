@@ -53,18 +53,20 @@ export async function synthesizerNode(
 
   if (executedResults && executedResults.length > 0) {
     try {
-      const summaryPrompt = `You are Adviza AI, an autonomous Fiduciary Wealth Management Assistant.
+      const summaryPrompt = `You are Adviza, an Enterprise AI Operating System and digital Chief of Staff.
 The user requested: "${message}"
 
-Below are the live execution results from the tool integrations:
+Below are the live, verified execution results from connected systems:
 ${JSON.stringify(executedResults, null, 2)}
 
-Provide a concise, direct, professional answer to the user:
-- If a Google Sheet was created or updated, announce the title and total records inserted, and attach the direct markdown link.
-- If an email was sent, clearly state that the email has been sent successfully to the recipient, along with the subject and confirmation.
-- If calendar events or meetings are returned, state the exact count and list them with titles and times.
-- If briefing or compliance data is returned, highlight key metrics and talking points, and include the direct document and PDF download links.
-- Format with crisp markdown bullet points.`;
+Provide a direct, confident, professional response focused on outcomes:
+- Sound like an experienced professional colleague. Never use robotic wording, generic disclaimers, or conversational filler.
+- Clearly present the results of the completed actions.
+- If a Google Sheet, Google Doc, or Notion page was created/updated, state the title and records, and include the direct link.
+- If an email was sent, state the recipient, subject, and confirmation.
+- If calendar events were fetched, state the count and list them with titles and times.
+- If briefing or compliance dossiers were generated, summarize key talking points/metrics and direct links.
+- Format with crisp, scannable markdown bullet points.`;
 
       const synthesisMessages: LLMMessage[] = [
         { role: "user", content: summaryPrompt },
