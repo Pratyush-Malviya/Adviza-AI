@@ -36,8 +36,14 @@ export async function invokeGemini(
     throw new Error("GEMINI_API_KEY is not configured");
   }
 
-  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+  // Active free & stable Google Gemini models in priority order
+  const candidateModels = Array.from(new Set([
+    process.env.GEMINI_MODEL || "gemini-2.5-flash",
+    "gemini-2.5-flash",
+    "gemini-2.0-flash",
+    "gemini-1.5-flash",
+    "gemini-2.5-pro",
+  ])).filter(Boolean);
 
   const contents = messages.map((m) => ({
     role: m.role === "assistant" ? "model" : "user",
@@ -59,34 +65,46 @@ export async function invokeGemini(
     };
   }
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 25000);
+  let lastError: Error | null = null;
 
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      signal: controller.signal,
-    });
+  for (const model of candidateModels) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 25000);
 
-    clearTimeout(timeoutId);
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
 
-    if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(`Gemini API error (${res.status}): ${errText}`);
+      clearTimeout(timeoutId);
+
+      if (!res.ok) {
+        const errText = await res.text();
+        console.warn(`[gemini-client] Model ${model} returned ${res.status}: ${errText.slice(0, 120)}. Trying fallback...`);
+        lastError = new Error(`Gemini API error (${res.status}): ${errText}`);
+        continue;
+      }
+
+      const data = await res.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!text) {
+        lastError = new Error(`No text response returned from Gemini model ${model}`);
+        continue;
+      }
+
+      return text;
+    } catch (fetchErr: any) {
+      clearTimeout(timeoutId);
+      console.warn(`[gemini-client] Model ${model} fetch failed: ${fetchErr.message}. Trying fallback...`);
+      lastError = fetchErr;
     }
-
-    const data = await res.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) {
-      throw new Error("No text response returned from Gemini API");
-    }
-    return text;
-  } catch (fetchErr: any) {
-    clearTimeout(timeoutId);
-    throw fetchErr;
   }
+
+  throw lastError || new Error("All Gemini candidate models failed to generate a response");
 }
 
 /**
