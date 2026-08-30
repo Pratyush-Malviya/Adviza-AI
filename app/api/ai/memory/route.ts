@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { getAllMemories, searchMemories, deleteMemory, addMemories } from "@/lib/memory/mem0";
+import { getAllMemories, searchMemories, deleteMemory, addMemories, generateEmbedding } from "@/lib/memory/mem0";
 
 export async function GET(req: NextRequest) {
   try {
@@ -56,6 +56,8 @@ export async function POST(req: NextRequest) {
       .eq("id", user.id)
       .single();
 
+    const embedding = await generateEmbedding(memoryText.trim());
+
     const { data: inserted, error } = await supabase
       .from("user_memories")
       .insert({
@@ -66,6 +68,7 @@ export async function POST(req: NextRequest) {
         metadata: {
           manual: true,
           added_at: new Date().toISOString(),
+          ...(embedding ? { embedding } : {}),
         },
       })
       .select()

@@ -128,6 +128,9 @@ ${messages.map((m) => `${m.role.toUpperCase()}: ${m.content}`).join("\n\n")}`,
 
       if (existing && existing.length > 0) continue;
 
+      // Compute 768-dimensional vector embedding for semantic similarity search
+      const memoryEmbedding = await generateEmbedding(mem.memory.trim());
+
       const { data: inserted, error } = await supabase
         .from("user_memories")
         .insert({
@@ -139,6 +142,7 @@ ${messages.map((m) => `${m.role.toUpperCase()}: ${m.content}`).join("\n\n")}`,
           memory: mem.memory.trim(),
           metadata: {
             extracted_at: new Date().toISOString(),
+            ...(memoryEmbedding ? { embedding: memoryEmbedding } : {}),
           },
         })
         .select()
@@ -164,7 +168,53 @@ ${messages.map((m) => `${m.role.toUpperCase()}: ${m.content}`).join("\n\n")}`,
 }
 
 /**
- * Searches and retrieves top relevant long-term memories for a user given a query
+ * Generates text embeddings using Google Gemini text-embedding-004 model (768 dimensions)
+ */
+export async function generateEmbedding(text: string): Promise<number[] | null> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey || !text || text.trim().length === 0) return null;
+
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${apiKey}`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "models/text-embedding-004",
+        content: {
+          parts: [{ text: text.trim().slice(0, 2048) }],
+        },
+      }),
+    });
+
+    if (!response.ok) return null;
+    const data = await response.json();
+    return data.embedding?.values || null;
+  } catch (err) {
+    console.warn("[mem0-embeddings] Embedding generation failed:", err);
+    return null;
+  }
+}
+
+/**
+ * Calculates mathematical cosine similarity between two vector embeddings
+ */
+export function cosineSimilarity(a: number[], b: number[]): number {
+  if (!a || !b || a.length !== b.length || a.length === 0) return 0;
+  let dotProduct = 0;
+  let normA = 0;
+  let normB = 0;
+  for (let i = 0; i < a.length; i++) {
+    dotProduct += a[i] * b[i];
+    normA += a[i] * a[i];
+    normB += b[i] * b[i];
+  }
+  if (normA === 0 || normB === 0) return 0;
+  return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
+/**
+ * Searches and retrieves top relevant long-term memories for a user given a query using pgvector / cosine hybrid ranking
  */
 export async function searchMemories(
   userId: string,
@@ -207,29 +257,59 @@ export async function searchMemories(
     }
   }
 
-  // 2. Native Database Search
+  // 2. Native Database pgvector RPC Search
   try {
     const supabase = await createClient();
+    const queryEmbedding = await generateEmbedding(query);
+
+    if (queryEmbedding) {
+      const { data: rpcResults, error: rpcError } = await (supabase.rpc as any)("match_user_memories", {
+        query_embedding: queryEmbedding,
+        match_threshold: 0.45,
+        match_count: limit,
+        target_user_id: userId,
+      });
+
+      if (!rpcError && Array.isArray(rpcResults) && rpcResults.length > 0) {
+        return rpcResults.map((r: any) => ({
+          id: r.id,
+          memory: r.memory,
+          category: r.category,
+          metadata: r.metadata,
+          created_at: r.created_at,
+          updated_at: r.updated_at,
+        }));
+      }
+    }
+
+    // 3. In-memory cosine & keyword hybrid fallback
     const cleanQuery = query.toLowerCase().replace(/[^a-zA-Z0-9\s]/g, "").trim();
     const keywords = cleanQuery.split(/\s+/).filter((w) => w.length > 3);
 
-    let queryBuilder = supabase
+    const { data: memories, error } = await supabase
       .from("user_memories")
       .select("id, memory, category, metadata, created_at, updated_at")
       .eq("user_id", userId)
       .order("updated_at", { ascending: false })
-      .limit(limit * 2);
+      .limit(limit * 3);
 
-    const { data: memories, error } = await queryBuilder;
     if (error || !memories) return [];
 
-    // Rank memories by relevance to query keywords
     const scored = memories.map((m) => {
       let score = 0;
       const memText = m.memory.toLowerCase();
+
+      // Keyword match score (weight: 1.5)
       for (const kw of keywords) {
-        if (memText.includes(kw)) score += 2;
+        if (memText.includes(kw)) score += 1.5;
       }
+
+      // Stored vector cosine similarity (weight: 3.0)
+      if (queryEmbedding && m.metadata?.embedding && Array.isArray(m.metadata.embedding)) {
+        const sim = cosineSimilarity(queryEmbedding, m.metadata.embedding);
+        score += sim * 3.0;
+      }
+
       return { item: m, score };
     });
 
