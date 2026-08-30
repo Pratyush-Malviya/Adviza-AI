@@ -29,6 +29,7 @@ export default function ChatDashboardPage() {
   const [sessions, setSessions] = useState<ChatSessionItem[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Fetch all chat sessions with localStorage caching
@@ -77,10 +78,12 @@ export default function ChatDashboardPage() {
 
   const handleSelectSession = (sessionId: string) => {
     setActiveSessionId(sessionId);
+    setIsMobileDrawerOpen(false);
   };
 
   const handleNewChat = () => {
     setActiveSessionId(null);
+    setIsMobileDrawerOpen(false);
   };
 
   const handleDeleteSession = async (sessionId: string, e: React.MouseEvent) => {
@@ -130,11 +133,36 @@ export default function ChatDashboardPage() {
   };
 
   return (
-    <div className="h-[calc(100vh-140px)] flex flex-col md:flex-row gap-5 transition-all duration-300">
-      {/* Left Sidebar: Collapsible Claude & Gemini style Chat History */}
+    <div className="relative h-[calc(100vh-140px)] flex flex-row gap-5 transition-all duration-300">
+      {/* Mobile Backdrop Overlay */}
+      {isMobileDrawerOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs md:hidden transition-opacity"
+          onClick={() => setIsMobileDrawerOpen(false)}
+        />
+      )}
+
+      {/* Mobile Slide-in Side Drawer (Side Navigation) */}
       <div
-        className={`h-full shrink-0 transition-all duration-300 ${
-          isSidebarCollapsed ? "w-16" : "w-full md:w-72 lg:w-80"
+        className={`fixed inset-y-0 left-0 z-50 w-72 sm:w-80 bg-white p-3 shadow-2xl transition-transform duration-300 ease-in-out md:hidden ${
+          isMobileDrawerOpen ? "translate-x-0" : "-translate-x-full pointer-events-none"
+        }`}
+      >
+        <ChatSidebar
+          sessions={sessions}
+          activeSessionId={activeSessionId}
+          onSelectSession={handleSelectSession}
+          onNewChat={handleNewChat}
+          onDeleteSession={handleDeleteSession}
+          loading={loading}
+          onCloseMobile={() => setIsMobileDrawerOpen(false)}
+        />
+      </div>
+
+      {/* Desktop Left Sidebar: Collapsible Claude & Gemini style Side History */}
+      <div
+        className={`hidden md:flex h-full shrink-0 transition-all duration-300 ${
+          isSidebarCollapsed ? "w-16" : "w-72 lg:w-80"
         }`}
       >
         <ChatSidebar
@@ -150,10 +178,11 @@ export default function ChatDashboardPage() {
       </div>
 
       {/* Main Full-Size Chat Panel */}
-      <div className="flex-1 h-full min-h-[500px] transition-all duration-300">
+      <div className="flex-1 h-full w-full min-h-[500px] transition-all duration-300">
         <ChatPanel
           sessionId={activeSessionId}
           onSessionCreated={handleSessionCreated}
+          onOpenHistory={() => setIsMobileDrawerOpen(true)}
         />
       </div>
     </div>

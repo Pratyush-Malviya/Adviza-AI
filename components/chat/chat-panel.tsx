@@ -16,6 +16,7 @@ import {
   Maximize2,
   ShieldAlert,
   Calendar,
+  PanelLeftOpen,
 } from "lucide-react";
 import { MissingConnectorCard } from "./missing-connector-card";
 import { HITLApprovalCard } from "./hitl-approval-card";
@@ -39,6 +40,7 @@ interface ChatPanelProps {
   isFloating?: boolean;
   sessionId?: string | null;
   onSessionCreated?: (session: { id: string; title: string }) => void;
+  onOpenHistory?: () => void;
 }
 
 export function ChatPanel({
@@ -46,6 +48,7 @@ export function ChatPanel({
   isFloating = false,
   sessionId,
   onSessionCreated,
+  onOpenHistory,
 }: ChatPanelProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -389,19 +392,30 @@ export function ChatPanel({
       }`}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#EADBCE] bg-white">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-rose-500 to-amber-500 flex items-center justify-center text-white shadow-sm">
+      <div className="flex items-center justify-between px-3.5 sm:px-5 py-3 border-b border-[#EADBCE] bg-white">
+        <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+          {onOpenHistory && (
+            <button
+              onClick={onOpenHistory}
+              className="md:hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#FAF5F0] hover:bg-[#EADBCE]/50 border border-[#EADBCE] text-xs font-semibold text-[#5A544E] hover:text-[#121217] transition shadow-2xs shrink-0"
+              title="Open Chat History"
+            >
+              <PanelLeftOpen className="w-3.5 h-3.5 text-rose-600" />
+              <span className="text-[11px]">Chats</span>
+            </button>
+          )}
+
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-rose-500 to-amber-500 flex items-center justify-center text-white shadow-sm shrink-0">
             <Sparkles className="w-4 h-4" />
           </div>
-          <div>
-            <h3 className="font-bold text-sm text-[#121217] flex items-center gap-1.5">
-              Adviza AI Assistant
-              <span className="text-[10px] px-1.5 py-0.5 bg-emerald-500/10 text-emerald-600 font-semibold rounded-full">
+          <div className="min-w-0">
+            <h3 className="font-bold text-xs sm:text-sm text-[#121217] flex items-center gap-1.5 truncate">
+              <span className="truncate">Adviza AI Assistant</span>
+              <span className="text-[10px] px-1.5 py-0.5 bg-emerald-500/10 text-emerald-600 font-semibold rounded-full shrink-0">
                 Active
               </span>
             </h3>
-            <p className="text-[11px] text-[#8E847C]">Fiduciary Agent Fleet & Composio Gateway</p>
+            <p className="text-[10px] sm:text-[11px] text-[#8E847C] truncate">Fiduciary Agent Fleet & Composio Gateway</p>
           </div>
         </div>
 
