@@ -74,6 +74,14 @@ export const AdvizaAgentAnnotation = Annotation.Root({
     page?: string;
     userName?: string;
   } | undefined>(),
+  appSnapshot: Annotation<{
+    currentScreen?: string;
+    totalClients?: number;
+    recentClients?: Array<{ id: string; full_name: string; total_aum?: string | number }>;
+    upcomingMeetings?: Array<{ title: string; client: string; time: string; status: string }>;
+    openActionItems?: number;
+    recentComplianceAudits?: Array<{ id: string; score: number; status: string; client_name?: string }>;
+  } | undefined>(),
   plan: Annotation<PlanMetadata | undefined>(),
   capabilityCalls: Annotation<CapabilityCall[]>({
     reducer: (curr, update) => (update ? update : curr),

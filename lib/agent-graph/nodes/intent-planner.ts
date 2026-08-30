@@ -18,7 +18,7 @@ interface LLMDecision {
 export async function intentPlannerNode(
   state: AdvizaAgentStateType
 ): Promise<Partial<AdvizaAgentStateType>> {
-  const { message, messages, ambientContext, userId, userName } = state;
+  const { message, messages, ambientContext, userId, userName, appSnapshot } = state;
   const effectiveUserName = userName || ambientContext?.userName;
 
   // Retrieve relevant Mem0 long-term memories with fast timeout
@@ -44,6 +44,22 @@ export async function intentPlannerNode(
   }
   if (ambientContext?.workflowId) {
     ambientPrompt += `\n[Ambient Context: Active Workflow ID = "${ambientContext.workflowId}"]`;
+  }
+  if (ambientContext?.page) {
+    ambientPrompt += `\n[Active Screen: "${ambientContext.page}"]`;
+  }
+
+  if (appSnapshot) {
+    const clientsStr = (appSnapshot.recentClients || []).map((c: any) => `${c.full_name}${c.total_aum ? ` ($${Number(c.total_aum).toLocaleString()})` : ""}`).join(", ");
+    const meetingsStr = (appSnapshot.upcomingMeetings || []).map((m: any) => `${m.title} (${m.client}) at ${m.time}`).join("; ");
+    const auditsStr = (appSnapshot.recentComplianceAudits || []).map((a: any) => `Audit ${a.status} (score: ${a.score}) for ${a.client_name || "Firm"}`).join("; ");
+
+    ambientPrompt += `\n[Live Application State & Activity Snapshot:
+- Active Screen / Page: "${appSnapshot.currentScreen || ambientContext?.page || "Dashboard"}"
+- Total Advisory Clients: ${appSnapshot.totalClients ?? 0}${clientsStr ? ` (Recent: ${clientsStr})` : ""}
+- Upcoming Scheduled Meetings: ${meetingsStr || "None today"}
+- Open Action Items: ${appSnapshot.openActionItems ?? 0}
+- Recent Compliance Audits: ${auditsStr || "All clear"}]`;
   }
 
   const llmMessages: LLMMessage[] = [

@@ -174,6 +174,46 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Retrieve Live Application Workspace Snapshot
+    let appSnapshot: any = undefined;
+    try {
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+
+      const [
+        { count: clientCount, data: recentClients },
+        { data: upcomingMeetings },
+        { count: openActionCount },
+        { data: recentAudits },
+      ] = await Promise.all([
+        supabase.from("clients").select("id, full_name, risk_tolerance, total_aum", { count: "exact" }).limit(5),
+        supabase
+          .from("meetings")
+          .select("id, title, scheduled_at, status, clients(full_name)")
+          .gte("scheduled_at", todayStart.toISOString())
+          .order("scheduled_at", { ascending: true })
+          .limit(5),
+        supabase.from("action_items").select("id", { count: "exact" }).eq("status", "open").limit(1),
+        supabase.from("compliance_audits").select("id, score, status, client_name, created_at").order("created_at", { ascending: false }).limit(3),
+      ]);
+
+      appSnapshot = {
+        currentScreen: ambientContext?.page || "Dashboard",
+        totalClients: clientCount ?? recentClients?.length ?? 0,
+        recentClients: recentClients || [],
+        upcomingMeetings: (upcomingMeetings || []).map((m: any) => ({
+          title: m.title,
+          client: m.clients?.full_name || "Client",
+          time: m.scheduled_at,
+          status: m.status,
+        })),
+        openActionItems: openActionCount ?? 0,
+        recentComplianceAudits: recentAudits || [],
+      };
+    } catch (snapErr) {
+      console.warn("Live app snapshot non-fatal error:", snapErr);
+    }
+
     // Execute Adviza Fiduciary LangGraph Multi-Agent State Machine
     const graphState = await advizaChatGraph.invoke({
       sessionId: effectiveSessionId || undefined,
@@ -186,6 +226,7 @@ export async function POST(req: NextRequest) {
         ...ambientContext,
         userName: effectiveUserName,
       },
+      appSnapshot,
     });
 
     // Persist Assistant Response to DB
