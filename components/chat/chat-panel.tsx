@@ -426,15 +426,41 @@ export function ChatPanel({
             )}
 
             <div
-              className={`max-w-[85%] rounded-2xl px-4 py-3 ${
+              className={`max-w-[85%] rounded-2xl px-4 py-3 text-xs sm:text-[13px] ${
                 msg.role === "user"
                   ? "bg-gradient-to-r from-rose-500 to-rose-600 text-white rounded-br-sm shadow-sm"
                   : "bg-[#FAF5F0] text-[#121217] border border-[#EADBCE] rounded-bl-sm shadow-2xs"
               }`}
             >
-              <div className="leading-relaxed whitespace-pre-wrap">
-                {msg.content}
-              </div>
+              {(() => {
+                const content = msg.content || "";
+                const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+|\/api\/[^\s)]+)\)/g;
+                const parts: React.ReactNode[] = [];
+                let lastIndex = 0;
+                let match;
+
+                while ((match = linkRegex.exec(content)) !== null) {
+                  const [fullMatch, linkText, url] = match;
+                  const textBefore = content.slice(lastIndex, match.index);
+                  if (textBefore) parts.push(textBefore);
+                  parts.push(
+                    <a
+                      key={match.index}
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 font-semibold text-rose-600 hover:text-rose-700 underline underline-offset-2 transition decoration-rose-300 hover:decoration-rose-600"
+                    >
+                      {linkText}
+                    </a>
+                  );
+                  lastIndex = match.index + fullMatch.length;
+                }
+                const remaining = content.slice(lastIndex);
+                if (remaining) parts.push(remaining);
+
+                return <div className="leading-relaxed whitespace-pre-wrap">{parts}</div>;
+              })()}
 
               {/* Render Missing Connector Cards */}
               {msg.missingConnectors && msg.missingConnectors.length > 0 && (

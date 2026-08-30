@@ -2,6 +2,7 @@ import { AdvizaAgentStateType, CapabilityCall } from "../state";
 import { invokeModelJSON, LLMMessage } from "@/lib/bedrock/client";
 import { getCapabilityRegistryPrompt, findCapability } from "@/lib/capabilities/registry";
 import { searchMemories, formatMemoriesForPrompt } from "@/lib/memory/mem0";
+import { formatHumanResponse } from "./synthesizer";
 
 interface LLMDecision {
   thought_process?: string;
@@ -59,8 +60,8 @@ export async function intentPlannerNode(
     // If decision provided direct conversational answer without tool calls
     if (decision.direct_answer && (!decision.capability_calls || decision.capability_calls.length === 0)) {
       return {
-        directAnswer: decision.direct_answer,
-        conversationalIntro: decision.conversational_intro,
+        directAnswer: formatHumanResponse(decision.direct_answer),
+        conversationalIntro: decision.conversational_intro ? formatHumanResponse(decision.conversational_intro) : undefined,
         capabilityCalls: [],
         plan: {
           intent: decision.thought_process || "Conversational response",

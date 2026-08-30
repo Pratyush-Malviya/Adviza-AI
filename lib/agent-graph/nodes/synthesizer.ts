@@ -3,7 +3,32 @@ import { invokeModel, LLMMessage } from "@/lib/bedrock/client";
 
 export function formatHumanResponse(text: string): string {
   if (!text) return "";
-  return text.trim();
+
+  let cleaned = text;
+
+  // 1. Replace em dashes (—), en dashes (–), and double hyphens (--) with clean punctuation
+  cleaned = cleaned.replace(/[—–]/g, " - ");
+  cleaned = cleaned.replace(/\s*--\s*/g, " - ");
+
+  // 2. Remove all bold/italic asterisks: ***text*** -> text, **text** -> text, *text* -> text
+  cleaned = cleaned.replace(/\*\*\*([^*]+)\*\*\*/g, "$1");
+  cleaned = cleaned.replace(/\*\*([^*]+)\*\*/g, "$1");
+  cleaned = cleaned.replace(/(^|[^\*])\*([^\*\n]+)\*([^\*]|$)/g, "$1$2$3");
+
+  // Convert bullet asterisks to clean dashes
+  cleaned = cleaned.replace(/^\s*\*\s+/gm, "- ");
+
+  // Remove any remaining stray asterisks
+  cleaned = cleaned.replace(/\*/g, "");
+
+  // 3. Clean up markdown heading hashes into clean readable titles
+  cleaned = cleaned.replace(/^#{1,6}\s+/gm, "");
+
+  // 4. Normalize multiple spacing and newlines
+  cleaned = cleaned.replace(/[ \t]+/g, " ");
+  cleaned = cleaned.replace(/\n{3,}/g, "\n\n");
+
+  return cleaned.trim();
 }
 
 export async function synthesizerNode(
@@ -29,7 +54,7 @@ export async function synthesizerNode(
     let previewText = "";
 
     if (preview?.recipient || preview?.body) {
-      previewText = `\n\n**Draft Preview:**\n- **To:** ${preview.recipient || "Recipient"}\n- **Subject:** ${preview.subject || "Adviza AI Update"}\n\n${preview.body}\n\n`;
+      previewText = `\n\nDraft Preview:\n- To: ${preview.recipient || "Recipient"}\n- Subject: ${preview.subject || "Adviza AI Update"}\n\n${preview.body}\n\n`;
     } else if (preview?.details?.rows && Array.isArray(preview.details.rows)) {
       const rows = preview.details.rows;
       const headers = rows[0] || [];
@@ -38,19 +63,19 @@ export async function synthesizerNode(
       const sepLine = `| ${headers.map(() => "---").join(" | ")} |`;
       const bodyLines = dataRows.map((r: any[]) => `| ${r.join(" | ")} |`).join("\n");
 
-      previewText = `\n\n**Prepared Spreadsheet Preview (${preview.details.title || "Lead Records"}):**\n\n${headerLine}\n${sepLine}\n${bodyLines}\n\n`;
+      previewText = `\n\nPrepared Spreadsheet Preview (${preview.details.title || "Lead Records"}):\n\n${headerLine}\n${sepLine}\n${bodyLines}\n\n`;
     }
 
     const appName = missingConnectors[0]?.appName || "the app";
     return {
-      finalResponse: formatHumanResponse(`I've analyzed your request and prepared everything!${previewText}To automatically push this to ${appName}, simply click connect below and I'll create the live spreadsheet for you right away.`),
+      finalResponse: formatHumanResponse(`I have analyzed your request and prepared everything!${previewText}To automatically push this to ${appName}, simply click connect below and I will create the live spreadsheet for you right away.`),
     };
   }
 
   // 3. HITL prompt awaiting sign-off
   if (hitlPrompts && hitlPrompts.length > 0 && (!executedResults || executedResults.length === 0)) {
     return {
-      finalResponse: formatHumanResponse(`I've put together the requested action for your review. Take a look at the details below, and once you approve, I'll go ahead and dispatch it right away!`),
+      finalResponse: formatHumanResponse(`I have put together the requested action for your review. Take a look at the details below, and once you approve, I will dispatch it right away.`),
     };
   }
 
@@ -65,11 +90,12 @@ The user requested: "${message}"
 Below are the live, verified execution results from connected systems:
 ${JSON.stringify(executedResults, null, 2)}
 
-Provide a warm, articulate, and natural conversational response:
+Provide a warm, articulate, clean, and natural conversational response:
 - Speak like a knowledgeable, helpful human colleague.
-- Avoid robotic, cold, or bureaucratic phrasing (do not say "Execution complete", "I have processed your request", or robotic disclaimers).
+- DO NOT use any asterisks (*) or (**) anywhere. Do NOT use markdown bold or italics with asterisks.
+- DO NOT use em dashes (—) or en dashes (–) or double hyphens (--). Use simple hyphens (-), colons (:), or commas.
 - Clearly explain what was accomplished and highlight key numbers, dates, client names, or takeaways.
-- Use natural markdown formatting (bolding, readable bullet points, headers) where helpful.
+- Use clean formatting with simple bullet lists using dashes (-) or numbers (1, 2, 3).
 - If a Google Sheet, Doc, or CRM record was updated, mention it naturally so the advisor knows where to find it.`;
 
       const synthesisMessages: LLMMessage[] = [
