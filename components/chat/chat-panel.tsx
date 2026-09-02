@@ -878,26 +878,28 @@ export function ChatPanel({
                   </div>
                 )}
 
-                {/* Textarea Input */}
-                <input
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendMessage();
-                    }
-                  }}
-                  onPaste={(e) => {
-                    if (e.clipboardData?.files && e.clipboardData.files.length > 0) {
-                      const filesArray = Array.from(e.clipboardData.files);
-                      setSelectedFiles((prev) => [...prev, ...filesArray]);
-                    }
-                  }}
-                  placeholder="Ask me anything..."
-                  className="w-full text-xs sm:text-sm text-[#121217] placeholder:text-[#8E847C] bg-transparent border-0 outline-none focus:outline-none focus:ring-0 focus:border-0 shadow-none ring-0"
-                />
+                {/* Textarea Input with Round-Edged Outline */}
+                <div className="w-full rounded-2xl bg-[#FAF5F0]/50 border border-[#EADBCE] px-3.5 py-2 transition-all focus-within:border-[#C4B5A5] focus-within:ring-2 focus-within:ring-[#EADBCE]/60 focus-within:bg-white">
+                  <input
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }
+                    }}
+                    onPaste={(e) => {
+                      if (e.clipboardData?.files && e.clipboardData.files.length > 0) {
+                        const filesArray = Array.from(e.clipboardData.files);
+                        setSelectedFiles((prev) => [...prev, ...filesArray]);
+                      }
+                    }}
+                    placeholder="Ask me anything..."
+                    className="w-full text-xs sm:text-sm text-[#121217] placeholder:text-[#8E847C] bg-transparent border-0 outline-none focus:outline-none focus:ring-0 focus:border-0 shadow-none ring-0 rounded-xl"
+                  />
+                </div>
 
                 {/* Action Bar Inside Input Box */}
                 <div className="flex items-center justify-between pt-2 border-t border-[#FAF5F0]">
@@ -1254,27 +1256,29 @@ export function ChatPanel({
             )}
 
             {/* Elevated Input Card */}
-            <div className="bg-white rounded-3xl border border-[#EADBCE] shadow-sm hover:shadow-md p-3 sm:p-3.5 space-y-2 transition-all focus-within:border-[#C4B5A5] focus-within:ring-2 focus-within:ring-[#EADBCE]/50">
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage();
-                  }
-                }}
-                onPaste={(e) => {
-                  if (e.clipboardData?.files && e.clipboardData.files.length > 0) {
-                    const filesArray = Array.from(e.clipboardData.files);
-                    setSelectedFiles((prev) => [...prev, ...filesArray]);
-                  }
-                }}
-                placeholder={`Ask Adviza (${activeModelObj.shortName})...`}
-                disabled={loading}
-                className="w-full text-xs sm:text-sm text-[#121217] placeholder:text-[#8E847C] bg-transparent border-0 outline-none focus:outline-none focus:ring-0 focus:border-0 shadow-none ring-0"
-              />
+            <div className="bg-white rounded-3xl border border-[#EADBCE] shadow-sm hover:shadow-md p-3 sm:p-3.5 space-y-2.5 transition-all focus-within:border-[#C4B5A5] focus-within:ring-2 focus-within:ring-[#EADBCE]/50">
+              <div className="w-full rounded-2xl bg-[#FAF5F0]/50 border border-[#EADBCE] px-3.5 py-2 transition-all focus-within:border-[#C4B5A5] focus-within:ring-2 focus-within:ring-[#EADBCE]/60 focus-within:bg-white">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                  onPaste={(e) => {
+                    if (e.clipboardData?.files && e.clipboardData.files.length > 0) {
+                      const filesArray = Array.from(e.clipboardData.files);
+                      setSelectedFiles((prev) => [...prev, ...filesArray]);
+                    }
+                  }}
+                  placeholder={`Ask Adviza (${activeModelObj.shortName})...`}
+                  disabled={loading}
+                  className="w-full text-xs sm:text-sm text-[#121217] placeholder:text-[#8E847C] bg-transparent border-0 outline-none focus:outline-none focus:ring-0 focus:border-0 shadow-none ring-0 rounded-xl"
+                />
+              </div>
 
               <div className="flex items-center justify-between pt-2 border-t border-[#FAF5F0]">
                 <div className="flex items-center gap-1.5 flex-wrap">
