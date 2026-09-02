@@ -139,6 +139,23 @@ CREATE TABLE IF NOT EXISTS meetings (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- ACTION ITEMS (Tasks & Commitments)
+CREATE TABLE IF NOT EXISTS action_items (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  firm_id UUID REFERENCES firms(id) ON DELETE CASCADE,
+  meeting_id UUID REFERENCES meetings(id) ON DELETE CASCADE,
+  client_id UUID REFERENCES clients(id) ON DELETE CASCADE,
+  description TEXT NOT NULL,
+  owner TEXT NOT NULL DEFAULT 'advisor' CHECK (owner IN ('advisor', 'client', 'operations')),
+  priority TEXT NOT NULL DEFAULT 'medium' CHECK (priority IN ('high', 'medium', 'low')),
+  category TEXT NOT NULL DEFAULT 'follow-up',
+  status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'in-progress', 'completed', 'cancelled')),
+  due_date DATE,
+  completed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- ============================================================
 -- 4. WORKFLOWS & EXECUTION HISTORY
 -- ============================================================
@@ -351,6 +368,7 @@ ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE portfolios ENABLE ROW LEVEL SECURITY;
 ALTER TABLE holdings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE meetings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE action_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE workflows ENABLE ROW LEVEL SECURITY;
 ALTER TABLE workflow_runs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE chat_sessions ENABLE ROW LEVEL SECURITY;
@@ -363,6 +381,10 @@ ALTER TABLE client_memories ENABLE ROW LEVEL SECURITY;
 -- Enable permissive development / authenticated access policies
 DO $$
 BEGIN
+  -- Action items
+  DROP POLICY IF EXISTS "action_items_all" ON action_items;
+  CREATE POLICY "action_items_all" ON action_items FOR ALL USING (firm_id = get_my_firm_id());
+
   -- Profiles
   DROP POLICY IF EXISTS "profiles_select_own_firm" ON profiles;
   CREATE POLICY "profiles_select_own_firm" ON profiles FOR SELECT USING (id = auth.uid() OR firm_id = get_my_firm_id());
