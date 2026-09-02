@@ -541,7 +541,7 @@ export function ChatPanel({
           for (const line of lines) {
             if (!line.startsWith("data: ")) continue;
             const jsonStr = line.slice(6).trim();
-            if (!jsonStr) continue;
+            if (!jsonStr || jsonStr === "[DONE]") continue;
 
             try {
               const parsed = JSON.parse(jsonStr);
@@ -550,8 +550,10 @@ export function ChatPanel({
                 setStatusMessage(parsed.status);
               }
 
-              if (parsed.delta) {
-                assistantText += parsed.delta;
+              const deltaText = parsed.delta ?? parsed.choices?.[0]?.delta?.content ?? "";
+
+              if (deltaText) {
+                assistantText += deltaText;
                 if (isFirstChunk) {
                   isFirstChunk = false;
                   setMessages((prev) => [
