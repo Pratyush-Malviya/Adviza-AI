@@ -26,9 +26,9 @@ export function getSupabaseAdmin(): SupabaseClient {
 /**
  * Scopes database queries to a specific firm_id for multi-tenant isolation.
  */
-export function scopeFirm<T extends Record<string, any>>(data: T, firmId: string): T & { firm_id: string } {
+export function scopeFirm<T extends Record<string, any>>(data: T, firmId?: string): T & { firm_id: string } {
   return {
     ...data,
-    firm_id: firmId,
+    firm_id: firmId || '00000000-0000-0000-0000-000000000000',
   };
 }

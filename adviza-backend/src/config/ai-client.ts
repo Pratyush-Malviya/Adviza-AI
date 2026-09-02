@@ -29,7 +29,8 @@ const DEFAULT_NVIDIA_MODEL = 'moonshotai/kimi-k3';
 export async function invokeNvidia(
   messages: LLMMessage[],
   systemPrompt?: string,
-  forceJson = false
+  forceJson = false,
+  customModel?: string
 ): Promise<string> {
   const apiKey =
     process.env.NVIDIA_API_KEY ||
@@ -40,7 +41,7 @@ export async function invokeNvidia(
   }
 
   const endpoint = process.env.NVIDIA_BASE_URL || DEFAULT_NVIDIA_URL;
-  const model = process.env.NVIDIA_MODEL || DEFAULT_NVIDIA_MODEL;
+  const model = customModel || process.env.NVIDIA_MODEL || DEFAULT_NVIDIA_MODEL;
 
   const formattedMessages: Array<{ role: string; content: string }> = [];
 
@@ -104,12 +105,68 @@ export async function invokeNvidia(
   }
 }
 
+export interface ModelOption {
+  id: string;
+  name: string;
+  provider: 'aws-bedrock' | 'nvidia-nim' | 'anthropic' | 'deepseek';
+  description: string;
+  badge: string;
+  contextWindow: string;
+  creditMultiplier: number;
+}
+
+export const AVAILABLE_MODELS: ModelOption[] = [
+  {
+    id: 'claude-3-5-sonnet',
+    name: 'Claude 3.5 Sonnet v2',
+    provider: 'aws-bedrock',
+    description: 'Anthropic flagship via AWS Bedrock. Superior fiduciary reasoning & complex orchestration.',
+    badge: 'Enterprise Fiduciary',
+    contextWindow: '200k tokens',
+    creditMultiplier: 1.5,
+  },
+  {
+    id: 'moonshot-kimi-k3',
+    name: 'Moonshot Kimi-k3',
+    provider: 'nvidia-nim',
+    description: 'NVIDIA NIM high-throughput inference. Ultra-fast portfolio analysis & drafting.',
+    badge: 'Ultra Fast',
+    contextWindow: '128k tokens',
+    creditMultiplier: 1.0,
+  },
+  {
+    id: 'claude-3-5-haiku',
+    name: 'Claude 3.5 Haiku',
+    provider: 'aws-bedrock',
+    description: 'High-speed Anthropic model for instant summaries, email drafts, and quick lookups.',
+    badge: 'Low Latency',
+    contextWindow: '200k tokens',
+    creditMultiplier: 0.8,
+  },
+  {
+    id: 'deepseek-v3',
+    name: 'DeepSeek V3',
+    provider: 'nvidia-nim',
+    description: 'Deep mathematical & quantitative financial reasoning.',
+    badge: 'Quant Reasoning',
+    contextWindow: '64k tokens',
+    creditMultiplier: 1.2,
+  },
+];
+
+export interface InvokeOptions {
+  modelId?: string;
+  systemPrompt?: string;
+  forceJson?: boolean;
+}
+
 /**
- * Invokes AWS Bedrock Claude runtime.
+ * Invokes AWS Bedrock Claude runtime with specified model ID.
  */
 async function invokeBedrock(
   messages: LLMMessage[],
-  systemPrompt?: string
+  systemPrompt?: string,
+  modelOverride?: string
 ): Promise<string> {
   const bedrockMessages = messages.map((m) => ({
     role: m.role === 'assistant' ? 'assistant' : 'user',
@@ -123,8 +180,15 @@ async function invokeBedrock(
     messages: bedrockMessages,
   };
 
+  let targetModel = BEDROCK_MODEL_ID;
+  if (modelOverride === 'claude-3-5-haiku') {
+    targetModel = 'anthropic.claude-3-5-haiku-20241022-v1:0';
+  } else if (modelOverride === 'claude-3-5-sonnet') {
+    targetModel = 'anthropic.claude-3-5-sonnet-20241022-v2:0';
+  }
+
   const command = new InvokeModelCommand({
-    modelId: BEDROCK_MODEL_ID,
+    modelId: targetModel,
     contentType: 'application/json',
     accept: 'application/json',
     body: JSON.stringify(body),
@@ -137,23 +201,46 @@ async function invokeBedrock(
 }
 
 /**
- * Primary model invocation gateway (NVIDIA Moonshot Kimi-k3 with Bedrock fallback)
+ * Primary model invocation gateway with dynamic model switching.
  */
 export async function invokeModel(
   messages: LLMMessage[],
-  systemPrompt?: string
+  systemPromptOrOptions?: string | InvokeOptions
 ): Promise<string> {
-  const hasNvidia = !!(process.env.NVIDIA_API_KEY || process.env.GEMINI_API_KEY);
+  let systemPrompt: string | undefined;
+  let modelId = 'claude-3-5-sonnet';
 
-  if (hasNvidia) {
-    try {
-      return await invokeNvidia(messages, systemPrompt);
-    } catch (nvidiaErr) {
-      console.warn('[ai-client] NVIDIA invocation failed, attempting Bedrock fallback:', nvidiaErr);
+  if (typeof systemPromptOrOptions === 'string') {
+    systemPrompt = systemPromptOrOptions;
+  } else if (systemPromptOrOptions) {
+    systemPrompt = systemPromptOrOptions.systemPrompt;
+    modelId = systemPromptOrOptions.modelId || modelId;
+  }
+
+  // If user explicitly chose Moonshot Kimi or DeepSeek, route to NVIDIA NIM
+  if (modelId === 'moonshot-kimi-k3' || modelId === 'deepseek-v3') {
+    const hasNvidia = !!(process.env.NVIDIA_API_KEY || process.env.GEMINI_API_KEY);
+    if (hasNvidia) {
+      try {
+        const customModel = modelId === 'deepseek-v3' ? 'deepseek-ai/deepseek-r1' : undefined;
+        return await invokeNvidia(messages, systemPrompt, false, customModel);
+      } catch (nvidiaErr) {
+        console.warn('[ai-client] NVIDIA invocation failed, falling back to Bedrock:', nvidiaErr);
+      }
     }
   }
 
-  return invokeBedrock(messages, systemPrompt);
+  // If user chose Claude models or fallback from NVIDIA
+  try {
+    return await invokeBedrock(messages, systemPrompt, modelId);
+  } catch (bedrockErr) {
+    // If Bedrock fails, try NVIDIA as resilient fallback
+    const hasNvidia = !!(process.env.NVIDIA_API_KEY || process.env.GEMINI_API_KEY);
+    if (hasNvidia) {
+      return await invokeNvidia(messages, systemPrompt);
+    }
+    throw bedrockErr;
+  }
 }
 
 /**
@@ -161,41 +248,64 @@ export async function invokeModel(
  */
 export async function invokeModelJSON<T>(
   messages: LLMMessage[],
-  systemPrompt?: string
+  systemPromptOrOptions?: string | InvokeOptions
 ): Promise<T> {
-  const hasNvidia = !!(process.env.NVIDIA_API_KEY || process.env.GEMINI_API_KEY);
+  let systemPrompt: string | undefined;
+  let modelId = 'claude-3-5-sonnet';
 
-  if (hasNvidia) {
-    try {
-      const text = await invokeNvidia(messages, systemPrompt, true);
-      const cleaned = text
-        .replace(/```json\s*/gi, '')
-        .replace(/```\s*/g, '')
-        .trim();
+  if (typeof systemPromptOrOptions === 'string') {
+    systemPrompt = systemPromptOrOptions;
+  } else if (systemPromptOrOptions) {
+    systemPrompt = systemPromptOrOptions.systemPrompt;
+    modelId = systemPromptOrOptions.modelId || modelId;
+  }
 
-      const startIdx = Math.min(
-        cleaned.indexOf('{') !== -1 ? cleaned.indexOf('{') : Infinity,
-        cleaned.indexOf('[') !== -1 ? cleaned.indexOf('[') : Infinity
-      );
-      const endIdx = Math.max(cleaned.lastIndexOf('}'), cleaned.lastIndexOf(']'));
+  // Fast JSON with NVIDIA NIM if selected
+  if (modelId === 'moonshot-kimi-k3' || modelId === 'deepseek-v3') {
+    const hasNvidia = !!(process.env.NVIDIA_API_KEY || process.env.GEMINI_API_KEY);
+    if (hasNvidia) {
+      try {
+        const text = await invokeNvidia(messages, systemPrompt, true);
+        const cleaned = text
+          .replace(/```json\s*/gi, '')
+          .replace(/```\s*/g, '')
+          .trim();
 
-      if (startIdx !== Infinity && endIdx !== -1 && endIdx > startIdx) {
-        const jsonSubstring = cleaned.substring(startIdx, endIdx + 1);
-        return JSON.parse(jsonSubstring) as T;
+        const startIdx = Math.min(
+          cleaned.indexOf('{') !== -1 ? cleaned.indexOf('{') : Infinity,
+          cleaned.indexOf('[') !== -1 ? cleaned.indexOf('[') : Infinity
+        );
+        const endIdx = Math.max(cleaned.lastIndexOf('}'), cleaned.lastIndexOf(']'));
+
+        if (startIdx !== Infinity && endIdx !== -1 && endIdx > startIdx) {
+          const jsonSubstring = cleaned.substring(startIdx, endIdx + 1);
+          return JSON.parse(jsonSubstring) as T;
+        }
+
+        return JSON.parse(cleaned) as T;
+      } catch (err) {
+        console.warn('[ai-client] JSON generation via NVIDIA failed, attempting Bedrock:', err);
       }
-
-      return JSON.parse(cleaned) as T;
-    } catch (err) {
-      console.warn('[ai-client] JSON generation error, attempting fallback:', err);
     }
   }
 
   const jsonSystemPrompt = `${systemPrompt || ''}\n\nYou MUST respond with valid JSON only. No markdown, no code blocks, just raw JSON.`;
-  const text = await invokeBedrock(messages, jsonSystemPrompt);
+  const text = await invokeBedrock(messages, jsonSystemPrompt, modelId);
   const cleaned = text
     .replace(/```json\s*/gi, '')
     .replace(/```\s*/g, '')
     .trim();
+
+  const startIdx = Math.min(
+    cleaned.indexOf('{') !== -1 ? cleaned.indexOf('{') : Infinity,
+    cleaned.indexOf('[') !== -1 ? cleaned.indexOf('[') : Infinity
+  );
+  const endIdx = Math.max(cleaned.lastIndexOf('}'), cleaned.lastIndexOf(']'));
+
+  if (startIdx !== Infinity && endIdx !== -1 && endIdx > startIdx) {
+    const jsonSubstring = cleaned.substring(startIdx, endIdx + 1);
+    return JSON.parse(jsonSubstring) as T;
+  }
 
   return JSON.parse(cleaned) as T;
 }

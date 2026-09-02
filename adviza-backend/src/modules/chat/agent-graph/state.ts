@@ -62,6 +62,7 @@ export const AdvizaAgentAnnotation = Annotation.Root({
   userId: Annotation<string>(),
   userName: Annotation<string | undefined>(),
   firmId: Annotation<string | undefined>(),
+  modelId: Annotation<string | undefined>(),
   message: Annotation<string>(),
   messages: Annotation<Array<{ role: "user" | "assistant" | "system"; content: string }>>({
     reducer: (curr, update) => (update ? update : curr),
