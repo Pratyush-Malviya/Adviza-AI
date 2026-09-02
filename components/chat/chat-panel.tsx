@@ -44,6 +44,8 @@ import { BriefingCard } from "./briefing-card";
 import { ExecutionPreviewCard } from "./execution-preview-card";
 import { WorkflowProgressStepper } from "./workflow-progress-stepper";
 import { CitationSourcesCard } from "./citation-sources-card";
+import { MarkdownContent } from "./markdown-content";
+import { MessageActions } from "./message-actions";
 import { performLiveSearch, type SearchCitation } from "@/lib/search-service";
 import { parseUploadedDocument } from "@/lib/document-parser";
 
@@ -123,6 +125,8 @@ export interface ChatMessage {
   citations?: SearchCitation[];
   isDeepResearch?: boolean;
   isWebSearch?: boolean;
+  thinkLonger?: boolean;
+  attachedFiles?: { name: string; size?: number; type?: string }[];
 }
 
 interface ChatPanelProps {
@@ -418,16 +422,15 @@ export function ChatPanel({
       query = `${directives.join("\n")}\n\n${rawQuery}`;
     }
 
-    const fileNames = selectedFiles.map((f) => f.name).join(", ");
-    const userMessageContent = fileNames
-      ? `${query ? query + "\n\n" : ""}[Attached Files: ${fileNames}]`
-      : query;
-
     const userMsg: ChatMessage = {
       id: "usr-" + Date.now(),
       role: "user",
-      content: userMessageContent,
+      content: rawQuery || (selectedFiles.length > 0 ? "Attached financial files for analysis." : ""),
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      isDeepResearch: deepResearch,
+      isWebSearch: webSearch,
+      thinkLonger: thinkLonger,
+      attachedFiles: selectedFiles.map((f) => ({ name: f.name, size: f.size, type: f.type })),
     };
 
     setMessages((prev) => [...prev, userMsg]);
@@ -1071,16 +1074,56 @@ export function ChatPanel({
                   </div>
                 )}
 
-                <div className={`max-w-[85%] sm:max-w-[80%] space-y-2.5`}>
-                  <div
-                    className={`p-4 rounded-3xl leading-relaxed whitespace-pre-wrap text-xs sm:text-sm ${
-                      m.role === "user"
-                        ? "bg-[#121217] text-white rounded-tr-xs shadow-sm"
-                        : "bg-[#FAF5F0] text-[#121217] border border-[#EADBCE] rounded-tl-xs shadow-2xs"
-                    }`}
-                  >
-                    {m.content}
-                  </div>
+                <div className={`max-w-[90%] sm:max-w-[85%] space-y-2.5`}>
+                  {m.role === "user" ? (
+                    <div className="p-4 rounded-3xl leading-relaxed text-xs sm:text-sm bg-[#121217] text-white rounded-tr-xs shadow-sm space-y-2">
+                      {/* Active Prompt Mode Badges */}
+                      {(m.isDeepResearch || m.isWebSearch || m.thinkLonger || (m.attachedFiles && m.attachedFiles.length > 0)) && (
+                        <div className="flex flex-wrap items-center gap-1.5 pb-1 border-b border-zinc-700/60">
+                          {m.isDeepResearch && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px] font-bold border border-indigo-500/30">
+                              <FlaskConical className="w-3 h-3 text-indigo-400" />
+                              <span>Deep Research</span>
+                            </span>
+                          )}
+                          {m.isWebSearch && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 text-[10px] font-bold border border-sky-500/30">
+                              <Globe className="w-3 h-3 text-sky-400" />
+                              <span>Live Search</span>
+                            </span>
+                          )}
+                          {m.thinkLonger && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold border border-amber-500/30">
+                              <Lightbulb className="w-3 h-3 text-amber-400" />
+                              <span>Think Longer</span>
+                            </span>
+                          )}
+                          {m.attachedFiles?.map((f, i) => (
+                            <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300 text-[10px] font-mono border border-zinc-700">
+                              <Paperclip className="w-2.5 h-2.5" />
+                              <span className="max-w-[120px] truncate">{f.name}</span>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      <div className="whitespace-pre-wrap">{m.content}</div>
+                      <div className="text-[10px] text-zinc-400 text-right">{m.timestamp}</div>
+                    </div>
+                  ) : (
+                    <div className="p-4 sm:p-5 rounded-3xl bg-[#FAF5F0] text-[#121217] border border-[#EADBCE] rounded-tl-xs shadow-2xs space-y-3">
+                      {/* Enterprise Markdown Rendered Content */}
+                      <MarkdownContent content={m.content} />
+
+                      {/* Interactive Bottom Action Toolbar */}
+                      <div className="pt-2 border-t border-[#EADBCE]/60">
+                        <MessageActions
+                          content={m.content}
+                          timestamp={m.timestamp}
+                          isDeepResearch={m.isDeepResearch}
+                        />
+                      </div>
+                    </div>
+                  )}
 
                   {/* Execution Results Previews */}
                   {m.executedResults && m.executedResults.length > 0 && (
@@ -1137,14 +1180,6 @@ export function ChatPanel({
                       isDeepResearch={m.isDeepResearch}
                     />
                   )}
-
-                  <div
-                    className={`text-[10px] text-[#8E847C] px-1 ${
-                      m.role === "user" ? "text-right" : "text-left"
-                    }`}
-                  >
-                    {m.timestamp}
-                  </div>
                 </div>
 
                 {m.role === "user" && (
