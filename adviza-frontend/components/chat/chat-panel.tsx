@@ -523,80 +523,90 @@ export function ChatPanel({
       let executedResults: any[] = [];
       let missingConnectors: any[] = [];
       let hitlPrompts: any[] = [];
+      let buffer = "";
 
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split("\n\n");
+        buffer += decoder.decode(value, { stream: true });
 
-        for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
-          const jsonStr = line.replace("data: ", "").trim();
-          if (!jsonStr) continue;
+        // Process all complete SSE messages delimited by "\n\n"
+        let boundaryIndex: number;
+        while ((boundaryIndex = buffer.indexOf("\n\n")) !== -1) {
+          const completeMessage = buffer.slice(0, boundaryIndex);
+          buffer = buffer.slice(boundaryIndex + 2);
 
-          try {
-            const parsed = JSON.parse(jsonStr);
+          const lines = completeMessage.split("\n");
+          for (const line of lines) {
+            if (!line.startsWith("data: ")) continue;
+            const jsonStr = line.slice(6).trim();
+            if (!jsonStr) continue;
 
-            if (parsed.status) {
-              setStatusMessage(parsed.status);
-            }
+            try {
+              const parsed = JSON.parse(jsonStr);
 
-            if (parsed.delta) {
-              assistantText += parsed.delta;
-              if (isFirstChunk) {
-                isFirstChunk = false;
-                setMessages((prev) => [
-                  ...prev,
-                  {
-                    id: assistantMsgId,
-                    role: "assistant",
-                    content: assistantText,
-                    timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-                    citations: searchCitations.length > 0 ? searchCitations : undefined,
-                    isDeepResearch: deepResearch,
-                    isWebSearch: webSearch,
-                  },
-                ]);
-              } else {
+              if (parsed.status) {
+                setStatusMessage(parsed.status);
+              }
+
+              if (parsed.delta) {
+                assistantText += parsed.delta;
+                if (isFirstChunk) {
+                  isFirstChunk = false;
+                  setMessages((prev) => [
+                    ...prev,
+                    {
+                      id: assistantMsgId,
+                      role: "assistant",
+                      content: assistantText,
+                      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+                      citations: searchCitations.length > 0 ? searchCitations : undefined,
+                      isDeepResearch: deepResearch,
+                      isWebSearch: webSearch,
+                    },
+                  ]);
+                } else {
+                  setMessages((prev) =>
+                    prev.map((m) => (m.id === assistantMsgId ? { ...m, content: assistantText } : m))
+                  );
+                }
+              }
+
+              if (parsed.executedResults) {
+                executedResults = [...executedResults, ...parsed.executedResults];
                 setMessages((prev) =>
-                  prev.map((m) => (m.id === assistantMsgId ? { ...m, content: assistantText } : m))
+                  prev.map((m) =>
+                    m.id === assistantMsgId ? { ...m, executedResults: executedResults } : m
+                  )
                 );
               }
-            }
 
-            if (parsed.executedResults) {
-              executedResults = [...executedResults, ...parsed.executedResults];
-              setMessages((prev) =>
-                prev.map((m) =>
-                  m.id === assistantMsgId ? { ...m, executedResults: executedResults } : m
-                )
-              );
-            }
+              if (parsed.missingConnectors) {
+                missingConnectors = [...missingConnectors, ...parsed.missingConnectors];
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === assistantMsgId ? { ...m, missingConnectors: missingConnectors } : m
+                  )
+                );
+              }
 
-            if (parsed.missingConnectors) {
-              missingConnectors = [...missingConnectors, ...parsed.missingConnectors];
-              setMessages((prev) =>
-                prev.map((m) =>
-                  m.id === assistantMsgId ? { ...m, missingConnectors: missingConnectors } : m
-                )
-              );
-            }
+              if (parsed.hitlPrompts) {
+                hitlPrompts = [...hitlPrompts, ...parsed.hitlPrompts];
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === assistantMsgId ? { ...m, hitlPrompts: hitlPrompts } : m
+                  )
+                );
+              }
 
-            if (parsed.hitlPrompts) {
-              hitlPrompts = [...hitlPrompts, ...parsed.hitlPrompts];
-              setMessages((prev) =>
-                prev.map((m) =>
-                  m.id === assistantMsgId ? { ...m, hitlPrompts: hitlPrompts } : m
-                )
-              );
+              if (parsed.usage) {
+                setUsageStats(parsed.usage);
+              }
+            } catch (err) {
+              console.error("SSE parse error:", err, jsonStr);
             }
-
-            if (parsed.usage) {
-              setUsageStats(parsed.usage);
-            }
-          } catch {}
+          }
         }
       }
 

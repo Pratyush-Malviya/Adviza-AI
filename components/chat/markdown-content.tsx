@@ -8,10 +8,6 @@ import {
   AlertTriangle,
   Info,
   ExternalLink,
-  ChevronRight,
-  TrendingUp,
-  FileText,
-  DollarSign,
   Sparkles,
 } from "lucide-react";
 
@@ -23,8 +19,11 @@ interface MarkdownContentProps {
 export function MarkdownContent({ content, className = "" }: MarkdownContentProps) {
   if (!content) return null;
 
-  // Pre-process markdown into structured blocks (headers, tables, callouts, lists, code, paragraphs)
-  const blocks = parseMarkdownBlocks(content);
+  // 1. Pre-normalize any compressed/unbroken markdown strings
+  const normalized = normalizeMarkdown(content);
+
+  // 2. Parse into structured blocks
+  const blocks = parseMarkdownBlocks(normalized);
 
   return (
     <div className={`space-y-3.5 text-xs sm:text-sm text-[#121217] leading-relaxed font-sans ${className}`}>
@@ -33,6 +32,22 @@ export function MarkdownContent({ content, className = "" }: MarkdownContentProp
       ))}
     </div>
   );
+}
+
+// ---------------------------------------------------------------------------
+// Pre-Normalization of Raw Markdown Strings
+// ---------------------------------------------------------------------------
+
+function normalizeMarkdown(raw: string): string {
+  return raw
+    // Insert newlines before headings if jammed against previous sentences (e.g. "stack.### What would")
+    .replace(/([^\n])\s*(#{1,6}\s+)/g, "$1\n\n$2")
+    // Insert newlines before bullet points if jammed against previous sentences (e.g. "today?- 📊 Portfolio")
+    .replace(/([^\n])\s*([•\-\*]\s+)/g, "$1\n\n$2")
+    // Insert newlines before numbered list items if jammed
+    .replace(/([^\n])\s*(\d+\.\s+)/g, "$1\n\n$2")
+    // Normalize unicode bullets
+    .replace(/^[•●▪]\s+/gm, "- ");
 }
 
 // ---------------------------------------------------------------------------
@@ -63,7 +78,7 @@ function parseMarkdownBlocks(raw: string): BlockType[] {
       continue;
     }
 
-    // Horizontal Divider
+    // Horizontal Divider (--- or *** or ___)
     if (/^(\-{3,}|\*{3,}|_{3,})$/.test(trimmed)) {
       blocks.push({ type: "divider" });
       i++;
@@ -223,9 +238,9 @@ function renderBlock(block: BlockType, index: number) {
     case "heading": {
       if (block.level === 1) {
         return (
-          <div key={index} className="pt-2 pb-1 border-b border-[#EADBCE]/80">
+          <div key={index} className="pt-3 pb-1 border-b border-[#EADBCE]/80">
             <h1 className="text-base sm:text-lg font-heading font-extrabold text-[#121217] tracking-tight flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-rose-500" />
+              <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" />
               {renderFormattedInlineText(block.text)}
             </h1>
           </div>
@@ -233,16 +248,16 @@ function renderBlock(block: BlockType, index: number) {
       }
       if (block.level === 2) {
         return (
-          <div key={index} className="pt-2 pb-0.5">
+          <div key={index} className="pt-2.5 pb-0.5">
             <h2 className="text-sm sm:text-base font-heading font-bold text-[#121217] tracking-tight flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
               {renderFormattedInlineText(block.text)}
             </h2>
           </div>
         );
       }
       return (
-        <h3 key={index} className="text-xs sm:text-sm font-heading font-bold text-[#121217] pt-1.5">
+        <h3 key={index} className="text-xs sm:text-sm font-heading font-bold text-[#121217] pt-2 pb-0.5">
           {renderFormattedInlineText(block.text)}
         </h3>
       );
@@ -278,7 +293,7 @@ function renderBlock(block: BlockType, index: number) {
       return (
         <div
           key={index}
-          className={`p-3.5 rounded-2xl border ${styles.bg} shadow-2xs flex items-start gap-3 my-2`}
+          className={`p-3.5 rounded-2xl border ${styles.bg} shadow-2xs flex items-start gap-3 my-2.5`}
         >
           {styles.icon}
           <div className="flex-1 min-w-0">
@@ -329,9 +344,12 @@ function renderBlock(block: BlockType, index: number) {
 
     case "list":
       return (
-        <div key={index} className="space-y-1.5 my-1.5 pl-1">
+        <div key={index} className="space-y-2 my-2.5">
           {block.items.map((item, i) => (
-            <div key={i} className="flex items-start gap-2.5">
+            <div
+              key={i}
+              className="flex items-start gap-2.5 text-xs sm:text-sm text-[#121217] leading-relaxed"
+            >
               {block.ordered ? (
                 <span className="w-4 h-4 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
                   {i + 1}
@@ -339,7 +357,7 @@ function renderBlock(block: BlockType, index: number) {
               ) : (
                 <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0 mt-2" />
               )}
-              <div className="flex-1 text-xs sm:text-sm text-[#121217] leading-relaxed">
+              <div className="flex-1">
                 {renderFormattedInlineText(item)}
               </div>
             </div>
@@ -349,7 +367,7 @@ function renderBlock(block: BlockType, index: number) {
 
     case "paragraph":
       return (
-        <p key={index} className="text-xs sm:text-sm text-[#121217] leading-relaxed">
+        <p key={index} className="text-xs sm:text-sm text-[#121217] leading-relaxed my-1">
           {renderFormattedInlineText(block.text)}
         </p>
       );
@@ -396,7 +414,6 @@ function CodeBlockCard({ code, language }: { code: string; language: string }) {
 function renderFormattedInlineText(text: string): React.ReactNode {
   if (!text) return null;
 
-  // Split by bold (**text**), inline code (`code`), dollar amounts ($1,500), links ([title](url))
   const parts: React.ReactNode[] = [];
   const regex = /(\*\*[^*]+\*\*|`[^`]+`|\[[^\]]+\]\([^)]+\)|\$[\d,]+(?:\s*-\s*\$[\d,]+)?(?:\/(?:mo|yr|month|year|advisor|firm|seat))?|\+\d+\.?\d*%)/g;
 
