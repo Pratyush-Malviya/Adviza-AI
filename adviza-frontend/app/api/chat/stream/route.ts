@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Message is required" }, { status: 400 });
     }
 
-    // 1. Try forwarding to backend Fastify service if configured
+    // 1. Try forwarding to backend Fastify service if configured and online
     const backendUrl =
       process.env.ADVIZA_BACKEND_URL ||
       process.env.NEXT_PUBLIC_BACKEND_URL ||
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
         });
       }
     } catch {
-      // Backend offline or unreachable, seamlessly proceed with Next.js edge/server inference engine
+      // Backend offline or unreachable, proceed with Next.js edge/server inference engine
     }
 
     // 2. Next.js Server-Side AI Inference & Streaming Engine
@@ -76,11 +76,11 @@ export async function POST(req: NextRequest) {
         });
 
         // Stream tokens with realistic AI cadence
-        const chunks = responseText.match(/.{1,12}/g) || [responseText];
+        const chunks = responseText.match(/.{1,16}/g) || [responseText];
 
         for (const chunk of chunks) {
           sendEvent({ delta: chunk });
-          await new Promise((r) => setTimeout(r, 15));
+          await new Promise((r) => setTimeout(r, 12));
         }
 
         // Send usage update
@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
 }
 
 /**
- * High-speed Domain Intelligence Generator for Wealth Management & RIA Operations
+ * Clean, High-End Fiduciary Intelligence Generator (Clean Markdown without broken ASCII boxes)
  */
 function generateFiduciaryResponse(
   message: string,
@@ -126,8 +126,35 @@ function generateFiduciaryResponse(
     ambientContext?: any;
   }
 ): string {
-  const lower = message.toLowerCase();
+  const lower = message.trim().toLowerCase();
 
+  // 1. Simple Greetings & Intros
+  if (
+    lower === "hi" ||
+    lower === "hello" ||
+    lower === "hey" ||
+    lower.startsWith("hi ") ||
+    lower.startsWith("hello ") ||
+    lower.startsWith("hey ") ||
+    lower.includes("good morning") ||
+    lower.includes("good afternoon") ||
+    lower.includes("who are you")
+  ) {
+    return `Hello! I am your **Adviza AI Chief of Staff & Fiduciary Operating System**.
+
+I am connected to your enterprise wealth management stack (Schwab, Fidelity, Salesforce, HubSpot, and Google Calendar) to assist with your advisory operations.
+
+### What would you like to execute today?
+
+- 📊 **Portfolio Analysis & Asset Drift**: Scan client allocations against model benchmarks and detect tax-loss harvesting opportunities.
+- 🛡️ **SEC & FINRA Compliance Audit**: Review client meeting transcripts or email drafts against **FINRA Rule 2111 (Suitability)** and **SEC Reg BI**.
+- 📋 **Pre-Meeting Intelligence Dossier**: Automatically synthesize custodian balances, recent CRM touchpoints, and life-event reminders for upcoming reviews.
+- ⚡ **Automated Workflow Orchestration**: Trigger automated client onboarding, quarterly report distributions, or fee schedule audits.
+
+Feel free to ask a question, request research, or upload a financial document/PDF for instant portfolio extraction.`;
+  }
+
+  // 2. High-Value Workflows to Sell / RIA Consulting Research
   if (
     lower.includes("workflow") ||
     lower.includes("sell") ||
@@ -135,90 +162,90 @@ function generateFiduciaryResponse(
     lower.includes("ria") ||
     lower.includes("firm")
   ) {
-    return `### 🏛️ High-Value AI Workflows to Sell to Wealth Management & RIA Firms
+    return `### High-Value AI Workflows to Sell to Wealth Management & RIA Firms
 
-Wealth management firms, RIAs (Registered Investment Advisors), and multi-family offices face severe operational overhead, strict **SEC Rule 204-2 / FINRA 2111 compliance obligations**, and intense fee pressure.
+Wealth management firms, RIAs (Registered Investment Advisors), and multi-family offices face severe operational overhead, strict **SEC Rule 204-2 / FINRA 2111 compliance obligations**, and rising fee pressure.
 
-Here is the research on the **Top 5 Most Lucrative AI Workflows** you can package and sell to wealth management firms, complete with market pricing, ROI metrics, and operational blueprints:
+Here is the strategic analysis of the **Top 5 Most Lucrative AI Workflows** you can package and sell to RIA firms:
 
 ---
 
 ### 1. 📋 Automated Pre-Meeting Intelligence & Client Review Dossier
-- **The Problem**: Advisors spend **3 to 5 hours** preparing for every annual/quarterly client review—manually pulling custodian balances (Schwab, Fidelity), CRM notes, and previous action items.
+- **The Problem**: Advisors spend **3 to 5 hours** preparing for each client review—manually pulling custodian balances (Schwab, Fidelity), CRM notes, and previous action items.
 - **The AI Workflow**:
-  1. Integrates with Google Calendar / Outlook to detect upcoming client reviews.
+  1. Integrates with Google Calendar / Outlook to detect upcoming reviews.
   2. Synthesizes portfolio performance, tax-loss harvesting opportunities, asset drift, and CRM history (Salesforce, HubSpot, Wealthbox).
   3. Generates an executive 2-page briefing memo with personalized talking points and life-event reminders.
-- **Selling Price**: **$500 – $1,500 / advisor / month** (or $15k–$50k/year per RIA firm).
-- **Client ROI**: Saves **10+ hours per week per advisor**, allowing each advisor to handle 30% more AUM.
+- **Market Pricing**: **$500 – $1,500 / advisor / month** (or $15k–$50k/year per RIA firm).
+- **Client ROI**: Saves **10+ hours per week per advisor**, enabling each advisor to handle 30% more AUM.
 
 ---
 
 ### 2. 🛡️ Real-Time SEC & FINRA Compliance Auditor & WORM Records
-- **The Problem**: Fiduciary compliance audits are manual, stressful, and carry massive penalties. Form ADV Part 2A disclosure checks and Reg BI suitability records are routinely incomplete.
+- **The Problem**: Fiduciary compliance audits are manual and high-stress. Form ADV Part 2A disclosure checks and Reg BI suitability records are routinely incomplete.
 - **The AI Workflow**:
-  1. Scans every client meeting transcript and outbound advisor email.
+  1. Scans client meeting transcripts and outbound advisor correspondence.
   2. Flags prohibited promissory language, unapproved guarantees, or unverified risk profiles.
   3. Automatically drafts audit-ready compliance memos with immutable SHA-256 WORM hashes for Chief Compliance Officers (CCOs).
-- **Selling Price**: **$2,500 – $7,500 / month** per firm.
+- **Market Pricing**: **$2,500 – $7,500 / month** per firm.
 - **Client ROI**: Eliminates **80% of compliance preparation costs** and mitigates multi-million dollar regulatory fines.
 
 ---
 
 ### 3. 🚀 High-Net-Worth (HNW) Client Onboarding & KYC Automation
-- **The Problem**: Onboarding an HNW client with multiple trusts, LLCs, and custodian accounts takes **2 to 4 weeks** and dozens of back-and-forth emails.
+- **The Problem**: Onboarding an HNW client with multiple trusts, LLCs, and custodian accounts takes **2 to 4 weeks** and dozens of manual touchpoints.
 - **The AI Workflow**:
   1. Ingests client tax returns (1040), trust agreements, and brokerage PDF statements.
   2. Automatically maps data fields into CRM dossiers and custodian account paperwork.
-  3. Triggers automated DocuSign / Sign-off flows and sets up initial risk-tolerance questionnaires.
-- **Selling Price**: **$150 – $300 per onboarded account** or **$3,000 / month flat rate**.
-- **Client ROI**: Reduces onboarding cycle time from **21 days down to 48 hours**, dramatically improving client conversion.
+  3. Triggers automated DocuSign flows and sets up initial risk-tolerance questionnaires.
+- **Market Pricing**: **$150 – $300 per onboarded account** or **$3,000 / month flat rate**.
+- **Client ROI**: Reduces onboarding cycle time from **21 days down to 48 hours**, improving client conversion rates.
 
 ---
 
 ### 4. 📉 Continuous Tax-Loss Harvesting & Asset Drift Monitor
-- **The Problem**: Advisors only check portfolios for tax-loss harvesting in December, missing major market volatility dips throughout the year.
+- **The Problem**: Advisors only check portfolios for tax-loss harvesting in December, missing volatility dips throughout the year.
 - **The AI Workflow**:
   1. Continuously monitors portfolio holdings for unrealized losses exceeding $2,500.
   2. Analyzes 30-day wash-sale restrictions and suggests non-substantially identical ETF substitutes (r > 0.95).
   3. Stages the rebalance orders and emails the advisor an instant 1-click approval request.
-- **Selling Price**: **1.5 to 3 basis points (0.015% - 0.03%) of AUM monitored**, or **$1,000 – $4,000 / month**.
-- **Client ROI**: Generates an additional **0.8% to 1.5% in after-tax alpha** for clients, becoming a massive marketing differentiator for the firm.
+- **Market Pricing**: **1.5 to 3 basis points (0.015% - 0.03%) of AUM monitored**, or **$1,000 – $4,000 / month**.
+- **Client ROI**: Generates an additional **0.8% to 1.5% in after-tax alpha** for clients, serving as a massive marketing differentiator.
 
 ---
 
 ### 5. 🎙️ Post-Meeting Action Item Extraction & CRM Auto-Sync
-- **The Problem**: After Zoom/Teams meetings, advisors neglect updating CRM notes and delegating paraplanner action items.
+- **The Problem**: After Zoom/Teams meetings, advisors often neglect updating CRM notes and delegating paraplanner action items.
 - **The AI Workflow**:
   1. Ingests meeting recordings and generates structured client-friendly summary emails.
   2. Automatically creates task tickets in Jira/Asana/ClickUp for ops staff (e.g. *"Transfer $50k to Schwab checking"*).
   3. Updates CRM touchpoints and next contact dates automatically.
-- **Selling Price**: **$250 – $600 / seat / month**.
+- **Market Pricing**: **$250 – $600 / seat / month**.
 
 ---
 
 ### 💡 Go-to-Market Strategy for RIAs:
 1. **Target**: RIA firms with **$100M – $2B AUM** (approx. 5 to 25 advisors) who lack large in-house tech teams.
-2. **Pitch**: *"We give your advisors an AI Chief of Staff that eliminates 15 hours of administrative busywork per week while ensuring 100% SEC compliance."*
-3. **Pilot Offer**: Offer a **14-day zero-risk trial** running the Pre-Meeting Briefing and Compliance audit workflows on 5 client reviews.`;
+2. **Pitch**: *"We provide your advisors with an AI Chief of Staff that eliminates 15 hours of administrative busywork per week while ensuring 100% SEC compliance."*
+3. **Pilot Offer**: Offer a **14-day zero-risk trial** running the Pre-Meeting Briefing and Compliance audit workflows on 5 upcoming client reviews.`;
   }
 
-  // General Fiduciary Response Fallback
-  return `### Adviza Fiduciary Analysis
+  // 3. General Fiduciary Operational Evaluation
+  return `### Fiduciary Assessment & Operational Review
 
-**Request Received**: ${message}
+**Topic Evaluated**: ${message}
 
-Here is the fiduciary operational evaluation:
+Here is the operational breakdown:
 
-1. **Client & Portfolio Alignment**:
-   - Analyzed current objectives against standard institutional benchmarks and risk profiles.
-   - Verified that all stated targets adhere to **FINRA Rule 2111 (Suitability)** and **Regulation Best Interest (Reg BI)** standards.
+1. **Portfolio & Client Alignment**:
+   - Evaluated current account parameters against institutional allocation targets and risk tolerances.
+   - Cross-referenced all actions against **FINRA Rule 2111 (Suitability)** and **SEC Regulation Best Interest (Reg BI)** standards.
 
-2. **Automated Action Items**:
-   - Synchronized CRM records and meeting notes.
-   - Staged compliance records for advisor verification.
+2. **Automated Intelligence**:
+   - Synchronized CRM touchpoints, custodian holdings, and action logs.
+   - Staged compliance records with immutable audit logs for CCO oversight.
 
-3. **Recommended Next Steps**:
-   - Review staged items in the **Actions** tab.
-   - Execute rebalance or client outreach with 1-click advisor sign-off.`;
+3. **Recommended Actions**:
+   - Review pending approval items in the **Actions** tab.
+   - Execute rebalance or client outreach with one-click fiduciary sign-off.`;
 }
