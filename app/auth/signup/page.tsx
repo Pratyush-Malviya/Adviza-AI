@@ -100,7 +100,7 @@ export default function SignupPage() {
           </span>
         </Link>
 
-        <div className="bg-white rounded-[32px] p-8 sm:p-10 border border-[#EADBCE] shadow-xl">
+        <div className="bg-white rounded-[32px] p-6 sm:p-10 border border-[#EADBCE] shadow-xl">
           <div className="mb-6">
             <h1 className="text-2xl font-heading font-extrabold text-[#121217] mb-1">
               Start your free workspace
@@ -124,13 +124,13 @@ export default function SignupPage() {
           )}
 
           <form onSubmit={handleSignup} className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <label className="block text-xs font-heading font-bold text-[#5A544E] uppercase tracking-wider mb-2">
                   Your Name
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E847C]" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E847C] pointer-events-none" />
                   <input
                     id="signup-name"
                     name="fullName"
@@ -139,7 +139,7 @@ export default function SignupPage() {
                     onChange={handleChange}
                     placeholder="Jane Smith"
                     required
-                    className="w-full pl-9 pr-3 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] placeholder-[#A89E95] text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors"
+                    className="w-full pl-9 pr-3 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] placeholder-[#A89E95] text-base sm:text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors"
                   />
                 </div>
               </div>
@@ -149,7 +149,7 @@ export default function SignupPage() {
                   Firm Name
                 </label>
                 <div className="relative">
-                  <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E847C]" />
+                  <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E847C] pointer-events-none" />
                   <input
                     id="signup-firm"
                     name="firmName"
@@ -158,7 +158,7 @@ export default function SignupPage() {
                     onChange={handleChange}
                     placeholder="Acme Wealth"
                     required
-                    className="w-full pl-9 pr-3 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] placeholder-[#A89E95] text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors"
+                    className="w-full pl-9 pr-3 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] placeholder-[#A89E95] text-base sm:text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors"
                   />
                 </div>
               </div>
@@ -169,7 +169,7 @@ export default function SignupPage() {
                 Work Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E847C]" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E847C] pointer-events-none" />
                 <input
                   id="signup-email"
                   name="email"
@@ -178,7 +178,7 @@ export default function SignupPage() {
                   onChange={handleChange}
                   placeholder="jane@yourfirm.com"
                   required
-                  className="w-full pl-10 pr-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] placeholder-[#A89E95] text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors"
+                  className="w-full pl-10 pr-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] placeholder-[#A89E95] text-base sm:text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors"
                 />
               </div>
             </div>
@@ -188,7 +188,7 @@ export default function SignupPage() {
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E847C]" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E847C] pointer-events-none" />
                 <input
                   id="signup-password"
                   name="password"
@@ -198,12 +198,13 @@ export default function SignupPage() {
                   placeholder="Min. 8 characters"
                   minLength={8}
                   required
-                  className="w-full pl-10 pr-12 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] placeholder-[#A89E95] text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors"
+                  className="w-full pl-10 pr-12 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] placeholder-[#A89E95] text-base sm:text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#8E847C] hover:text-[#121217] transition-colors"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-[#8E847C] hover:text-[#121217] transition-colors"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -214,7 +215,7 @@ export default function SignupPage() {
               id="signup-submit"
               type="submit"
               disabled={loading}
-              className="btn-hero-gradient w-full py-3.5 text-white font-bold rounded-full transition-all flex items-center justify-center gap-2 shadow-lg shadow-rose-500/20 disabled:opacity-50 mt-2"
+              className="btn-hero-gradient w-full py-3.5 min-h-[44px] text-white font-bold rounded-full transition-all flex items-center justify-center gap-2 shadow-lg shadow-rose-500/20 disabled:opacity-50 mt-2"
             >
               {loading ? (
                 <>

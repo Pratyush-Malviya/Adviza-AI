@@ -51,7 +51,7 @@ export default function ForgotPasswordPage() {
         </Link>
 
         {/* Card */}
-        <div className="bg-white rounded-[32px] p-8 sm:p-10 border border-[#EADBCE] shadow-xl">
+        <div className="bg-white rounded-[32px] p-6 sm:p-10 border border-[#EADBCE] shadow-xl">
           {sent ? (
             <div className="text-center">
               <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center mx-auto mb-5 text-emerald-600">
@@ -65,7 +65,7 @@ export default function ForgotPasswordPage() {
               </p>
               <Link
                 href="/auth/login"
-                className="btn-hero-gradient inline-flex items-center justify-center gap-2 w-full py-3.5 text-white font-bold rounded-full shadow-md"
+                className="btn-hero-gradient inline-flex items-center justify-center gap-2 w-full py-3.5 min-h-[44px] text-white font-bold rounded-full shadow-md"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Back to Sign In</span>
@@ -94,7 +94,7 @@ export default function ForgotPasswordPage() {
                     Work Email
                   </label>
                   <div className="relative">
-                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E847C]" />
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E847C] pointer-events-none" />
                     <input
                       id="reset-email"
                       type="email"
@@ -102,7 +102,7 @@ export default function ForgotPasswordPage() {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="advisor@yourfirm.com"
                       required
-                      className="w-full pl-10 pr-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] placeholder-[#A89E95] text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors"
+                      className="w-full pl-10 pr-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] placeholder-[#A89E95] text-base sm:text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors"
                     />
                   </div>
                 </div>
@@ -111,7 +111,7 @@ export default function ForgotPasswordPage() {
                   id="reset-submit"
                   type="submit"
                   disabled={loading}
-                  className="btn-hero-gradient w-full py-3.5 text-white font-bold rounded-full transition-all flex items-center justify-center gap-2 shadow-lg shadow-rose-500/20 disabled:opacity-50 mt-2"
+                  className="btn-hero-gradient w-full py-3.5 min-h-[44px] text-white font-bold rounded-full transition-all flex items-center justify-center gap-2 shadow-lg shadow-rose-500/20 disabled:opacity-50 mt-2"
                 >
                   {loading ? (
                     <>

@@ -123,7 +123,7 @@ export default function ContactPage() {
                       placeholder="Sarah Jenkins, CFP"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-2xl bg-[#FAF5F0] border border-[#EADBCE] text-xs text-[#121217] placeholder:text-[#8E847C] focus:bg-white focus:border-rose-400 outline-none transition"
+                      className="w-full px-3.5 py-2.5 rounded-2xl bg-[#FAF5F0] border border-[#EADBCE] text-base sm:text-xs text-[#121217] placeholder:text-[#8E847C] focus:bg-white focus:border-rose-400 outline-none transition"
                     />
                   </div>
 
@@ -135,7 +135,7 @@ export default function ContactPage() {
                       placeholder="sjenkins@apexcapital.com"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-2xl bg-[#FAF5F0] border border-[#EADBCE] text-xs text-[#121217] placeholder:text-[#8E847C] focus:bg-white focus:border-rose-400 outline-none transition"
+                      className="w-full px-3.5 py-2.5 rounded-2xl bg-[#FAF5F0] border border-[#EADBCE] text-base sm:text-xs text-[#121217] placeholder:text-[#8E847C] focus:bg-white focus:border-rose-400 outline-none transition"
                     />
                   </div>
                 </div>
@@ -148,7 +148,7 @@ export default function ContactPage() {
                       placeholder="Apex Capital Advisory"
                       value={formData.firmName}
                       onChange={(e) => setFormData({ ...formData, firmName: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-2xl bg-[#FAF5F0] border border-[#EADBCE] text-xs text-[#121217] placeholder:text-[#8E847C] focus:bg-white focus:border-rose-400 outline-none transition"
+                      className="w-full px-3.5 py-2.5 rounded-2xl bg-[#FAF5F0] border border-[#EADBCE] text-base sm:text-xs text-[#121217] placeholder:text-[#8E847C] focus:bg-white focus:border-rose-400 outline-none transition"
                     />
                   </div>
 
@@ -157,7 +157,7 @@ export default function ContactPage() {
                     <select
                       value={formData.aum}
                       onChange={(e) => setFormData({ ...formData, aum: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-2xl bg-[#FAF5F0] border border-[#EADBCE] text-xs text-[#121217] focus:bg-white focus:border-rose-400 outline-none transition"
+                      className="w-full px-3.5 py-2.5 rounded-2xl bg-[#FAF5F0] border border-[#EADBCE] text-base sm:text-xs text-[#121217] focus:bg-white focus:border-rose-400 outline-none transition"
                     >
                       <option>&lt; $50M</option>
                       <option>$50M - $250M</option>
@@ -175,13 +175,13 @@ export default function ContactPage() {
                     placeholder="Tell us about your advisory tech stack and what you're looking to automate..."
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-2xl bg-[#FAF5F0] border border-[#EADBCE] text-xs text-[#121217] placeholder:text-[#8E847C] focus:bg-white focus:border-rose-400 outline-none transition resize-none"
+                    className="w-full px-3.5 py-2.5 rounded-2xl bg-[#FAF5F0] border border-[#EADBCE] text-base sm:text-xs text-[#121217] placeholder:text-[#8E847C] focus:bg-white focus:border-rose-400 outline-none transition resize-none"
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full py-3 rounded-2xl bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-700 hover:to-amber-700 text-white font-bold text-xs shadow-md shadow-rose-600/20 transition flex items-center justify-center gap-2"
+                  className="w-full py-3 min-h-[44px] px-5 rounded-2xl bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-700 hover:to-amber-700 text-white font-bold text-xs shadow-md shadow-rose-600/20 transition flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>Send Message</span>

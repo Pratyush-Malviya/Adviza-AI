@@ -97,7 +97,7 @@ export default function NewClientPage() {
   return (
     <div className="max-w-2xl mx-auto animate-fade-in">
       <div className="flex items-center gap-3 mb-8">
-        <Link href="/dashboard/clients" className="w-9 h-9 rounded-full bg-white border border-[#EADBCE] flex items-center justify-center text-[#5A544E] hover:text-[#121217] shadow-sm transition-colors">
+        <Link href="/dashboard/clients" className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-white border border-[#EADBCE] flex items-center justify-center text-[#5A544E] hover:text-[#121217] shadow-sm transition-colors cursor-pointer">
           <ArrowLeft className="w-4 h-4" />
         </Link>
         <div>
@@ -115,46 +115,46 @@ export default function NewClientPage() {
         <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#EADBCE] shadow-sm space-y-5">
           <h2 className="text-xs font-heading font-bold text-[#8E847C] uppercase tracking-wider">Basic Information</h2>
           
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="sm:col-span-2">
               <label className="block text-xs font-heading font-bold text-[#5A544E] mb-2">Full Name *</label>
               <div className="relative">
-                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E847C]" />
+                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E847C] pointer-events-none" />
                 <input id="client-name" name="full_name" type="text" value={form.full_name} onChange={handleChange} required
-                  placeholder="Margaret Johnson" className="w-full pl-10 pr-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] placeholder-[#A89E95] text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors" />
+                  placeholder="Margaret Johnson" className="w-full pl-10 pr-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] placeholder-[#A89E95] text-base sm:text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors" />
               </div>
             </div>
 
             <div>
               <label className="block text-xs font-heading font-bold text-[#5A544E] mb-2">Email</label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E847C]" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E847C] pointer-events-none" />
                 <input id="client-email" name="email" type="email" value={form.email} onChange={handleChange}
-                  placeholder="margaret@email.com" className="w-full pl-10 pr-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] placeholder-[#A89E95] text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors" />
+                  placeholder="margaret@email.com" className="w-full pl-10 pr-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] placeholder-[#A89E95] text-base sm:text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors" />
               </div>
             </div>
 
             <div>
               <label className="block text-xs font-heading font-bold text-[#5A544E] mb-2">Phone</label>
               <div className="relative">
-                <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E847C]" />
+                <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E847C] pointer-events-none" />
                 <input id="client-phone" name="phone" type="tel" value={form.phone} onChange={handleChange}
-                  placeholder="+1 (555) 000-0000" className="w-full pl-10 pr-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] placeholder-[#A89E95] text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors" />
+                  placeholder="+1 (555) 000-0000" className="w-full pl-10 pr-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] placeholder-[#A89E95] text-base sm:text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors" />
               </div>
             </div>
 
             <div>
               <label className="block text-xs font-heading font-bold text-[#5A544E] mb-2">Age</label>
               <input id="client-age" name="age" type="number" value={form.age} onChange={handleChange}
-                placeholder="55" min="18" max="120" className="w-full px-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] placeholder-[#A89E95] text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors" />
+                placeholder="55" min="18" max="120" className="w-full px-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] placeholder-[#A89E95] text-base sm:text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors" />
             </div>
 
             <div>
               <label className="block text-xs font-heading font-bold text-[#5A544E] mb-2">Occupation</label>
               <div className="relative">
-                <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E847C]" />
+                <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E847C] pointer-events-none" />
                 <input id="client-occupation" name="occupation" type="text" value={form.occupation} onChange={handleChange}
-                  placeholder="CEO, Retired, etc." className="w-full pl-10 pr-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] placeholder-[#A89E95] text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors" />
+                  placeholder="CEO, Retired, etc." className="w-full pl-10 pr-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] placeholder-[#A89E95] text-base sm:text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors" />
               </div>
             </div>
           </div>
@@ -167,19 +167,19 @@ export default function NewClientPage() {
           <div>
             <label className="block text-xs font-heading font-bold text-[#5A544E] mb-2">Portfolio Value (USD)</label>
             <div className="relative">
-              <DollarSign className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E847C]" />
+              <DollarSign className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E847C] pointer-events-none" />
               <input id="client-portfolio" name="portfolio_value" type="number" value={form.portfolio_value} onChange={handleChange}
-                placeholder="1500000" className="w-full pl-10 pr-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] placeholder-[#A89E95] text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors" />
+                placeholder="1500000" className="w-full pl-10 pr-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] placeholder-[#A89E95] text-base sm:text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors" />
             </div>
           </div>
 
           <div>
             <label className="block text-xs font-heading font-bold text-[#5A544E] mb-2">Risk Tolerance</label>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {RISK_OPTIONS.map((option) => (
                 <button key={option.value} type="button"
                   onClick={() => setForm((prev) => ({ ...prev, risk_tolerance: option.value }))}
-                  className={cn("p-4 rounded-2xl border text-left transition-all",
+                  className={cn("p-4 rounded-2xl border text-left transition-all min-h-[44px] cursor-pointer",
                     form.risk_tolerance === option.value
                       ? "bg-rose-50 border-rose-300 text-rose-800 shadow-sm"
                       : "bg-[#FAF5F0]/60 border-[#EADBCE] text-[#5A544E] hover:border-[#D8CCC2]"
@@ -199,33 +199,32 @@ export default function NewClientPage() {
             <div className="flex flex-wrap gap-2">
               {GOAL_OPTIONS.map((goal) => (
                 <button key={goal} type="button" onClick={() => toggleGoal(goal)}
-                  className={cn("px-3.5 py-1.5 rounded-full border text-xs font-bold transition-all",
+                  className={cn("px-4 py-2 rounded-full text-xs font-bold border transition-all min-h-[44px] flex items-center cursor-pointer",
                     form.investment_goals.includes(goal)
-                      ? "bg-rose-50 border-rose-300 text-rose-700 shadow-sm"
-                      : "bg-[#FAF5F0] border-[#EADBCE] text-[#5A544E] hover:border-[#D8CCC2]"
+                      ? "bg-[#121217] text-white border-[#121217]"
+                      : "bg-[#FAF5F0]/60 text-[#5A544E] border-[#EADBCE] hover:border-[#D8CCC2]"
                   )}>
                   {goal}
                 </button>
               ))}
             </div>
           </div>
+
+          <div>
+            <label className="block text-xs font-heading font-bold text-[#5A544E] mb-2">Notes</label>
+            <textarea id="client-notes" name="notes" value={form.notes} onChange={handleChange} rows={3}
+              placeholder="Any additional context about this client..."
+              className="w-full px-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] placeholder-[#A89E95] text-base sm:text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors" />
+          </div>
         </div>
 
-        {/* Notes */}
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#EADBCE] shadow-sm">
-          <label className="block text-xs font-heading font-bold text-[#8E847C] uppercase tracking-wider mb-3">Advisor Notes</label>
-          <textarea name="notes" value={form.notes} onChange={handleChange} rows={4}
-            placeholder="Key context, concerns, relationship notes, or CRM data..."
-            className="w-full px-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-2xl text-[#121217] placeholder-[#A89E95] text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors resize-none" />
-        </div>
-
-        <div className="flex gap-4">
+        <div className="flex items-center justify-end gap-3 pt-2">
           <Link href="/dashboard/clients"
-            className="flex-1 py-3.5 bg-white hover:bg-[#FAF5F0] border border-[#EADBCE] text-[#121217] font-bold rounded-full transition-colors text-center text-sm shadow-sm">
+            className="px-6 py-3 min-h-[44px] flex items-center justify-center text-sm font-bold text-[#5A544E] hover:text-[#121217] transition-colors">
             Cancel
           </Link>
           <button id="submit-client" type="submit" disabled={loading}
-            className="btn-hero-gradient flex-1 py-3.5 disabled:opacity-50 text-white font-bold rounded-full transition-all flex items-center justify-center gap-2 text-sm shadow-md shadow-rose-500/20">
+            className="btn-hero-gradient px-8 py-3.5 min-h-[44px] text-white text-sm font-bold rounded-full shadow-md shadow-rose-500/20 transition-all hover:scale-105 disabled:opacity-50 flex items-center justify-center gap-2">
             {loading ? <><Loader2 className="w-4 h-4 animate-spin" /><span>Saving...</span></> : <span>Add Client</span>}
           </button>
         </div>

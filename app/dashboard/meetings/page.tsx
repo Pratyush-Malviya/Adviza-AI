@@ -30,7 +30,7 @@ export default async function MeetingsPage() {
 
   return (
     <div className="space-y-8 animate-fade-in max-w-7xl mx-auto">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#121217] tracking-tight">Meetings</h1>
           <p className="text-sm text-[#7A726A] mt-1">{meetings?.length ?? 0} total · {upcoming.length} upcoming</p>
@@ -39,7 +39,7 @@ export default async function MeetingsPage() {
           <SeedDemoButton />
           <SyncCalendarButton />
           <Link href="/dashboard/meetings/new" id="new-meeting-btn"
-            className="btn-hero-gradient flex items-center gap-2 px-5 py-2.5 text-white text-sm font-bold rounded-full shadow-md shadow-rose-500/20 transition-transform hover:scale-105">
+            className="btn-hero-gradient inline-flex items-center justify-center gap-2 px-5 py-2.5 min-h-[44px] text-white text-sm font-bold rounded-full shadow-md shadow-rose-500/20 transition-transform hover:scale-105 cursor-pointer">
             <Plus className="w-4 h-4" />
             <span>New Meeting</span>
           </Link>

@@ -38,11 +38,42 @@
 /* Headings font */
 h1, h2, h3, h4, h5, h6, .font-heading {
   font-family: var(--font-heading), sans-serif;
+  line-height: 1.25;
 }
 
-/* Smooth scrolling */
-html {
+/* Responsive Headings Scale */
+h1 {
+  font-size: clamp(1.75rem, 5vw, 3.5rem);
+}
+h2 {
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+}
+h3 {
+  font-size: clamp(1.25rem, 3vw, 2rem);
+}
+
+body, p, span, div, li {
+  line-height: 1.5;
+}
+
+/* Responsive Image & Video Baseline */
+img, video {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Global iOS Safari Auto-Zoom Prevention */
+@media screen and (max-width: 767px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Smooth scrolling and horizontal overflow guard */
+html, body {
   scroll-behavior: smooth;
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 /* Custom scrollbar */

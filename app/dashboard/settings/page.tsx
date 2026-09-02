@@ -93,7 +93,7 @@ export default async function SettingsPage() {
         </div>
         <Link
           href="/dashboard/connectors"
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl bg-[#121217] hover:bg-[#2A2620] text-white font-semibold text-xs transition shadow-sm shrink-0"
+          className="inline-flex items-center justify-center gap-2 px-5 py-3 min-h-[44px] rounded-2xl bg-[#121217] hover:bg-[#2A2620] text-white font-semibold text-xs transition shadow-sm shrink-0 cursor-pointer"
         >
           <span>Open Connectors & Tools</span>
           <ArrowRight className="w-3.5 h-3.5" />

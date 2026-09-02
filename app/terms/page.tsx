@@ -22,7 +22,7 @@ export default function TermsOfServicePage() {
           </Link>
           <Link
             href="/"
-            className="flex items-center gap-1.5 text-xs font-semibold text-[#5A544E] hover:text-[#121217] transition"
+            className="inline-flex items-center gap-1.5 min-h-[44px] px-2 text-xs font-semibold text-[#5A544E] hover:text-[#121217] transition"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Back to Home</span>

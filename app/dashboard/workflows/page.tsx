@@ -510,12 +510,13 @@ export default function WorkflowsLibraryPage() {
                   if (e.key === "Enter" && !isGenerating) handleGenerateAndSave();
                 }}
                 placeholder="e.g. When a client portfolio drifts by >5%, audit risk with SEC compliance, require advisor sign-off, and rebalance"
-                className="w-full pl-4 pr-10 py-3.5 text-sm bg-white/10 hover:bg-white/15 focus:bg-white/20 border border-white/20 rounded-2xl text-white placeholder:text-violet-200/60 focus:outline-none focus:ring-2 focus:ring-violet-400 transition-all backdrop-blur-sm"
+                className="w-full pl-4 pr-12 py-3.5 text-base sm:text-sm bg-white/10 hover:bg-white/15 focus:bg-white/20 border border-white/20 rounded-2xl text-white placeholder:text-violet-200/60 focus:outline-none focus:ring-2 focus:ring-violet-400 transition-all backdrop-blur-sm"
               />
               {aiPrompt && (
                 <button
                   onClick={() => setAiPrompt("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-violet-200/70 hover:text-white"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-violet-200/70 hover:text-white"
+                  aria-label="Clear prompt"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -582,7 +583,7 @@ export default function WorkflowsLibraryPage() {
       </div>
 
       {/* ── Stats Bar ─────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         {[
           { label: "Total Workflows", value: workflows.length, icon: <Workflow className="w-4 h-4 text-violet-500" /> },
           { label: "Active Pipelines", value: activeCount, icon: <CheckCircle2 className="w-4 h-4 text-emerald-500" /> },
@@ -611,12 +612,13 @@ export default function WorkflowsLibraryPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search your workflows..."
-            className="w-full pl-9 pr-3 py-2 text-sm border border-[#EADBCE] rounded-xl bg-white text-[#121217] placeholder:text-[#9E978F] focus:outline-none focus:ring-2 focus:ring-violet-300"
+            className="w-full pl-9 pr-10 py-2.5 text-base sm:text-sm border border-[#EADBCE] rounded-xl bg-white text-[#121217] placeholder:text-[#9E978F] focus:outline-none focus:ring-2 focus:ring-violet-300"
           />
           {search && (
             <button
               onClick={() => setSearch("")}
-              className="absolute right-2.5 text-[#9E978F] hover:text-[#121217]"
+              className="absolute right-1 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center text-[#9E978F] hover:text-[#121217]"
+              aria-label="Clear search"
             >
               <X className="w-3.5 h-3.5" />
             </button>

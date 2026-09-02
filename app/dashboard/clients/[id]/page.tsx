@@ -77,10 +77,11 @@ export default async function ClientDetailPage({ params }: PageProps) {
   return (
     <div className="space-y-6 sm:space-y-8 animate-fade-in max-w-5xl mx-auto">
       {/* Header Navigation */}
-      <div className="flex items-start gap-4">
+      <div className="flex items-center gap-3 sm:gap-4">
         <Link
           href="/dashboard/clients"
-          className="w-10 h-10 rounded-full bg-white border border-[#EADBCE] flex items-center justify-center text-[#5A544E] hover:text-[#121217] shadow-sm transition-colors flex-shrink-0 mt-1"
+          className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-white border border-[#EADBCE] flex items-center justify-center text-[#5A544E] hover:text-[#121217] shadow-sm transition-colors flex-shrink-0 cursor-pointer"
+          aria-label="Back to Clients"
         >
           <ArrowLeft className="w-4 h-4" />
         </Link>
@@ -106,7 +107,7 @@ export default async function ClientDetailPage({ params }: PageProps) {
 
         <Link
           href="/dashboard/meetings/new"
-          className="btn-hero-gradient flex items-center gap-2 px-5 py-2.5 text-white text-sm font-bold rounded-full shadow-md shadow-rose-500/20 transition-transform hover:scale-105 flex-shrink-0"
+          className="btn-hero-gradient flex items-center justify-center gap-2 px-5 py-2.5 min-h-[44px] text-white text-sm font-bold rounded-full shadow-md shadow-rose-500/20 transition-transform hover:scale-105 flex-shrink-0 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span className="hidden sm:inline">Schedule Meeting</span>

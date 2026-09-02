@@ -79,7 +79,7 @@ export default function NewMeetingPage() {
   return (
     <div className="max-w-2xl mx-auto animate-fade-in">
       <div className="flex items-center gap-3 mb-8">
-        <Link href="/dashboard/meetings" className="w-9 h-9 rounded-full bg-white border border-[#EADBCE] flex items-center justify-center text-[#5A544E] hover:text-[#121217] shadow-sm transition-colors">
+        <Link href="/dashboard/meetings" className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-white border border-[#EADBCE] flex items-center justify-center text-[#5A544E] hover:text-[#121217] shadow-sm transition-colors cursor-pointer" aria-label="Back to Meetings">
           <ArrowLeft className="w-4 h-4" />
         </Link>
         <div>
@@ -102,7 +102,7 @@ export default function NewMeetingPage() {
               <Users className="inline w-3.5 h-3.5 mr-1" />Client *
             </label>
             <select id="meeting-client" name="client_id" value={form.client_id} onChange={handleChange} required
-              className="w-full px-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors">
+              className="w-full px-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] text-base sm:text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors">
               <option value="">Select a client...</option>
               {clients.map((c) => (
                 <option key={c.id} value={c.id}>{c.full_name}</option>
@@ -121,7 +121,7 @@ export default function NewMeetingPage() {
               <FileText className="inline w-3.5 h-3.5 mr-1" />Meeting Type *
             </label>
             <select id="meeting-type" name="meeting_type" value={form.meeting_type} onChange={handleChange} required
-              className="w-full px-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors">
+              className="w-full px-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] text-base sm:text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors">
               {MEETING_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
             </select>
           </div>
@@ -130,18 +130,18 @@ export default function NewMeetingPage() {
           <div>
             <label className="block text-xs font-heading font-bold text-[#5A544E] mb-2">Title (optional)</label>
             <input id="meeting-title" name="title" type="text" value={form.title} onChange={handleChange}
-              placeholder="Auto-generated if left blank" className="w-full px-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] placeholder-[#A89E95] text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors" />
+              placeholder="Auto-generated if left blank" className="w-full px-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] placeholder-[#A89E95] text-base sm:text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors" />
           </div>
 
           {/* Date & Time */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-heading font-bold text-[#5A544E] mb-2">
                 <Calendar className="inline w-3.5 h-3.5 mr-1" />Date *
               </label>
               <input id="meeting-date" name="scheduled_at_date" type="date" value={form.scheduled_at_date} onChange={handleChange} required
                 min={new Date().toISOString().split("T")[0]}
-                className="w-full px-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors" />
+                className="w-full px-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] text-base sm:text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors" />
             </div>
 
             <div>
@@ -149,14 +149,14 @@ export default function NewMeetingPage() {
                 <Clock className="inline w-3.5 h-3.5 mr-1" />Time *
               </label>
               <input id="meeting-time" name="scheduled_at_time" type="time" value={form.scheduled_at_time} onChange={handleChange} required
-                className="w-full px-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors" />
+                className="w-full px-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] text-base sm:text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors" />
             </div>
           </div>
 
           <div>
             <label className="block text-xs font-heading font-bold text-[#5A544E] mb-2">Duration (minutes)</label>
             <select id="meeting-duration" name="duration_minutes" value={form.duration_minutes} onChange={handleChange}
-              className="w-full px-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors">
+              className="w-full px-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] text-base sm:text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors">
               {["30", "45", "60", "90", "120"].map((d) => (
                 <option key={d} value={d}>{d} minutes</option>
               ))}
@@ -173,13 +173,13 @@ export default function NewMeetingPage() {
           </div>
         </div>
 
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           <Link href="/dashboard/meetings"
-            className="flex-1 py-3.5 bg-white hover:bg-[#FAF5F0] border border-[#EADBCE] text-[#121217] font-bold rounded-full transition-colors text-center text-sm shadow-sm">
+            className="flex-1 py-3.5 min-h-[44px] flex items-center justify-center bg-white hover:bg-[#FAF5F0] border border-[#EADBCE] text-[#121217] font-bold rounded-full transition-colors text-center text-sm shadow-sm">
             Cancel
           </Link>
           <button id="submit-meeting" type="submit" disabled={loading}
-            className="btn-hero-gradient flex-1 py-3.5 disabled:opacity-50 text-white font-bold rounded-full transition-all flex items-center justify-center gap-2 text-sm shadow-md shadow-rose-500/20">
+            className="btn-hero-gradient flex-1 py-3.5 min-h-[44px] disabled:opacity-50 text-white font-bold rounded-full transition-all flex items-center justify-center gap-2 text-sm shadow-md shadow-rose-500/20 cursor-pointer">
             {loading ? <><Loader2 className="w-4 h-4 animate-spin" /><span>Scheduling...</span></> : <span>Schedule Meeting</span>}
           </button>
         </div>

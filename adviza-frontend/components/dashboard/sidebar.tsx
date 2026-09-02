@@ -304,7 +304,7 @@ export function DashboardSidebar({ profile }: SidebarProps) {
       {/* Mobile Hamburger Trigger */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="md:hidden fixed top-3.5 left-4 z-40 p-2 rounded-2xl bg-white border border-[#EADBCE] text-[#121217] shadow-sm hover:bg-[#FAF5F0] transition-colors"
+        className="md:hidden fixed top-2.5 left-3 z-40 w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-2xl bg-white border border-[#EADBCE] text-[#121217] shadow-sm hover:bg-[#FAF5F0] transition-colors cursor-pointer"
         aria-label="Open navigation menu"
       >
         <Menu className="w-5 h-5" />
@@ -319,7 +319,7 @@ export function DashboardSidebar({ profile }: SidebarProps) {
           />
           <div className="relative w-4/5 max-w-xs h-full bg-white shadow-2xl z-10 flex flex-col border-r border-[#EADBCE] animate-in slide-in-from-left duration-200">
             {/* Mobile Header */}
-            <div className="px-5 py-5 border-b border-[#EADBCE]/80 flex items-center justify-between">
+            <div className="px-5 py-4 border-b border-[#EADBCE]/80 flex items-center justify-between">
               <Link href="/dashboard" className="flex items-center gap-3 group" onClick={() => setMobileOpen(false)}>
                 <div className="w-9 h-9 rounded-2xl bg-[#121217] flex items-center justify-center shadow-md">
                   <div className="w-3.5 h-3.5 rounded-full border-2 border-white flex items-center justify-center">
@@ -337,7 +337,8 @@ export function DashboardSidebar({ profile }: SidebarProps) {
               </Link>
               <button
                 onClick={() => setMobileOpen(false)}
-                className="p-2 text-[#8E847C] hover:text-[#121217] rounded-xl hover:bg-[#FAF5F0]"
+                className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-[#8E847C] hover:text-[#121217] rounded-xl hover:bg-[#FAF5F0] cursor-pointer"
+                aria-label="Close navigation menu"
               >
                 <X className="w-5 h-5" />
               </button>

@@ -161,24 +161,24 @@ export default function LandingPage() {
             </div>
 
             {/* Right Action Icons */}
-            <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <Link
                 href="/auth/login"
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-[#D8CCC2] hover:border-[#121217] bg-white flex items-center justify-center text-[#121217] transition-all hover:scale-105 shadow-sm"
+                className="w-11 h-11 min-w-[44px] min-h-[44px] sm:w-10 sm:h-10 rounded-full border border-[#D8CCC2] hover:border-[#121217] bg-white flex items-center justify-center text-[#121217] transition-all hover:scale-105 shadow-sm"
                 title="Sign In"
               >
                 <LogIn className="w-4 h-4" />
               </Link>
               <Link
                 href="/auth/signup"
-                className="hidden sm:flex w-10 h-10 rounded-full border border-[#D8CCC2] hover:border-[#121217] bg-white items-center justify-center text-[#121217] transition-all hover:scale-105 shadow-sm"
+                className="hidden sm:flex w-10 h-10 min-w-[40px] min-h-[40px] rounded-full border border-[#D8CCC2] hover:border-[#121217] bg-white items-center justify-center text-[#121217] transition-all hover:scale-105 shadow-sm"
                 title="Account"
               >
                 <User className="w-4 h-4" />
               </Link>
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden p-2 rounded-xl text-[#121217] hover:bg-[#FAF5F0] transition-colors"
+                className="md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center p-2 rounded-xl text-[#121217] hover:bg-[#FAF5F0] transition-colors"
                 aria-label="Toggle mobile menu"
               >
                 {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -227,18 +227,18 @@ export default function LandingPage() {
                 FAQ
               </Link>
             </div>
-            <div className="pt-3 border-t border-[#EADBCE] flex gap-3">
+            <div className="pt-3 border-t border-[#EADBCE] flex flex-col sm:flex-row gap-3">
               <Link
                 href="/auth/signup"
                 onClick={() => setMobileMenuOpen(false)}
-                className="btn-hero-gradient flex-1 py-3 text-center text-white text-xs font-bold rounded-full shadow-sm"
+                className="btn-hero-gradient w-full py-3.5 min-h-[44px] flex items-center justify-center text-center text-white text-base font-bold rounded-full shadow-sm"
               >
                 Start for Free
               </Link>
               <Link
                 href="/auth/login"
                 onClick={() => setMobileMenuOpen(false)}
-                className="px-5 py-3 text-center text-[#121217] bg-[#FAF5F0] border border-[#EADBCE] text-xs font-bold rounded-full"
+                className="w-full px-5 py-3.5 min-h-[44px] flex items-center justify-center text-center text-[#121217] bg-[#FAF5F0] border border-[#EADBCE] text-base font-bold rounded-full"
               >
                 Sign In
               </Link>
@@ -254,7 +254,7 @@ export default function LandingPage() {
             
             {/* Left Content Column */}
             <div className="lg:col-span-6 xl:col-span-5 pt-2 sm:pt-4 text-center lg:text-left">
-              <h1 className="text-4xl sm:text-6xl xl:text-7xl font-heading font-extrabold tracking-tight leading-[1.1] mb-5 sm:mb-6">
+              <h1 className="text-3xl sm:text-5xl lg:text-6xl xl:text-7xl font-heading font-extrabold tracking-tight leading-[1.15] mb-5 sm:mb-6">
                 <span className="gradient-text-hero">AI analysis</span>
                 <br />
                 <span className="text-[#121217]">for real-time</span>
@@ -358,8 +358,8 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              {/* Floating Participant Video 3 (Bottom Left) */}
-              <div className="absolute bottom-1 left-0 sm:left-12 z-20 animate-float-slow scale-75 sm:scale-100 origin-bottom-left">
+              {/* Floating Participant Video 3 (Bottom Left) - desktop/tablet only to avoid mobile clutter */}
+              <div className="hidden sm:block absolute bottom-1 left-0 sm:left-12 z-20 animate-float-slow scale-75 sm:scale-100 origin-bottom-left">
                 <div className="relative w-28 h-20 sm:w-36 sm:h-24 rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-[#EADBCE] shadow-md bg-white">
                   <img
                     src="https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=400&q=80"
@@ -374,8 +374,8 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              {/* Floating Participant Video 4 (Bottom Right) */}
-              <div className="absolute bottom-2 right-0 sm:right-8 z-20 animate-float scale-75 sm:scale-100 origin-bottom-right">
+              {/* Floating Participant Video 4 (Bottom Right) - desktop/tablet only to avoid mobile clutter */}
+              <div className="hidden sm:block absolute bottom-2 right-0 sm:right-8 z-20 animate-float scale-75 sm:scale-100 origin-bottom-right">
                 <div className="relative w-28 h-20 sm:w-36 sm:h-24 rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-[#EADBCE] shadow-md bg-white">
                   <img
                     src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80"
@@ -483,7 +483,7 @@ export default function LandingPage() {
 
                   {/* Bottom Audio Control floating button */}
                   <div className="mt-4 flex justify-center">
-                    <button className="w-9 h-9 rounded-full bg-[#121217] text-white flex items-center justify-center shadow-lg hover:scale-105 transition-transform">
+                    <button className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-[#121217] text-white flex items-center justify-center shadow-lg hover:scale-105 transition-transform" aria-label="Pause audio playback">
                       <Pause className="w-4 h-4 text-white" />
                     </button>
                   </div>
@@ -747,14 +747,14 @@ export default function LandingPage() {
           <p className="text-xs sm:text-sm text-[#7A726A]" suppressHydrationWarning>
             © {new Date().getFullYear()} Adviza AI. Empowering wealth advisors with real-time intelligence.
           </p>
-          <div className="flex gap-6 text-xs sm:text-sm text-[#7A726A]">
-            <Link href="/privacy" className="hover:text-[#121217] transition-colors">
+          <div className="flex flex-wrap items-center justify-center md:justify-end gap-6 text-xs sm:text-sm text-[#7A726A]">
+            <Link href="/privacy" className="py-2.5 hover:text-[#121217] transition-colors">
               Privacy
             </Link>
-            <Link href="/terms" className="hover:text-[#121217] transition-colors">
+            <Link href="/terms" className="py-2.5 hover:text-[#121217] transition-colors">
               Terms
             </Link>
-            <Link href="/contact" className="hover:text-[#121217] transition-colors">
+            <Link href="/contact" className="py-2.5 hover:text-[#121217] transition-colors">
               Contact
             </Link>
           </div>

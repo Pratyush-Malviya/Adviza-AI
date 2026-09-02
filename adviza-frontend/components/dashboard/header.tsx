@@ -58,7 +58,7 @@ export function DashboardHeader({ profile, user }: HeaderProps) {
         {/* Search */}
         <button
           id="header-search"
-          className="flex items-center gap-2 px-3 py-2 bg-white border border-[#EADBCE] rounded-full text-xs sm:text-sm text-[#7A726A] hover:text-[#121217] hover:border-[#D8CCC2] shadow-sm transition-colors"
+          className="flex items-center gap-2 px-3.5 py-2 min-h-[44px] bg-white border border-[#EADBCE] rounded-full text-xs sm:text-sm text-[#7A726A] hover:text-[#121217] hover:border-[#D8CCC2] shadow-sm transition-colors cursor-pointer"
           aria-label="Search"
         >
           <Search className="w-4 h-4 text-[#8E847C]" />
@@ -71,15 +71,15 @@ export function DashboardHeader({ profile, user }: HeaderProps) {
         {/* Notifications */}
         <button
           id="header-notifications"
-          className="relative w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center bg-white border border-[#EADBCE] rounded-full text-[#5A544E] hover:text-[#121217] hover:border-[#D8CCC2] shadow-sm transition-colors"
+          className="relative w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center bg-white border border-[#EADBCE] rounded-full text-[#5A544E] hover:text-[#121217] hover:border-[#D8CCC2] shadow-sm transition-colors cursor-pointer"
           aria-label="Notifications"
         >
           <Bell className="w-4 h-4" />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full" />
+          <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full" />
         </button>
 
         {/* Avatar */}
-        <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-rose-500 to-orange-500 flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0">
+        <div className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-full bg-gradient-to-br from-rose-500 to-orange-500 flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0">
           {getInitials(profile?.full_name || user.email || "U")}
         </div>
       </div>

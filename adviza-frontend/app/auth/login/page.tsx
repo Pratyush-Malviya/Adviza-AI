@@ -59,7 +59,7 @@ export default function LoginPage() {
         </Link>
 
         {/* Card */}
-        <div className="bg-white rounded-[32px] p-8 sm:p-10 border border-[#EADBCE] shadow-xl">
+        <div className="bg-white rounded-[32px] p-6 sm:p-10 border border-[#EADBCE] shadow-xl">
           <div className="mb-6">
             <h1 className="text-2xl font-heading font-extrabold text-[#121217] mb-1">
               Welcome back
@@ -81,7 +81,7 @@ export default function LoginPage() {
                 Work Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E847C]" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E847C] pointer-events-none" />
                 <input
                   id="login-email"
                   type="email"
@@ -89,7 +89,7 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="advisor@yourfirm.com"
                   required
-                  className="w-full pl-10 pr-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] placeholder-[#A89E95] text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors"
+                  className="w-full pl-10 pr-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] placeholder-[#A89E95] text-base sm:text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors"
                 />
               </div>
             </div>
@@ -99,7 +99,7 @@ export default function LoginPage() {
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E847C]" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E847C] pointer-events-none" />
                 <input
                   id="login-password"
                   type={showPassword ? "text" : "password"}
@@ -107,12 +107,13 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="w-full pl-10 pr-12 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] placeholder-[#A89E95] text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors"
+                  className="w-full pl-10 pr-12 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] placeholder-[#A89E95] text-base sm:text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#8E847C] hover:text-[#121217] transition-colors"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-[#8E847C] hover:text-[#121217] transition-colors"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? (
                     <EyeOff className="w-4 h-4" />
@@ -123,10 +124,10 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex justify-end py-1">
               <Link
                 href="/auth/forgot-password"
-                className="text-xs font-semibold text-rose-600 hover:text-rose-700 transition-colors"
+                className="text-xs sm:text-sm font-semibold text-rose-600 hover:text-rose-700 transition-colors py-1.5"
               >
                 Forgot password?
               </Link>
@@ -136,7 +137,7 @@ export default function LoginPage() {
               id="login-submit"
               type="submit"
               disabled={loading}
-              className="btn-hero-gradient w-full py-3.5 text-white font-bold rounded-full transition-all flex items-center justify-center gap-2 shadow-lg shadow-rose-500/20 disabled:opacity-50 mt-2"
+              className="btn-hero-gradient w-full py-3.5 min-h-[44px] text-white font-bold rounded-full transition-all flex items-center justify-center gap-2 shadow-lg shadow-rose-500/20 disabled:opacity-50 mt-2"
             >
               {loading ? (
                 <>
