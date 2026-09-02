@@ -872,6 +872,12 @@ export function ChatPanel({
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
+            onPaste={(e) => {
+              if (e.clipboardData?.files && e.clipboardData.files.length > 0) {
+                const filesArray = Array.from(e.clipboardData.files);
+                setSelectedFiles((prev) => [...prev, ...filesArray]);
+              }
+            }}
             placeholder={`Ask Adviza (${activeModelObj.name})...`}
             disabled={loading}
             className="flex-1 px-4 py-2.5 text-xs bg-[#FAF5F0] border border-[#EADBCE] rounded-2xl text-[#121217] placeholder:text-[#8E847C] focus:outline-none focus:border-rose-500 focus:bg-white transition"
