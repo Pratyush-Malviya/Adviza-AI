@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   LayoutDashboard,
   Users,
@@ -12,6 +12,7 @@ import {
   ClipboardList,
   LogOut,
   ChevronRight,
+  ChevronDown,
   Zap,
   Workflow,
   Sparkles,
@@ -19,6 +20,9 @@ import {
   X,
   PanelLeftClose,
   PanelLeftOpen,
+  MessageSquare,
+  Plus,
+  Trash2,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn, getInitials } from "@/lib/utils";
@@ -45,9 +49,71 @@ interface SidebarProps {
 export function DashboardSidebar({ profile }: SidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [chatSessions, setChatSessions] = useState<{ id: string; title: string; updated_at?: string }[]>([]);
+  const [isChatSubmenuOpen, setIsChatSubmenuOpen] = useState(true);
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const supabase = createClient();
+
+  // Load chat sessions from localStorage and sync
+  const loadChatSessions = useCallback(() => {
+    try {
+      const cached = localStorage.getItem("adviza_chat_sessions");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed)) {
+          const realSessions = parsed.filter(
+            (s: any) => s.id && !s.id.startsWith("sess_calendar_") && !s.id.startsWith("sess_july_") && !s.id.startsWith("sess_briefing_")
+          );
+          setChatSessions(realSessions);
+        }
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    loadChatSessions();
+
+    const handleUpdate = () => {
+      loadChatSessions();
+    };
+
+    window.addEventListener("adviza:chat-sessions-updated", handleUpdate);
+    window.addEventListener("storage", handleUpdate);
+    return () => {
+      window.removeEventListener("adviza:chat-sessions-updated", handleUpdate);
+      window.removeEventListener("storage", handleUpdate);
+    };
+  }, [loadChatSessions]);
+
+  const handleDeleteSession = async (sessionId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setChatSessions((prev) => {
+      const updated = prev.filter((s) => s.id !== sessionId);
+      try {
+        localStorage.setItem("adviza_chat_sessions", JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+
+    window.dispatchEvent(new CustomEvent("adviza:chat-sessions-updated"));
+
+    if (searchParams?.get("sessionId") === sessionId) {
+      router.push("/dashboard/chat");
+    }
+
+    try {
+      await fetch("/api/ai/chat-sessions", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId }),
+      });
+    } catch (err) {
+      console.error("Failed to delete session on server:", err);
+    }
+  };
 
   // Load user's desktop sidebar collapse preference from localStorage
   useEffect(() => {
@@ -105,31 +171,119 @@ export function DashboardSidebar({ profile }: SidebarProps) {
     <ul className="space-y-1">
       {NAV_ITEMS.map((item) => {
         const Icon = item.icon;
+        const isChat = item.href === "/dashboard/chat";
         const isActive =
           item.href === "/dashboard"
             ? pathname === "/dashboard"
             : pathname.startsWith(item.href);
 
         return (
-          <li key={item.href} className="relative group">
-            <Link
-              href={item.href}
-              onClick={() => setMobileOpen(false)}
-              className={cn(
-                "flex items-center rounded-2xl text-sm font-semibold transition-all min-h-[44px]",
-                collapsed ? "justify-center px-0 py-2.5" : "gap-3 px-3.5 py-2.5",
-                isActive
-                  ? "bg-[#121217] text-white shadow-sm"
-                  : "text-[#5A544E] hover:text-[#121217] hover:bg-[#FAF5F0]"
-              )}
-              title={collapsed ? item.label : undefined}
-            >
-              <Icon className={cn("w-5 h-5 flex-shrink-0", isActive ? "text-rose-400" : "text-[#8E847C]")} />
-              {!collapsed && <span>{item.label}</span>}
-              {!collapsed && isActive && (
-                <ChevronRight className="w-3.5 h-3.5 ml-auto text-white/60" />
-              )}
-            </Link>
+          <li key={item.href} className="relative group space-y-1">
+            <div className="flex items-center">
+              <Link
+                href={item.href}
+                onClick={() => {
+                  if (isChat && pathname === "/dashboard/chat") {
+                    setIsChatSubmenuOpen((prev) => !prev);
+                  }
+                  setMobileOpen(false);
+                }}
+                className={cn(
+                  "flex-1 flex items-center rounded-2xl text-sm font-semibold transition-all min-h-[44px]",
+                  collapsed ? "justify-center px-0 py-2.5" : "gap-3 px-3.5 py-2.5",
+                  isActive
+                    ? "bg-[#121217] text-white shadow-sm"
+                    : "text-[#5A544E] hover:text-[#121217] hover:bg-[#FAF5F0]"
+                )}
+                title={collapsed ? item.label : undefined}
+              >
+                <Icon className={cn("w-5 h-5 flex-shrink-0", isActive ? "text-rose-400" : "text-[#8E847C]")} />
+                {!collapsed && <span>{item.label}</span>}
+                {!collapsed && isChat && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsChatSubmenuOpen((prev) => !prev);
+                    }}
+                    className="ml-auto p-1 rounded-lg hover:bg-white/10 transition-colors"
+                  >
+                    <ChevronDown
+                      className={cn(
+                        "w-3.5 h-3.5 transition-transform duration-200",
+                        isChatSubmenuOpen ? "rotate-0 text-white/70" : "-rotate-90 text-[#8E847C]"
+                      )}
+                    />
+                  </button>
+                )}
+                {!collapsed && !isChat && isActive && (
+                  <ChevronRight className="w-3.5 h-3.5 ml-auto text-white/60" />
+                )}
+              </Link>
+            </div>
+
+            {/* Chat Submenu under AI Chat in Primary Sidebar */}
+            {!collapsed && isChat && isChatSubmenuOpen && (
+              <div className="pl-3 pr-1 py-1 space-y-1 border-l-2 border-[#EADBCE] ml-5 animate-in fade-in slide-in-from-top-1 duration-150">
+                <Link
+                  href="/dashboard/chat"
+                  onClick={() => {
+                    setMobileOpen(false);
+                    window.dispatchEvent(new CustomEvent("adviza:new-chat"));
+                  }}
+                  className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50/80 transition-colors group/new"
+                >
+                  <Plus className="w-3.5 h-3.5 transition-transform group-hover/new:rotate-90" />
+                  <span>New Chat</span>
+                </Link>
+
+                <div className="max-h-52 overflow-y-auto space-y-0.5 scrollbar-thin pr-1">
+                  {chatSessions.length === 0 ? (
+                    <div className="px-2.5 py-1.5 text-[11px] text-[#8E847C]">No previous chats</div>
+                  ) : (
+                    chatSessions.slice(0, 15).map((session) => {
+                      const currentSessionId = searchParams?.get("sessionId");
+                      const isSessionActive = pathname === "/dashboard/chat" && currentSessionId === session.id;
+
+                      return (
+                        <div
+                          key={session.id}
+                          className={cn(
+                            "group/item flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-xl text-xs transition-colors",
+                            isSessionActive
+                              ? "bg-[#FAF5F0] text-[#121217] font-semibold border border-[#EADBCE]"
+                              : "text-[#5A544E] hover:text-[#121217] hover:bg-[#FAF5F0]/70"
+                          )}
+                        >
+                          <Link
+                            href={`/dashboard/chat?sessionId=${session.id}`}
+                            onClick={() => setMobileOpen(false)}
+                            className="flex-1 truncate flex items-center gap-2"
+                            title={session.title}
+                          >
+                            <MessageSquare
+                              className={cn(
+                                "w-3 h-3 flex-shrink-0",
+                                isSessionActive ? "text-rose-500" : "text-[#8E847C]"
+                              )}
+                            />
+                            <span className="truncate text-[11px]">{session.title || "Untitled Chat"}</span>
+                          </Link>
+                          <button
+                            onClick={(e) => handleDeleteSession(session.id, e)}
+                            className="opacity-0 group-hover/item:opacity-100 p-1 text-[#8E847C] hover:text-rose-600 rounded-md hover:bg-rose-50 transition-all"
+                            title="Delete chat"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Tooltip on collapsed desktop hover */}
             {collapsed && (
