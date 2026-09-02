@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { Shield, CheckCircle2, AlertTriangle, XCircle, ChevronRight } from "lucide-react";
 import { formatDate } from "@/lib/utils";
+import { ComplianceAuditActions } from "@/components/compliance/compliance-audit-actions";
 
 export const metadata = { title: "Compliance" };
 
@@ -35,9 +36,12 @@ export default async function CompliancePage() {
 
   return (
     <div className="space-y-8 animate-fade-in max-w-7xl mx-auto">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#121217] tracking-tight">Compliance & Audit</h1>
-        <p className="text-sm text-[#7A726A] mt-1">Immutable audit trail and regulatory compliance records</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#121217] tracking-tight">Compliance & Audit</h1>
+          <p className="text-sm text-[#7A726A] mt-1">Immutable audit trail and regulatory compliance records (SEC Rule 204-2 & FINRA 4511)</p>
+        </div>
+        <ComplianceAuditActions recordsCount={meetings?.length || 0} />
       </div>
 
       {/* Stats */}

@@ -21,19 +21,22 @@ import {
 } from "lucide-react";
 import { NodeTemplateDefinition, NodeCategory } from "@/types/workflow";
 import { AVAILABLE_NODE_TEMPLATES } from "./workflow-templates";
+import { WORKFLOW_TEMPLATES, type WorkflowTemplate } from "@/lib/workflow-templates";
 import { ConnectorBadge } from "./connector-badge";
 import { cn } from "@/lib/utils";
 
 interface WorkflowPaletteProps {
   onAddNode: (template: NodeTemplateDefinition, position?: { x: number; y: number }) => void;
+  onLoadTemplate?: (template: WorkflowTemplate) => void;
   /** templates prop is accepted but not used — we always use AVAILABLE_NODE_TEMPLATES */
   templates?: NodeTemplateDefinition[];
   /** Fn from useConnections to check if a composio app slug is connected */
   isConnected?: (appId: string) => boolean;
 }
 
-const CATEGORY_TABS: { key: "all" | NodeCategory; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+const CATEGORY_TABS: { key: "all" | NodeCategory | "templates"; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { key: "all", label: "All", icon: Layers },
+  { key: "templates", label: "Templates", icon: Sparkles },
   { key: "trigger", label: "Triggers", icon: Zap },
   { key: "agent", label: "AI Agents", icon: Sparkles },
   { key: "logic", label: "Logic", icon: GitBranch },
@@ -55,8 +58,8 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Cpu
 };
 
-export function WorkflowPalette({ onAddNode, isConnected }: WorkflowPaletteProps) {
-  const [selectedCategory, setSelectedCategory] = useState<"all" | NodeCategory>("all");
+export function WorkflowPalette({ onAddNode, onLoadTemplate, isConnected }: WorkflowPaletteProps) {
+  const [selectedCategory, setSelectedCategory] = useState<"all" | NodeCategory | "templates">("all");
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredTemplates = AVAILABLE_NODE_TEMPLATES.filter((template) => {
@@ -66,6 +69,13 @@ export function WorkflowPalette({ onAddNode, isConnected }: WorkflowPaletteProps
       template.subtitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (template.badge && template.badge.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesCategory && matchesSearch;
+  });
+
+  const filteredWorkflows = WORKFLOW_TEMPLATES.filter((w) => {
+    return (
+      w.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      w.description.toLowerCase().includes(searchQuery.toLowerCase())
+    );
   });
 
   const handleDragStart = (e: React.DragEvent, template: NodeTemplateDefinition) => {
@@ -82,10 +92,10 @@ export function WorkflowPalette({ onAddNode, isConnected }: WorkflowPaletteProps
             <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-violet-600 to-rose-500 flex items-center justify-center text-white text-xs font-bold shadow-sm">
               W
             </div>
-            <h2 className="font-semibold text-sm text-[#121217]">Node Library</h2>
+            <h2 className="font-semibold text-sm text-[#121217]">Node & Template Library</h2>
           </div>
           <span className="text-[11px] font-medium text-[#8E847C] bg-[#EADBCE]/50 px-2 py-0.5 rounded-full">
-            {AVAILABLE_NODE_TEMPLATES.length} Blocks
+            {selectedCategory === "templates" ? `${WORKFLOW_TEMPLATES.length} Templates` : `${AVAILABLE_NODE_TEMPLATES.length} Blocks`}
           </span>
         </div>
 
@@ -96,7 +106,7 @@ export function WorkflowPalette({ onAddNode, isConnected }: WorkflowPaletteProps
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search triggers, agents, actions..."
+            placeholder="Search triggers, agents, templates..."
             className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-[#EADBCE] rounded-xl focus:outline-none focus:ring-1 focus:ring-rose-500 placeholder:text-[#8E847C]"
           />
         </div>
@@ -125,9 +135,41 @@ export function WorkflowPalette({ onAddNode, isConnected }: WorkflowPaletteProps
         </div>
       </div>
 
-      {/* Node Cards List */}
+      {/* Node & Template Cards List */}
       <div className="flex-1 overflow-y-auto p-3 space-y-2.5">
-        {filteredTemplates.length === 0 ? (
+        {selectedCategory === "templates" ? (
+          filteredWorkflows.map((tpl) => (
+            <div
+              key={tpl.id}
+              className="p-3.5 bg-white border border-[#EADBCE] hover:border-rose-300 rounded-2xl shadow-2xs hover:shadow-md transition space-y-2"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">{tpl.icon}</span>
+                  <span className="text-xs font-bold text-[#121217]">{tpl.name}</span>
+                </div>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#FAF5F0] border border-[#EADBCE] text-[#5A544E]">
+                  {tpl.nodes.length} Nodes
+                </span>
+              </div>
+              <p className="text-[11px] text-[#8E847C] leading-relaxed">
+                {tpl.description}
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  if (onLoadTemplate) {
+                    onLoadTemplate(tpl);
+                  }
+                }}
+                className="w-full py-1.5 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 hover:opacity-95 text-white text-xs font-bold shadow-2xs transition flex items-center justify-center gap-1.5"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Load into Canvas</span>
+              </button>
+            </div>
+          ))
+        ) : filteredTemplates.length === 0 ? (
           <div className="text-center py-10 text-xs text-[#8E847C]">
             No building blocks match your search.
           </div>

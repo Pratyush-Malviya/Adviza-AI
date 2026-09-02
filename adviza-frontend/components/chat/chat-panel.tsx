@@ -43,6 +43,9 @@ import { HITLApprovalCard } from "./hitl-approval-card";
 import { BriefingCard } from "./briefing-card";
 import { ExecutionPreviewCard } from "./execution-preview-card";
 import { WorkflowProgressStepper } from "./workflow-progress-stepper";
+import { CitationSourcesCard } from "./citation-sources-card";
+import { performLiveSearch, type SearchCitation } from "@/lib/search-service";
+import { parseUploadedDocument } from "@/lib/document-parser";
 
 export interface ModelOption {
   id: string;
@@ -117,6 +120,9 @@ export interface ChatMessage {
   missingConnectors?: any[];
   hitlPrompts?: any[];
   isThinking?: boolean;
+  citations?: SearchCitation[];
+  isDeepResearch?: boolean;
+  isWebSearch?: boolean;
 }
 
 interface ChatPanelProps {
@@ -362,6 +368,38 @@ export function ChatPanel({
 
     let query = rawQuery;
     const directives: string[] = [];
+
+    // Parse attached documents and financial statements
+    let documentContext = "";
+    if (selectedFiles.length > 0) {
+      try {
+        const parsedDocs = await Promise.all(selectedFiles.map((f) => parseUploadedDocument(f)));
+        for (const doc of parsedDocs) {
+          if (doc.structuredHoldings && doc.structuredHoldings.length > 0) {
+            documentContext += `\n[Extracted Holdings from ${doc.fileName} (Total Value: $${doc.totalPortfolioValue?.toLocaleString() || "N/A"})]:\n${JSON.stringify(doc.structuredHoldings, null, 2)}\n`;
+          } else if (doc.extractedText) {
+            documentContext += `\n[Extracted Content from ${doc.fileName}]:\n${doc.extractedText.slice(0, 2000)}\n`;
+          }
+        }
+      } catch (err) {
+        console.warn("Document parsing note:", err);
+      }
+    }
+
+    // Perform live search or deep research
+    let searchCitations: SearchCitation[] = [];
+    if ((webSearch || deepResearch) && !textToSend) {
+      try {
+        const searchRes = await performLiveSearch(rawQuery, { deepResearch });
+        searchCitations = searchRes.citations;
+        if (searchCitations.length > 0) {
+          directives.push(`[Verified Live Web Search Sources (${searchCitations.length} Sources)]:\n${searchCitations.map((c, i) => `[${i + 1}] ${c.title} (${c.url}): ${c.snippet}`).join("\n")}`);
+        }
+      } catch (err) {
+        console.warn("Search retrieval note:", err);
+      }
+    }
+
     if (thinkLonger && !textToSend) {
       directives.push("[Deep Reasoning Mode: Elaborate and perform step-by-step fiduciary audit analysis]");
     }
@@ -370,6 +408,10 @@ export function ChatPanel({
     }
     if (webSearch && !textToSend) {
       directives.push("[Live Web Search: Gather current live web intelligence, recent market updates, and regulatory filings]");
+    }
+
+    if (documentContext) {
+      directives.push(documentContext);
     }
 
     if (directives.length > 0) {
@@ -509,6 +551,9 @@ export function ChatPanel({
                     role: "assistant",
                     content: assistantText,
                     timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+                    citations: searchCitations.length > 0 ? searchCitations : undefined,
+                    isDeepResearch: deepResearch,
+                    isWebSearch: webSearch,
                   },
                 ]);
               } else {
@@ -1083,6 +1128,14 @@ export function ChatPanel({
                         />
                       ))}
                     </div>
+                  )}
+
+                  {/* Search / Deep Research Citation Sources */}
+                  {m.citations && m.citations.length > 0 && (
+                    <CitationSourcesCard
+                      citations={m.citations}
+                      isDeepResearch={m.isDeepResearch}
+                    />
                   )}
 
                   <div

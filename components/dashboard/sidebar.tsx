@@ -476,6 +476,24 @@ export function DashboardSidebar({ profile }: SidebarProps) {
           </div>
         </nav>
 
+        {/* App Connectors Status */}
+        {!isCollapsed && (
+          <div className="px-3 pb-2">
+            <Link
+              href="/dashboard/connectors"
+              className="flex items-center justify-between p-2.5 rounded-2xl bg-[#FAF5F0] hover:bg-[#F2ECE4] border border-[#EADBCE] text-xs transition group shadow-2xs"
+            >
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="font-bold text-[#121217] text-[11px]">Live Connectors</span>
+              </div>
+              <span className="text-[10px] font-semibold text-rose-600 bg-white px-2 py-0.5 rounded-full border border-[#EADBCE]">
+                Active
+              </span>
+            </Link>
+          </div>
+        )}
+
         {/* User section */}
         <div className={cn("py-4 border-t border-[#EADBCE]/80 bg-[#FAF5F0]/40", isCollapsed ? "px-2" : "px-3")}>
           <div

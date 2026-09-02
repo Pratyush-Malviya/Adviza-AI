@@ -1,0 +1,315 @@
+/**
+ * lib/workflow-templates.ts
+ * Pre-built enterprise fiduciary workflow automation templates.
+ * Provides instant 1-click loading onto the Adviza visual workflow canvas.
+ */
+
+import type { WorkflowNode, WorkflowEdge } from "@/types/workflow";
+
+export interface WorkflowTemplate {
+  id: string;
+  name: string;
+  description: string;
+  category: "rebalancing" | "onboarding" | "tax" | "compliance" | "meeting";
+  icon: string;
+  nodes: WorkflowNode[];
+  edges: WorkflowEdge[];
+}
+
+export const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
+  {
+    id: "tpl-quarterly-rebalance",
+    name: "Quarterly Portfolio Rebalance & Fiduciary Review",
+    description: "Evaluates target asset allocation drift (>5%), calculates tax-efficient rebalance orders, verifies wash-sale rules, and generates advisor approval request.",
+    category: "rebalancing",
+    icon: "⚖️",
+    nodes: [
+      {
+        id: "node-1",
+        position: { x: 80, y: 140 },
+        data: {
+          label: "Quarterly Schedule Trigger",
+          subtitle: "Runs 1st day of each quarter",
+          category: "trigger",
+          typeId: "trigger_schedule",
+          iconName: "Calendar",
+          color: "#E11D48",
+          badge: "Schedule",
+          config: { schedule: "0 0 1 */3 *" },
+        },
+        inputs: [],
+        outputs: [{ id: "out-1", name: "Trigger", type: "out" }],
+      },
+      {
+        id: "node-2",
+        position: { x: 380, y: 140 },
+        data: {
+          label: "Asset Allocation Drift Scanner",
+          subtitle: "Identifies drift > 5.0%",
+          category: "agent",
+          typeId: "agent_portfolio_drift",
+          iconName: "TrendingUp",
+          color: "#8B5CF6",
+          badge: "AI Fleet",
+          config: { thresholdDriftPercent: 5.0, benchmark: "60_40_global" },
+        },
+        inputs: [{ id: "in-1", name: "In", type: "in" }],
+        outputs: [{ id: "out-1", name: "Rebalance Orders", type: "out" }],
+      },
+      {
+        id: "node-3",
+        position: { x: 680, y: 140 },
+        data: {
+          label: "SEC Suitability & Tax Impact Auditor",
+          subtitle: "Form ADV Part 2A verification",
+          category: "logic",
+          typeId: "agent_compliance_audit",
+          iconName: "ShieldCheck",
+          color: "#059669",
+          badge: "Compliance",
+          config: { verifyWashSale: true, formADVCheck: true },
+        },
+        inputs: [{ id: "in-1", name: "Orders", type: "in" }],
+        outputs: [{ id: "out-1", name: "Compliant Orders", type: "out" }],
+      },
+      {
+        id: "node-4",
+        position: { x: 980, y: 140 },
+        data: {
+          label: "Advisor HITL Sign-off & Order Staging",
+          subtitle: "Requires advisor approval before dispatch",
+          category: "action",
+          typeId: "action_hitl_approval",
+          iconName: "UserCheck",
+          color: "#D97706",
+          badge: "HITL Gate",
+          config: { requiresSignature: true, autoNotifyEmail: true },
+        },
+        inputs: [{ id: "in-1", name: "In", type: "in" }],
+        outputs: [],
+      },
+    ],
+    edges: [
+      { id: "e1-2", sourceNodeId: "node-1", sourcePortId: "out-1", targetNodeId: "node-2", targetPortId: "in-1" },
+      { id: "e2-3", sourceNodeId: "node-2", sourcePortId: "out-1", targetNodeId: "node-3", targetPortId: "in-1" },
+      { id: "e3-4", sourceNodeId: "node-3", sourcePortId: "out-1", targetNodeId: "node-4", targetPortId: "in-1" },
+    ],
+  },
+  {
+    id: "tpl-client-onboarding",
+    name: "HNW Client Onboarding & CRM Sync",
+    description: "Automates new client KYC ingestion, risk profiling questionnaire, Salesforce/HubSpot client creation, and welcome briefing generation.",
+    category: "onboarding",
+    icon: "🚀",
+    nodes: [
+      {
+        id: "node-1",
+        position: { x: 80, y: 140 },
+        data: {
+          label: "New Client Onboarding Webhook",
+          subtitle: "Ingests form submission",
+          category: "trigger",
+          typeId: "trigger_webhook",
+          iconName: "Webhook",
+          color: "#E11D48",
+          badge: "Webhook",
+          config: { source: "client_portal_onboarding" },
+        },
+        inputs: [],
+        outputs: [{ id: "out-1", name: "Client Payload", type: "out" }],
+      },
+      {
+        id: "node-2",
+        position: { x: 380, y: 140 },
+        data: {
+          label: "Risk Tolerance & Suitability Profiler",
+          subtitle: "FINRA Rule 2111 scoring",
+          category: "agent",
+          typeId: "agent_risk_profile",
+          iconName: "Brain",
+          color: "#8B5CF6",
+          badge: "AI Agent",
+          config: { model: "claude-3-5-sonnet", profileType: "finra_2111" },
+        },
+        inputs: [{ id: "in-1", name: "In", type: "in" }],
+        outputs: [{ id: "out-1", name: "Profile Data", type: "out" }],
+      },
+      {
+        id: "node-3",
+        position: { x: 680, y: 140 },
+        data: {
+          label: "Create Client Dossier in CRM",
+          subtitle: "Salesforce / HubSpot Contact",
+          category: "action",
+          typeId: "action_crm_sync",
+          iconName: "ShieldCheck",
+          color: "#2563EB",
+          badge: "Salesforce",
+          config: { app: "salesforce", action: "create_contact_and_account" },
+        },
+        inputs: [{ id: "in-1", name: "In", type: "in" }],
+        outputs: [{ id: "out-1", name: "Contact ID", type: "out" }],
+      },
+      {
+        id: "node-4",
+        position: { x: 980, y: 140 },
+        data: {
+          label: "Schedule Discovery Meeting",
+          subtitle: "Google Calendar 60m invite",
+          category: "action",
+          typeId: "action_calendar_invite",
+          iconName: "Calendar",
+          color: "#059669",
+          badge: "Calendar",
+          config: { app: "googlecalendar", action: "create_event", durationMinutes: 60 },
+        },
+        inputs: [{ id: "in-1", name: "In", type: "in" }],
+        outputs: [],
+      },
+    ],
+    edges: [
+      { id: "e1-2", sourceNodeId: "node-1", sourcePortId: "out-1", targetNodeId: "node-2", targetPortId: "in-1" },
+      { id: "e2-3", sourceNodeId: "node-2", sourcePortId: "out-1", targetNodeId: "node-3", targetPortId: "in-1" },
+      { id: "e3-4", sourceNodeId: "node-3", sourcePortId: "out-1", targetNodeId: "node-4", targetPortId: "in-1" },
+    ],
+  },
+  {
+    id: "tpl-tax-loss-harvesting",
+    name: "Automated Tax-Loss Harvesting & Fiduciary Audit",
+    description: "Identifies taxable positions with harvestable losses exceeding $2,500, verifies non-substantially identical ETF replacement candidates, and flags compliance memos.",
+    category: "tax",
+    icon: "📉",
+    nodes: [
+      {
+        id: "node-1",
+        position: { x: 80, y: 140 },
+        data: {
+          label: "Market Volatility Trigger",
+          subtitle: "Triggers on >3% market dip",
+          category: "trigger",
+          typeId: "trigger_market_dip",
+          iconName: "TrendingUp",
+          color: "#E11D48",
+          badge: "Market Feed",
+          config: { marketDropThresholdPercent: 3.0 },
+        },
+        inputs: [],
+        outputs: [{ id: "out-1", name: "Market Event", type: "out" }],
+      },
+      {
+        id: "node-2",
+        position: { x: 380, y: 140 },
+        data: {
+          label: "Unrealized Capital Loss Scanner",
+          subtitle: "Filters loss > $2,500",
+          category: "agent",
+          typeId: "agent_tax_loss_scanner",
+          iconName: "Brain",
+          color: "#8B5CF6",
+          badge: "Tax Engine",
+          config: { minHarvestableLossDollars: 2500 },
+        },
+        inputs: [{ id: "in-1", name: "In", type: "in" }],
+        outputs: [{ id: "out-1", name: "Loss Positions", type: "out" }],
+      },
+      {
+        id: "node-3",
+        position: { x: 680, y: 140 },
+        data: {
+          label: "Wash-Sale ETF Substitute Matcher",
+          subtitle: "Non-identical substitute ETF (r > 0.95)",
+          category: "logic",
+          typeId: "agent_etf_substitute",
+          iconName: "GitBranch",
+          color: "#D97706",
+          badge: "Wash-Sale",
+          config: { substituteCorrelationMin: 0.95 },
+        },
+        inputs: [{ id: "in-1", name: "In", type: "in" }],
+        outputs: [{ id: "out-1", name: "Approved Swaps", type: "out" }],
+      },
+      {
+        id: "node-4",
+        position: { x: 980, y: 140 },
+        data: {
+          label: "Generate Audit-Ready Tax Memo",
+          subtitle: "WORM SHA-256 compliance record",
+          category: "action",
+          typeId: "action_compliance_memo",
+          iconName: "ShieldCheck",
+          color: "#059669",
+          badge: "WORM Audit",
+          config: { format: "pdf_worm_audit" },
+        },
+        inputs: [{ id: "in-1", name: "In", type: "in" }],
+        outputs: [],
+      },
+    ],
+    edges: [
+      { id: "e1-2", sourceNodeId: "node-1", sourcePortId: "out-1", targetNodeId: "node-2", targetPortId: "in-1" },
+      { id: "e2-3", sourceNodeId: "node-2", sourcePortId: "out-1", targetNodeId: "node-3", targetPortId: "in-1" },
+      { id: "e3-4", sourceNodeId: "node-3", sourcePortId: "out-1", targetNodeId: "node-4", targetPortId: "in-1" },
+    ],
+  },
+  {
+    id: "tpl-meeting-briefing-prep",
+    name: "Pre-Meeting Intelligence & Suitability Memo",
+    description: "2 hours prior to scheduled client meetings, summarizes recent portfolio performance, open action items, and emails an executive briefing to the advisor.",
+    category: "meeting",
+    icon: "📋",
+    nodes: [
+      {
+        id: "node-1",
+        position: { x: 80, y: 140 },
+        data: {
+          label: "2h Pre-Meeting Calendar Trigger",
+          subtitle: "Fires 2h before client review",
+          category: "trigger",
+          typeId: "trigger_calendar_event",
+          iconName: "Calendar",
+          color: "#E11D48",
+          badge: "Google Cal",
+          config: { bufferHours: 2 },
+        },
+        inputs: [],
+        outputs: [{ id: "out-1", name: "Meeting Context", type: "out" }],
+      },
+      {
+        id: "node-2",
+        position: { x: 380, y: 140 },
+        data: {
+          label: "Pre-Meeting Executive Briefing Agent",
+          subtitle: "Summarizes notes, portfolio, flags",
+          category: "agent",
+          typeId: "agent_meeting_briefing",
+          iconName: "Brain",
+          color: "#8B5CF6",
+          badge: "Briefing",
+          config: { includeHoldings: true, includeActionItems: true },
+        },
+        inputs: [{ id: "in-1", name: "In", type: "in" }],
+        outputs: [{ id: "out-1", name: "Briefing Dossier", type: "out" }],
+      },
+      {
+        id: "node-3",
+        position: { x: 680, y: 140 },
+        data: {
+          label: "Dispatch Advisor Briefing Email",
+          subtitle: "Sends executive PDF to advisor",
+          category: "action",
+          typeId: "action_gmail_send",
+          iconName: "Mail",
+          color: "#2563EB",
+          badge: "Gmail",
+          config: { app: "gmail", action: "send_email_briefing" },
+        },
+        inputs: [{ id: "in-1", name: "In", type: "in" }],
+        outputs: [],
+      },
+    ],
+    edges: [
+      { id: "e1-2", sourceNodeId: "node-1", sourcePortId: "out-1", targetNodeId: "node-2", targetPortId: "in-1" },
+      { id: "e2-3", sourceNodeId: "node-2", sourcePortId: "out-1", targetNodeId: "node-3", targetPortId: "in-1" },
+    ],
+  },
+];
