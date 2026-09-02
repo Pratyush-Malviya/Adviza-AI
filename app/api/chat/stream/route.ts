@@ -170,7 +170,52 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 4. Built-in Adviza Fiduciary Intelligence & Streaming Engine ($0 Cost / No API Keys)
+    // 4. NVIDIA AI Gateway Streaming (If NVIDIA_API_KEY is provided)
+    const nvidiaKey = process.env.NVIDIA_API_KEY;
+    if (nvidiaKey) {
+      try {
+        const nvidiaUrl =
+          process.env.NVIDIA_BASE_URL ||
+          "https://integrate.api.nvidia.com/v1/chat/completions";
+        const nvidiaModel = process.env.NVIDIA_MODEL || "moonshotai/kimi-k3";
+
+        const nvidiaRes = await fetch(nvidiaUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${nvidiaKey}`,
+          },
+          body: JSON.stringify({
+            model: nvidiaModel,
+            messages: [
+              {
+                role: "system",
+                content:
+                  "You are Adviza AI, an Enterprise Chief of Staff and Fiduciary Wealth Operating System for RIAs. Always provide structured executive analysis with clean markdown, headers, and FINRA/SEC compliance awareness.",
+              },
+              { role: "user", content: message },
+            ],
+            stream: true,
+            temperature: 0.6,
+            max_tokens: 4096,
+          }),
+        });
+
+        if (nvidiaRes.ok && nvidiaRes.body) {
+          return new Response(nvidiaRes.body, {
+            headers: {
+              "Content-Type": "text/event-stream",
+              "Cache-Control": "no-cache, no-transform",
+              Connection: "keep-alive",
+            },
+          });
+        }
+      } catch (err) {
+        console.warn("NVIDIA AI Gateway error, falling back to built-in engine:", err);
+      }
+    }
+
+    // 5. Built-in Adviza Fiduciary Intelligence & Streaming Engine ($0 Cost / No API Keys)
     const encoder = new TextEncoder();
 
     const stream = new ReadableStream({
