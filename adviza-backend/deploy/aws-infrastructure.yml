@@ -1,0 +1,118 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Adviza AI - Production AWS Backend Infrastructure (App Runner + Least-Privilege IAM + Bedrock)"
+
+Parameters:
+  Environment:
+    Type: String
+    Default: "production"
+    AllowedValues: ["production", "staging"]
+    Description: "Deployment environment name"
+  
+  ImageUri:
+    Type: String
+    Description: "ECR Image URI for adviza-backend (e.g., 051580166973.dkr.ecr.ap-south-1.amazonaws.com/adviza-backend:latest)"
+    Default: "051580166973.dkr.ecr.ap-south-1.amazonaws.com/adviza-backend:latest"
+
+  FrontendUrl:
+    Type: String
+    Default: "https://adviza-ai.vercel.app"
+    Description: "Origin URL for CORS configuration"
+
+Resources:
+  # 1. IAM Instance Role for App Runner / ECS with Least-Privilege Bedrock & S3 Access
+  AdvizaBackendInstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "adviza-backend-role-${Environment}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - tasks.apprunner.amazonaws.com
+                - ecs-tasks.amazonaws.com
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: "AdvizaBedrockInvocation"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "bedrock:InvokeModel"
+                  - "bedrock:InvokeModelWithResponseStream"
+                Resource:
+                  - "arn:aws:bedrock:*::foundation-model/anthropic.claude-*"
+                  - "arn:aws:bedrock:*::foundation-model/amazon.titan-*"
+        - PolicyName: "AdvizaTranscribeAndS3"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "transcribe:StartTranscriptionJob"
+                  - "transcribe:GetTranscriptionJob"
+                  - "s3:PutObject"
+                  - "s3:GetObject"
+                Resource:
+                  - "arn:aws:s3:::adviza-transcripts-*/*"
+                  - "arn:aws:s3:::adviza-documents-*/*"
+
+  # 2. IAM Access Role allowing App Runner to pull from ECR
+  AdvizaAppRunnerECRAccessRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "adviza-apprunner-ecr-role-${Environment}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: "build.apprunner.amazonaws.com"
+            Action: "sts:AssumeRole"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess"
+
+  # 3. AWS App Runner Fully Managed Container Service
+  AdvizaBackendAppRunnerService:
+    Type: AWS::AppRunner::Service
+    Properties:
+      ServiceName: !Sub "adviza-backend-${Environment}"
+      SourceConfiguration:
+        AuthenticationConfiguration:
+          AccessRoleArn: !GetAtt AdvizaAppRunnerECRAccessRole.Arn
+        AutoDeploymentsEnabled: true
+        ImageRepository:
+          ImageIdentifier: !Ref ImageUri
+          ImageRepositoryType: ECR
+          ImageConfiguration:
+            Port: "4000"
+            RuntimeEnvironmentVariables:
+              - Name: NODE_ENV
+                Value: "production"
+              - Name: PORT
+                Value: "4000"
+              - Name: HOST
+                Value: "0.0.0.0"
+              - Name: FRONTEND_URL
+                Value: !Ref FrontendUrl
+      InstanceConfiguration:
+        Cpu: "1 vCPU"
+        Memory: "2 GB"
+        InstanceRoleArn: !GetAtt AdvizaBackendInstanceRole.Arn
+      HealthCheckConfiguration:
+        Protocol: HTTP
+        Path: "/v1/health"
+        Interval: 15
+        Timeout: 5
+        HealthyThreshold: 1
+        UnhealthyThreshold: 3
+
+Outputs:
+  ServiceUrl:
+    Description: "Public HTTPS URL of the Adviza Fastify Backend"
+    Value: !GetAtt AdvizaBackendAppRunnerService.ServiceUrl
+  ServiceArn:
+    Description: "App Runner Service ARN"
+    Value: !GetAtt AdvizaBackendAppRunnerService.ServiceArn

@@ -1,43 +1,14 @@
 {
-  "name": "wealthpilot",
-  "version": "0.1.0",
+  "name": "adviza-ai-monorepo",
+  "version": "3.5.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
-  },
-  "dependencies": {
-    "@aws-sdk/client-bedrock-runtime": "^3.1118.0",
-    "@aws-sdk/client-s3": "^3.1118.0",
-    "@aws-sdk/client-transcribe": "^3.1118.0",
-    "@aws-sdk/s3-request-presigner": "^3.1118.0",
-    "@langchain/core": "^1.2.9",
-    "@langchain/langgraph": "^1.4.13",
-    "@stripe/stripe-js": "^9.14.0",
-    "@supabase/ssr": "^0.12.5",
-    "@supabase/supabase-js": "^2.112.4",
-    "ai": "^7.0.79",
-    "clsx": "^2.1.1",
-    "date-fns": "^4.4.0",
-    "inngest": "^4.18.1",
-    "lucide-react": "^1.34.0",
-    "next": "16.3.3",
-    "react": "19.2.8",
-    "react-dom": "19.2.8",
-    "resend": "^6.22.1",
-    "stripe": "^22.5.0",
-    "tailwind-merge": "^3.6.0"
-  },
-  "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.3.3",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "dev:website": "npm --prefix adviza-website run dev",
+    "dev:frontend": "npm --prefix adviza-frontend run dev",
+    "dev:backend": "npm --prefix adviza-backend run dev",
+    "build:website": "npm --prefix adviza-website run build",
+    "build:frontend": "npm --prefix adviza-frontend run build",
+    "build:backend": "npm --prefix adviza-backend run build",
+    "build:all": "npm run build:backend && npm run build:frontend && npm run build:website"
   }
 }

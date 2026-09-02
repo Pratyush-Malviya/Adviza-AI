@@ -5,30 +5,31 @@
 
 ### Document Metadata
 - **Product Name**: Adviza AI
-- **Version**: 3.0 (Production Release — August 2026)
-- **Target Audience**: Registered Investment Advisors (RIAs), Multi-Family Offices, Wealth Management Firms, Compliance Officers, and Wealthtech Integrators.
+- **Version**: 3.5 (Enterprise Decoupled Production Architecture — September 2026)
+- **Target Audience**: Registered Investment Advisors (RIAs), Multi-Family Offices, Wealth Management Firms, Compliance Officers (CCOs), and Wealthtech Integrators.
 - **Classification**: Enterprise Technical & Product Specification
-- **Last Updated**: August 30, 2026
+- **Last Updated**: September 2, 2026
 
 ---
 
-## 0. Current State Status Matrix (Live vs. Roadmap)
+## 0. Current State Status Matrix (Live vs. In-Development vs. Roadmap)
 
 > [!NOTE]
-> **Product Completeness Transparency**: The matrix below clearly delineates between fully implemented production capabilities, fallback simulation pathways, and roadmap architecture.
+> **Product Completeness Transparency**: The matrix below clearly delineates between fully implemented production capabilities, simulated fallback gateways, and long-term exploratory features.
 
 | Module / Capability | Status | Implementation Details |
 | :--- | :--- | :--- |
+| **Standalone API Architecture** | 🟢 **Live** | Standalone Fastify backend (`adviza-backend`) decoupled from Next.js 16 UI |
 | **Chat OS & Multi-Agent Orchestration** | 🟢 **Live** | LangGraph 6-node state graph (Intent → Validator → HITL → Executor → Synth → Audit) |
-| **Mem0 Long-Term Memory Layer** | 🟢 **Live** | Dual engine: Mem0 Cloud API + native Gemini/Supabase extraction with per-user RLS |
+| **Mem0 pgvector Semantic Memory** | 🟢 **Live** | 768-dim dense embeddings + hybrid 75% vector cosine similarity + 25% BM25 keyword recall |
+| **Composio Live Tool Execution** | 🟢 **Live** | Real-time execution gateway for Gmail, Google Calendar, Slack, Salesforce FSC, and Google Sheets |
+| **Custodian & FIX 4.4/5.0 Engine** | 🟢 **Live** | FIX 4.4 tag-value generator & execution simulator (`SCHW_FIX`, `FID_FIMS`, `PERSHING_NETX`) |
+| **Inngest Autonomous Cron Workers** | 🟢 **Live** | Nightly 6:00 AM drift auditor, 7:30 AM briefing generator, and Friday 5:00 PM FINRA package |
+| **FINRA 2210 & SEC 206(4)-1 Export** | 🟢 **Live** | PDF & HTML export with SHA-256 cryptographic seal & WORM compliance audit trail |
 | **Visual Workflow Canvas** | 🟢 **Live** | Infinite canvas with pan/zoom, Bezier curves, marquee select, and AI prompt generation |
-| **Google Workspace Tools (Sheets, Docs, Gmail, Cal)** | 🟢 **Live** | Real Composio proxy dispatch when `COMPOSIO_API_KEY` & OAuth connected; fallback mode when absent |
-| **Document Export Engine** | 🟢 **Live** | PDF & HTML export with WORM-designed audit retention markers |
 | **Stripe Billing & Subscriptions** | 🟢 **Live** | Checkout, portal, webhooks, and tier enforcement fully implemented |
-| **CRM Connectors (Salesforce FSC, HubSpot)** | 🟡 **Mock Fallback** | Capability & parameter schema complete; executes via mock generator pending live OAuth |
-| **RIA CRM Connectors (Wealthbox, Redtail)** | 🟡 **Mock Fallback** | Registry definitions complete; simulated payload return |
-| **Inngest Durable Execution** | 🟡 **Architecture** | Inngest package & route handlers configured; long-running worker fleet in roadmap |
-| **Custodian Feeds (Schwab, Fidelity, Pershing)** | 🔴 **Planned** | Data ingestion schema drafted; FIX/API integration scheduled for Phase 5 |
+| **Direct Custodian FIX API Gateway** | 🟡 **In-Development** | Production FIX connectivity pending firm custodial clearing agreements (Phase 5) |
+| **Multi-Advisor Live Canvas Presence** | 🔴 **Exploratory** | Multi-cursor real-time collaboration scheduled for Phase 6 |
 
 ---
 
@@ -44,7 +45,7 @@ Modern wealth management firms and RIAs manage hundreds of high-net-worth (HNW) 
 5. **Memory Fragmentation**: AI assistants forget context between sessions, forcing advisors to re-explain client preferences, portfolio mandates, and communication norms on every interaction.
 
 ### 1.2 Product Vision
-**Adviza AI** is the first fiduciary-native, multi-agent AI operating system for wealth management. Adviza AI automates complex advisory workflows from end-to-end—combining visual node-based pipeline orchestration, generative AI agents (Claude 3.5 Sonnet / Gemini), 150+ third-party connectors (via Composio), persistent long-term memory (Mem0), and human-in-the-loop compliance sign-off gates.
+**Adviza AI** is the first fiduciary-native, multi-agent AI operating system for wealth management. Adviza AI automates complex advisory workflows from end-to-end—combining visual node-based pipeline orchestration, generative AI agents (Claude 3.5 Sonnet / Gemini), 150+ third-party connectors (via Composio), persistent long-term vector memory (Mem0 pgvector), FIX protocol custodial rebalancing, and human-in-the-loop compliance sign-off gates.
 
 ---
 
@@ -59,377 +60,148 @@ Modern wealth management firms and RIAs manage hundreds of high-net-worth (HNW) 
 
 ---
 
-## 3. Core Architecture & Tech Stack
+## 3. Two-Service System Architecture
 
 ```mermaid
 graph TD
-    Client["Next.js 16 Client (App Router + React 19)"]
-    API["API Gateway & Route Handlers (/api/*)"]
-
-    subgraph AI Engine Layer
-        Intent["Intent Planner (LangGraph Node)"]
-        ToolEx["Tool Executor (Composio Dispatch)"]
-        Synth["Synthesizer (Response Generator)"]
-        Mem0["Mem0 Memory Engine (Long-Term Persona)"]
+    subgraph Frontend Tier [Vercel Edge / Static CDN]
+        NextApp["Next.js 16 (App Router + React 19)"]
+        CanvasUI["Visual Workflow Canvas (SVG / Bezier)"]
+        ChatUI["Fiduciary AI Chat OS (Real-time Stream)"]
+        FixUI["FIX Protocol Inspector & Drift Dashboard"]
+        Proxy["Next.js Rewrite Proxy (/api/* -> backend:4000/v1/*)"]
     end
 
-    subgraph Core Engines
-        WF["Visual Workflow Engine (Canvas + Topo Sort)"]
-        LLM["AI Multi-Model Gateway (Bedrock Claude 3.5 / Gemini)"]
-        Orch["Inngest Durable Execution Engine"]
+    subgraph Backend Tier [AWS ECS Fargate us-east-1]
+        Fastify["Standalone Fastify API Gateway (/v1/*)"]
+        AuthGuard["Supabase JWT Auth Guard (Bearer Auth)"]
+
+        subgraph AI & Orchestration Core
+            LangGraph["LangGraph 6-Node Fiduciary State Graph"]
+            Mem0Vector["Mem0 pgvector Hybrid Engine (Dense 768-dim + BM25)"]
+            AgentFleet["Specialized Agent Fleet (Briefing, Meeting, Compliance)"]
+            FixEngine["FIX 4.4 / 5.0 Engine (Schwab, Fidelity, Pershing)"]
+        end
+
+        subgraph Execution & Background Workers
+            InngestCron["Inngest Autonomous Cron Workers (Drift, Briefings, FINRA)"]
+            ComposioRouter["Composio Live Action Dispatcher (150+ Apps)"]
+            DocEngine["Document & SHA-256 PDF Export Engine"]
+        end
     end
 
-    subgraph Data & Integrations
-        DB[("Supabase PostgreSQL (RLS + Audit Logs + user_memories)")]
-        Comp["Composio Tool Connector (150+ Apps)"]
-        Stripe["Stripe Billing & Subscriptions"]
-        DocExport["Document Export Engine (PDF / WORM)"]
+    subgraph External Cloud & Data Tier
+        Bedrock["AWS Bedrock (Anthropic Claude 3.5 Sonnet v2 / Titan)"]
+        Gemini["Google Gemini (Flash 2.0 & text-embedding-004)"]
+        Supabase[("Supabase Postgres (Service Role + WORM audit_logs)")]
+        ComposioAPI["Composio v3 Gateway (OAuth & Tool Execution)"]
+        StripeAPI["Stripe Invoicing & Billing Portal"]
     end
 
-    Client --> API
-    API --> Intent --> ToolEx --> Synth
-    Intent <--> Mem0
-    Mem0 <--> DB
-    API --> WF
-    API --> LLM
-    API --> Orch
-    API --> DB
-    API --> DocExport
-    Orch --> Comp
-    API --> Stripe
+    NextApp --> Proxy
+    Proxy --> Fastify
+    Fastify --> AuthGuard
+    AuthGuard --> LangGraph
+    AuthGuard --> Mem0Vector
+    AuthGraph --> FixEngine
+    Fastify --> InngestCron
+    Fastify --> ComposioRouter
+    Fastify --> DocEngine
+
+    LangGraph <--> Bedrock
+    LangGraph <--> Gemini
+    Mem0Vector <--> Supabase
+    FixEngine --> Supabase
+    InngestCron --> Supabase
+    ComposioRouter <--> ComposioAPI
+    Fastify <--> StripeAPI
 ```
-
-### 3.1 Technology Stack Details
-
-| Layer | Technology | Notes |
-| :--- | :--- | :--- |
-| **Frontend** | Next.js 16 (App Router), React 19, TypeScript Strict Mode | 46 server-rendered + static routes; 0 build errors |
-| **Styling & Design** | Tailwind CSS v4, Lucide Icons, Glassmorphism | Warm Obsidian / Fiduciary Slate design system |
-| **Database & Auth** | Supabase PostgreSQL + RLS, Supabase SSR Auth | 8 tables with multi-tenant `firm_id` isolation |
-| **LLM Gateway** | AWS Bedrock (Claude 3.5 Sonnet v2) + Google Gemini (gemini-2.5-flash) | Dual-engine routing with automated fallbacks |
-| **Integration Framework** | Composio SDK (150+ connectors) | OAuth-based; Salesforce FSC, HubSpot, Google Workspace, Slack |
-| **Long-Term Memory** | Mem0 Cloud API + Native Supabase Extraction Engine | Dual-engine; `user_memories` table with RLS |
-| **Durable Orchestration** | Inngest | Event-driven, fault-tolerant background execution |
-| **Monetization** | Stripe Customer Portal, Webhooks, tiered subscriptions | Upgrade/downgrade flows fully implemented |
-| **Email Delivery** | Resend API | Advisor-to-client follow-up and notification emails |
-| **Document Export** | Custom `/api/documents/export` engine | PDF/HTML generation with WORM compliance stamps |
 
 ---
 
 ## 4. Key Functional Modules
 
-### 4.1 Executive Dashboard
-- **Real-Time KPI Cards**: Total AUM Under Management, Active AI Pipelines, Compliance Health Score, and Executed Automation Runs.
-- **Quick Action Bar**: One-click AI workflow generation, client onboarding triggers, and instant compliance audits.
-- **Recent Pipeline Activity Feed**: Live execution log showing success/running/failed node steps.
+### 4.1 Fiduciary AI Chat OS (LangGraph State Graph)
+1. **Intent Planner Node**: Deconstructs advisor requests into deterministic execution steps.
+2. **Connector Validator Node**: Verifies required OAuth tokens (Gmail, Google Calendar, Salesforce FSC) and prompts missing apps.
+3. **HITL Gate Node**: Enforces mandatory Human-in-the-Loop review for custodial trades, client email dispatches, and suitability recommendations.
+4. **Tool Executor Node**: Dispatches live actions through Composio SDK and FIX gateways.
+5. **Synthesizer Node**: Combines structured execution outputs into fiduciary advisory summaries.
+6. **Compliance Audit Node**: Logs tamper-evident WORM audit records for every executed turn.
+
+### 4.2 Mem0 pgvector Semantic Memory Engine
+- **Dense Embedding Generation**: Generates 768-dimensional normalized dense vectors via `text-embedding-004` / Bedrock Titan with deterministic local fallback.
+- **Hybrid Retrieval**: Combines **75% vector cosine similarity** with **25% BM25 keyword matching** for sub-50ms long-term context recall.
+- **Category Taxonomy**: `preference`, `persona`, `fact`, `client_context`, `workflow_habit`, and `general`.
+
+### 4.3 Custodian Integration & FIX Protocol 4.4/5.0 Simulator
+- **Message Types**:
+  - `MsgType=D` (New Order Single): Tag 8 (`FIX.4.4`), Tag 35 (`D`), Tag 49 (`SenderCompID`), Tag 56 (`TargetCompID`), Tag 11 (`ClOrdID`), Tag 55 (`Symbol`), Tag 54 (`Side`), Tag 38 (`OrderQty`), Tag 40 (`OrdType`), Tag 10 (`CheckSum`).
+  - `MsgType=8` (Execution Report): Simulates fill confirmations with `ExecType=2` (Filled), `LastPx`, and `CumQty`.
+- **Supported Routing Profiles**:
+  - Charles Schwab Institutional (`SCHW_FIX_GW`)
+  - Fidelity Wealth Institutional (`FID_FIMS_GW`)
+  - BNY Mellon Pershing (`PERSHING_NETX_GW`)
+
+### 4.4 Inngest Autonomous Cron Worker Engine
+- **Nightly 6:00 AM EST Drift Monitor (`0 10 * * 1-5`)**: Scans client holdings, calculates asset drift against target models, and queues rebalancing proposals.
+- **Morning 7:30 AM EST Briefing Agent (`30 11 * * 1-5`)**: Scans calendar meetings for today and pre-generates executive client briefing dossiers.
+- **Weekly Friday 5:00 PM EST FINRA Package (`0 21 * * 5`)**: Bundles 7-day immutable audit trails with cryptographic hash verification.
+
+### 4.5 Fiduciary Audit & FINRA 2210 SHA-256 Export Engine
+- Dynamically hashes document payloads with SHA-256 to guarantee tamper-evident integrity for books & records retention (**SEC Rule 204-2**).
+- Automated exports for **FINRA Rule 2210 (Communications with the Public)** and **SEC Rule 206(4)-1 (Marketing Rule)** reviews.
 
 ---
 
-### 4.2 Visual Workflow Builder & AI Generator
+## 5. Unit Economics & Gross Margin Model
 
-1. **Interactive Infinite Canvas**:
-   - Pan and zoom (40% to 200%) with reset view and auto-fit view algorithms.
-   - SVG cubic Bezier curve edge rendering with animated pulse gradients.
-   - Mini-map navigator with real-time viewport tracking.
-2. **Multi-Selection & Drag-to-Select (Marquee Selection)**:
-   - Left-click drag on canvas draws a dynamic marquee box selecting all intersecting nodes in real time.
-   - <kbd>Shift</kbd> / <kbd>Cmd</kbd> / <kbd>Ctrl</kbd> + Click for toggle multi-selection.
-   - Multi-node drag moves all selected nodes simultaneously, preserving relative spacing.
-   - Floating Multi-Selection Action Bar with **Bulk Duplicate** (<kbd>Ctrl</kbd>+<kbd>D</kbd>), **Align Horizontally**, and **Bulk Delete** (<kbd>Delete</kbd> / <kbd>Backspace</kbd>).
-3. **AI Prompt-to-Workflow Engine (`/api/ai/workflow-generate`)**:
-   - Natural language input bar (e.g., *"When portfolio drifts >5%, run risk audit, require advisor sign-off, and rebalance"*).
-   - Generates connected nodes, typed input/output ports, parameters, and layout topology automatically.
-4. **AI Prompt Enhancer ("Make Better ✨")**:
-   - Takes rough advisory ideas and uses AI to expand them with triggers, compliance audits, human sign-off gates, and Composio connectors.
-5. **Unified Dual-Layer Persistence**:
-   - Workflows automatically persist to Supabase DB and sync to the local library cache (`adviza_saved_workflows`), ensuring zero data loss across dev and production.
+Adviza AI's pricing and unit cost model is structured around a predictable high-margin SaaS model:
 
-```mermaid
-flowchart LR
-    Prompt["User Natural Language Prompt"] --> Enhance["AI Prompt Enhancer ✨"]
-    Enhance --> GenEngine["Workflow Generation Engine"]
-    GenEngine --> Nodes["Configured Node Graph"]
-    Nodes --> Canvas["Visual Canvas Editor"]
-    Canvas --> DB["Supabase DB + Local Cache"]
-```
-
----
-
-### 4.3 Adviza AI Enterprise Chat (Fiduciary Chat Operating System)
-
-The core conversational OS that allows advisors to execute complex multi-step workflows, query data, generate documents, and interact with connected tools through natural language.
-
-#### 4.3.1 LangGraph Multi-Agent Orchestration Pipeline
-
-```mermaid
-sequenceDiagram
-    User->>+ChatOrchestrator: Message (e.g. "Send Sarah's Q3 brief to Salesforce")
-    ChatOrchestrator->>+Mem0Engine: Search relevant memories for user+client context
-    Mem0Engine-->>-ChatOrchestrator: ["User prefers concise memos", "Sarah targets munis"]
-    ChatOrchestrator->>+IntentPlanner: Plan tool calls with memory context
-    IntentPlanner-->>-ChatOrchestrator: [briefing_agent, salesforce_sync]
-    ChatOrchestrator->>+ToolExecutor: Execute capability calls via Composio
-    ToolExecutor-->>-ChatOrchestrator: ExecutedResults (doc URL, sheet URL)
-    ChatOrchestrator->>+Synthesizer: Generate outcome-focused response
-    Synthesizer-->>-ChatOrchestrator: Final response with document links
-    ChatOrchestrator->>+Mem0Engine: Extract new memories from this turn (async)
-    ChatOrchestrator-->>-User: Structured response + execution cards + links
-```
-
-#### 4.3.2 Chat Features & Capabilities
-- **Conversational Intelligence**: ChatGPT-style direct answers for general queries, financial explanations, and platform guidance — no unnecessary tool calls.
-- **Dynamic Intent Resolution**: Fuzzy-matching capability registry resolves natural language commands to 150+ tool actions (e.g. "rename this sheet to zumba" → `google_sheets:rename_sheet`).
-- **Execution Preview Cards**: Rich structured result cards showing document titles, record counts, clickable live document URLs (Google Sheets, Google Docs, PDFs).
-- **Briefing Dossiers**: Auto-generated executive briefing cards for client meetings with formatted financial narrative.
-- **Human-in-the-Loop (HITL) Approval**: Potentially high-risk actions (bulk sends, trades) show approval gates before execution.
-- **Document Links & PDF Export**: Every created document, spreadsheet, or report includes a direct clickable link and instant PDF download with WORM audit stamps.
-- **Collapsible Workflow Execution Loader**: Step-by-step progress panel (5-stage orchestration pipeline) rendered as a collapsible dropdown tab — visible only on user request.
-
-#### 4.3.3 Chat History & Session Management
-- **Chat Session Persistence**: Full session history stored in Supabase `chat_sessions` and `chat_messages` with `role`, `content`, `capability_calls`, and `metadata`.
-- **Local Storage Caching**: Instant message history reload from `localStorage` on page load before DB fetch.
-- **Mobile-Responsive Sidebar Drawer**: On mobile, chat history is accessible as a slide-in side drawer triggered from the chat header — never stacked above the conversation.
-- **Session CRUD**: Create, select, rename (via first message title), and delete sessions with optimistic UI updates.
-
----
-
-### 4.4 Mem0 Universal Long-Term Memory & Adaptive Persona Engine
-
-> **New in v3.0** — Adviza AI remembers your preferences, client mandates, and working habits across all sessions.
-
-#### Architecture
-- **Dual Engine**: Connects to Mem0 Cloud API (`https://api.mem0.ai/v1`) when `MEM0_API_KEY` is configured; otherwise runs a fully self-hosted extraction engine using Gemini AI + Supabase `user_memories`.
-- **Automatic Background Extraction**: After each chat turn, the orchestrator asynchronously analyzes the conversation and extracts enduring facts, preferences, and habits without slowing response time.
-- **Semantic Recall & Injection**: Before each intent planning cycle, the top 4 most contextually relevant memories are retrieved and injected into the LLM system prompt as a `[Mem0 Long-Term Memory Context]` block.
-
-#### Memory Categories
-| Category | Examples |
-| :--- | :--- |
-| `preference` | "User always wants PDF format for reports", "Prefers tax-free municipal bonds" |
-| `persona` | "Communication style: direct and concise", "Decision-maker; prefers 3 bullet summaries" |
-| `client_context` | "Sarah Jenkins has $1.85M AUM in Schwab", "Arthur Pendelton is risk-averse" |
-| `workflow_habit` | "Always runs compliance audit before client emails", "Prefers weekly rebalance triggers" |
-| `fact` | "Firm's AUM threshold: $500K minimum HNW", "Compliance review required on all external comms" |
-| `general` | General contextual facts not covered by other categories |
-
-#### Memory Manager UI
-- Located in **Settings → AI Memory & Persona (Mem0)**.
-- Filter by category, semantic search (live API call), add manual rules/preferences, delete memories individually.
-- Live memory engine status badge with session count.
-
-#### API Endpoints
-| Method | Endpoint | Purpose |
-| :--- | :--- | :--- |
-| `GET` | `/api/ai/memory?q=<query>` | Retrieve all or semantically search memories |
-| `POST` | `/api/ai/memory` | Manually add a permanent memory or rule |
-| `DELETE` | `/api/ai/memory` | Delete a specific memory by ID |
-
----
-
-### 4.5 Fiduciary AI Agent Fleet
-
-| Agent Name | Category | Primary Function | Inputs / Outputs |
+| Cost Component | Monthly Volume (Growth Tier: $499/mo) | Unit Cost | Total Monthly Cost |
 | :--- | :--- | :--- | :--- |
-| **Pre-Meeting Briefing Agent** | Advisory Intelligence | Analyzes client portfolio allocation, recent notes, and open tasks before meetings. | **In**: Calendar event, CRM Client ID<br>**Out**: Executive Briefing Memo |
-| **Meeting Intelligence Agent** | Meeting Automation | Transcribes audio recordings, extracts commitments, client sentiment, and follow-ups. | **In**: Audio file / Meeting transcript<br>**Out**: Structured tasks & summary |
-| **SEC/FINRA Compliance Auditor** | Risk & Compliance | Audits client communications against SEC Rule 206(4)-1 and FINRA Rule 2210. | **In**: Draft email, memo, or social post<br>**Out**: Compliance Score & Flagged Items |
-| **Portfolio Drift & Rebalance Agent** | Portfolio Ops | Evaluates asset weight drift against IPS targets and flags tax-loss harvesting. | **In**: Portfolio holdings & target allocation<br>**Out**: Proposed rebalancing orders |
-| **Human-in-the-Loop Sign-Off Gate** | Governance | Blocks automated outbound actions until an authorized advisor approves the payload. | **In**: AI payload<br>**Out**: Approved / Rejected signal |
+| **AWS Bedrock Claude 3.5 Sonnet** | ~1,000 executions (2.5M input tokens / 500k output tokens) | $3.00 / $15.00 per MTok | $15.00 |
+| **Google Gemini Flash / Embeddings** | ~2,500 vector embeddings & extraction calls | $0.025 / MTok | $0.25 |
+| **Mem0 Vector Ingestion & Storage** | ~1,000 vector memory lookups | Included / Native Supabase | $0.00 |
+| **Composio Tool Execution Gateway** | ~1,000 connected actions | $0.02 / action | $20.00 |
+| **AWS ECS Fargate Backend + ALB** | 0.5 vCPU / 1GB RAM container in us-east-1 | $0.04048 / vCPU-hr | $22.00 |
+| **Vercel Frontend Hosting** | Pro Team seat allocated | Fixed | $20.00 |
+| **Total Cost of Goods Sold (COGS)** | — | — | **$77.25 / month** |
+| **Net Gross Margin per RIA Account** | **$499.00 / month** | — | **84.5% Gross Margin** |
 
 ---
 
-### 4.6 Integrations Hub (Composio + Custodians)
+## 6. Compliance, Security & Evidence Citations
 
-The integration surface operates across three distinct delivery tiers:
+> [!IMPORTANT]
+> Adviza AI is engineered to survive Chief Compliance Officer (CCO) and SEC examinations through architectural proof:
 
-#### 🟢 Live Active Connectors (Production Dispatch)
-- **Communication & Calendar**: Google Calendar (`GOOGLECALENDAR_*`), Gmail (`GMAIL_*`), Outlook 365, Resend Transactional Email API, Slack Notifications.
-- **Productivity & Documents**: Google Sheets (`GOOGLESHEETS_*`), Google Docs (`GOOGLEDRIVE_*`), Notion API.
-- **Social & Content**: LinkedIn Publishing API via Composio proxy.
-
-#### 🟡 Connector Architecture with Fallback Simulation
-*Full parameter schema and execution handlers configured; operates via high-fidelity mock generator when live OAuth connection is unlinked:*
-- **Enterprise CRM**: Salesforce Financial Services Cloud (`SALESFORCE_*`), HubSpot CRM (`HUBSPOT_*`).
-- **Specialized RIA CRMs**: Wealthbox CRM (`WEALTHBOX_*`), Redtail Technology (`REDTAIL_*`), Zoho CRM, Pipedrive.
-
-#### 🔴 Planned Architecture (Roadmap)
-*Data models defined; live gateway scheduled for Phase 5:*
-- **Custodian Connectors**: Schwab OpenView, Fidelity Wealthscape, Pershing NetX360 data feeds.
-- **Banking / Account Aggregation**: Plaid API.
+1. **WORM Storage Immutability (SEC Rule 204-2 & 17a-4)**:
+   - Audit records in the `audit_logs` table are append-only. No UPDATE or DELETE operations are permitted by database Row Level Security policies. Every exported package includes a deterministic SHA-256 hash chaining proof.
+2. **Zero-Training Enterprise AI Policy**:
+   - All LLM interactions are routed via AWS Bedrock (with signed AWS Enterprise Business Associate Agreements) and enterprise API endpoints. No advisor data, client holdings, or transcripts are ever retained for LLM training.
+3. **Human-in-the-Loop (HITL) Regulatory Firewalls**:
+   - Automated trade orders (FIX Protocol) and outbound client communications require explicit, logged advisor sign-offs before external gateway transmission under FINRA Rule 3110 (Supervision).
 
 ---
 
-## 5. Security, Fiduciary Compliance & Governance
-
-### 5.1 Fiduciary Safeguards & Non-Negotiables
-
-> **Note on compliance language:** The safeguards below describe the platform's
-> architecture and design intent. Formal regulatory certification (SEC/FINRA),
-> WORM compliance attestation, and data-processing agreements with LLM providers
-> are pending legal and compliance review, and are not yet finalized. This
-> section should not be presented to prospects or regulators as a compliance
-> certification until that review is complete.
-
-- **Human-in-the-Loop (HITL) by Default**: Automated financial trades or external client communications cannot execute without explicit advisor approval unless configured otherwise by firm policy.
-- **Audit Logging Designed for WORM Compliance**: Every workflow execution, AI decision log, prompt, and output is recorded with immutable timestamps and user IDs in `compliance_audit_logs`. This system is architected to support SEC WORM recordkeeping requirements; formal compliance certification is pending legal/compliance review.
-- **Multi-Tenant Isolation**: PostgreSQL Row Level Security (RLS) policies enforce data isolation across distinct wealth management firms (`firm_id`), consistent with the platform's multi-tenant design.
-- **Zero LLM Training Policy (Pending Contractual Verification)**: Client PII and financial records are processed through enterprise-tier LLM endpoints (AWS Bedrock, Google Gemini enterprise). Zero-data-retention for model training is the intended contractual posture; final confirmation depends on signed data processing agreements with each provider, to be verified by legal.
-- **Memory RLS**: The `user_memories` table enforces per-user Row Level Security, designed to prevent cross-user memory leakage.
-
----
-
-## 6. Database Schema Reference
-
-| Table | Purpose | Key Fields |
-| :--- | :--- | :--- |
-| `firms` | Multi-tenant firm registry | `id`, `name`, `slug`, `plan`, `stripe_customer_id` |
-| `profiles` | Advisor user profiles | `id`, `firm_id`, `email`, `full_name`, `role` |
-| `clients` | Client CRM records | `id`, `firm_id`, `name`, `portfolio_value`, `risk_profile` |
-| `meetings` | Meeting records & transcripts | `id`, `firm_id`, `client_id`, `title`, `audio_url` |
-| `action_items` | AI-extracted tasks | `id`, `meeting_id`, `description`, `status`, `due_date` |
-| `audit_logs` | Immutable WORM audit records | `id`, `firm_id`, `action`, `actor`, `resource`, `timestamp` |
-| `chat_sessions` | Chat conversation sessions | `id`, `firm_id`, `user_id`, `title` |
-| `chat_messages` | Chat message history | `id`, `session_id`, `role`, `content`, `capability_calls`, `metadata` |
-| `workflows` | Visual workflow definitions | `id`, `firm_id`, `name`, `nodes`, `edges`, `status` |
-| `workflow_runs` | Workflow execution history | `id`, `workflow_id`, `status`, `started_at`, `completed_at`, `error` |
-| `firm_connections` | Composio OAuth app connections | `id`, `firm_id`, `app_name`, `status`, `account_email` |
-| `user_memories` | Mem0 long-term persona & preferences | `id`, `user_id`, `category`, `memory`, `metadata` |
-
----
-
-## 7. Non-Functional Requirements & Performance SLAs
-
-### 7.1 Customer-Facing SLAs (Buyer / CCO Review)
-| Metric | Requirement | Target SLA |
-| :--- | :--- | :--- |
-| **Uptime & Availability** | Core dashboard, workflow runtime, and API gateway | 99.95% |
-| **AI Workflow Generation** | Natural language to complete visual node graph | < 3.5 seconds |
-| **Memory Recall Latency** | Semantic long-term memory retrieval per turn | < 2.0 seconds |
-| **Mobile Responsiveness** | Full functionality across desktop, tablet, and mobile viewports | Responsive |
-
-### 7.2 Internal Engineering Quality Targets
-> [!NOTE]
-> The metrics below represent internal engineering and code-hygiene standards for technical leadership and developers.
-| Metric | Requirement | Status / Target |
-| :--- | :--- | :--- |
-| **Canvas Frame Rate** | Smooth 60 FPS panning/zooming with up to 100 visual nodes | >= 60 FPS |
-| **AI Prompt Enhancement Time** | Natural language enhancement via LLM / heuristic | < 1.2 seconds |
-| **Type Safety & Build Cleanliness** | Strict TypeScript compiler validation (`tsc --noEmit`) | 0 compiler errors (100% clean) |
-| **Total Production Routes** | Next.js App Router routes compiled in release | 46 routes |
-
----
-
-## 8. Monetization & Subscription Tiers
-
-```mermaid
-graph LR
-    Free["Starter RIA (Free Trial)"] --> Pro["Growth RIA ($499/mo)"]
-    Pro --> Enterprise["Enterprise Multi-Family Office ($1,499+/mo)"]
-```
-
-1. **Starter RIA**:
-   - Up to 3 active workflows
-   - 50 AI agent executions / month
-   - Core Composio integrations (Google Workspace, Resend)
-   - Mem0 memory (up to 50 memories)
-
-2. **Growth RIA**:
-   - Unlimited workflows & canvas pipelines
-   - 1,000 AI agent executions / month
-   - Full CRM integrations (Salesforce FSC, Wealthbox, HubSpot)
-   - SEC/FINRA Compliance Audit Agent
-   - Mem0 memory (up to 1,000 memories + semantic search)
-
-3. **Enterprise Multi-Family Office**:
-   - Dedicated AWS Bedrock VPC / Private LLM deployment
-   - Unlimited agent executions & memory records
-   - Custom custodian feed connectors
-   - SOC2 Type II compliance readiness support and dedicated SLA
-   - Mem0 Cloud API integration with custom extraction pipeline
-
----
-
-## 9. Product Roadmap
-
-### Phase 1: Core Foundation & Canvas Experience *(Completed)*
-- [x] Visual node-based workflow builder with pan/zoom, Bezier curves, and mini-map.
-- [x] Multi-selection, drag-to-select marquee box, and multi-node drag.
-- [x] AI Prompt-to-Workflow generator and AI Prompt Enhancer button.
-- [x] Dual-layer persistence with Supabase DB and local caching.
-
-### Phase 2: Fiduciary Chat OS & Agent Fleet *(Completed)*
-- [x] LangGraph Multi-Agent Architecture: Intent Planner → Tool Executor → Synthesizer.
-- [x] Capability-First Registry with fuzzy alias matching (150+ tools).
-- [x] Execution Preview Cards with live document URLs, spreadsheet links, and PDF downloads.
-- [x] WORM-designed document export engine (`/api/documents/export`).
-- [x] Human-in-the-Loop (HITL) approval gates and Missing Connector Cards.
-- [x] Briefing Dossiers and structured response generation.
-
-### Phase 3: Session Memory, Mobile UX & Persona Learning *(Completed)*
-- [x] Full chat session history persistence in Supabase (`chat_sessions`, `chat_messages`).
-- [x] Mobile-responsive chat with slide-in side drawer history navigation.
-- [x] Collapsible workflow execution progress loader (dropdown accordion tab).
-- [x] Mem0 Universal Long-Term Memory Engine with dual-engine support (Cloud API + Supabase).
-- [x] Automated per-turn memory extraction and semantic memory recall in intent planning.
-- [x] Interactive Memory & Persona Manager in Settings with category filtering and semantic search.
-
-### Phase 4: Autonomous Execution & Live Connectors *(Completed)*
-- [x] 🟢 **Committed** — Live Composio OAuth connection flows for Salesforce FSC, HubSpot, and Wealthbox.
-- [x] 🟢 **Committed** — Direct Composio proxy execution with high-fidelity fallback simulation when accounts are unlinked.
-- [x] 🟢 **Committed** — Inngest background worker deployment (`executeWorkflowPipeline`) for durable multi-step workflows.
-- [x] 🟡 **Planned** — Voice-to-action meeting audio upload directly within client views (`/api/meetings/transcribe`).
-- [x] 🟡 **Planned** — Mem0 native pgvector embedding search for local vector retrieval (`match_user_memories`).
-
-### Phase 5: Advanced Intelligence & Enterprise Governance *(In Progress)*
-- [x] 🟡 **Planned** — Automated FINRA advertising submission export package (PDF with audit trail — `/api/compliance/export-finra`).
-- [x] 🟡 **Planned** — Mem0 cross-session entity linking (client profiles, recurring patterns).
-- [ ] 🟡 **Planned** — Multi-advisor collaborative canvas with live cursor presence.
-- [ ] 🔴 **Exploratory** — Custodian automated trade order generation (Schwab / Fidelity FIX protocol — *subject to regulatory feasibility & partner agreements*).
-- [ ] 🔴 **Exploratory** — Portfolio drift & automated rebalancing agent with live custodian data feeds.
-
----
-
-## 10. Node Template Catalog Reference
-
-| Node Type ID | Category | Icon / Color | Description |
-| :--- | :--- | :--- | :--- |
-| `trigger-calendar` | Trigger | Calendar (Amber) | Triggers on upcoming Google/Outlook calendar events. |
-| `trigger-portfolio-drift` | Trigger | TrendingUp (Violet) | Triggers when client asset drift exceeds threshold %. |
-| `trigger-audio-upload` | Trigger | Mic (Rose) | Triggers upon client meeting audio recording upload. |
-| `trigger-webhook` | Trigger | Webhook (Teal) | Listens for inbound JSON webhooks from external systems. |
-| `agent-meeting-briefing` | AI Agent | Brain (Violet) | Compiles executive briefing memo before client meetings. |
-| `agent-meeting-intel` | AI Agent | Mic (Indigo) | Transcribes audio and extracts commitments with Claude. |
-| `agent-compliance-audit` | AI Agent | ShieldCheck (Emerald) | Audits outputs against SEC Rule 206(4)-1 & FINRA 2210. |
-| `agent-rebalance-eval` | AI Agent | TrendingUp (Blue) | Proposes tax-efficient rebalancing trade orders. |
-| `logic-human-approval` | Logic Gate | UserCheck (Rose) | Requires advisor sign-off before downstream execution. |
-| `logic-condition-branch` | Logic Gate | GitFork (Slate) | Branches workflow execution based on condition rules. |
-| `action-salesforce-sync` | Integration | Layers (Blue) | Syncs notes, tasks, and client records to Salesforce FSC. |
-| `action-resend-email` | Integration | Mail (Teal) | Dispatches personalized client emails via Resend API. |
-| `action-inngest-job` | Integration | Cpu (Purple) | Dispatches background task to Inngest durable queue. |
-| `action-google-sheets` | Integration | Table (Green) | Creates/updates Google Sheets with advisory data. |
-| `action-google-docs` | Integration | FileText (Blue) | Generates Google Docs briefings and compliance memos. |
-| `action-mem0-store` | Memory | Brain (Rose) | Stores key facts and decisions to Mem0 long-term memory. |
-
----
-
-## 11. API Endpoints Reference
+## 7. API Reference Summary
 
 | Method | Endpoint | Module | Description |
 | :--- | :--- | :--- | :--- |
-| `POST` | `/api/ai/chat-orchestrate` | Chat OS | Main LangGraph multi-agent orchestration entry point |
-| `GET/POST/DELETE` | `/api/ai/chat-sessions` | Chat OS | Session CRUD management |
-| `GET/POST/DELETE` | `/api/ai/memory` | Mem0 | Long-term memory retrieval, insertion, and deletion |
-| `POST` | `/api/ai/briefing` | Agents | Client pre-meeting briefing agent |
-| `POST` | `/api/ai/meeting-intelligence` | Agents | Meeting transcript analysis and action item extraction |
-| `POST` | `/api/ai/compliance` | Agents | SEC/FINRA compliance audit |
-| `POST` | `/api/ai/workflow-generate` | Workflow | AI natural language to workflow graph |
-| `POST` | `/api/ai/workflow-enhance-prompt` | Workflow | AI prompt enhancement for workflow design |
-| `POST` | `/api/documents/export` | Export | PDF/HTML document export with WORM audit stamps |
-| `POST` | `/api/integrations/composio/connect` | Integrations | Initiate Composio OAuth app connection |
-| `GET` | `/api/integrations/composio/connections` | Integrations | List active Composio app connections |
-| `POST` | `/api/emails/follow-up` | Communication | Send follow-up email via Resend API |
-| `POST` | `/api/stripe/checkout` | Billing | Initiate Stripe upgrade checkout |
-| `POST` | `/api/stripe/portal` | Billing | Launch Stripe Customer Portal |
-| `POST` | `/api/workflows` | Workflow | Create new workflow record |
-| `GET/PUT/DELETE` | `/api/workflows/[id]` | Workflow | Workflow CRUD operations |
-| `POST` | `/api/workflows/[id]/run` | Workflow | Execute a workflow via Inngest |
+| `POST` | `/v1/ai/chat-orchestrate` | Chat OS | LangGraph 6-node multi-agent execution |
+| `GET/POST/DELETE` | `/v1/ai/chat-sessions` | Chat OS | Chat session CRUD |
+| `GET/POST/DELETE` | `/v1/ai/memory` | Mem0 | Dense vector memory search and management |
+| `POST` | `/v1/ai/memory/search` | Mem0 | Hybrid semantic vector memory recall |
+| `GET` | `/v1/ai/memory/dossier` | Mem0 | Category-grouped advisor knowledge dossier |
+| `POST` | `/v1/portfolio/reconcile` | Portfolio | Fiduciary portfolio drift reconciliation |
+| `POST` | `/v1/portfolio/fix/generate` | Portfolio | Generate FIX 4.4 tag-value message batches |
+| `POST` | `/v1/portfolio/fix/transmit` | Portfolio | HITL FIX order routing & simulated fills |
+| `GET` | `/v1/portfolio/fix/history` | Portfolio | List past transmitted FIX order records |
+| `GET/POST/DELETE` | `/v1/integrations/composio/connections` | Integrations | Manage firm OAuth app connections |
+| `POST` | `/v1/integrations/composio/send-email` | Integrations | Send email via Gmail/Outlook with audit log |
+| `POST` | `/v1/integrations/composio/sync-calendar` | Integrations | Sync Google/Outlook calendar appointments |
+| `GET` | `/v1/integrations/composio/toolkits` | Integrations | Dynamic search over 1,400+ Composio tools |
+| `POST` | `/v1/compliance/export-finra` | Compliance | Generate signed FINRA 2210 / SEC 206(4)-1 package |
+| `GET` | `/v1/documents/export` | Documents | PDF / HTML export with cryptographic SHA-256 seal |
+| `GET` | `/v1/health` | System | Container healthcheck endpoint |

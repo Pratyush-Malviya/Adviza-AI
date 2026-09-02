@@ -1,0 +1,63 @@
+services:
+  backend:
+    build:
+      context: ./adviza-backend
+      dockerfile: Dockerfile
+    container_name: adviza-backend
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+      - HOST=0.0.0.0
+      - FRONTEND_URL=http://localhost:3000
+    env_file:
+      - ./adviza-backend/.env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/v1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - adviza-network
+
+  frontend:
+    build:
+      context: ./adviza-frontend
+      dockerfile: Dockerfile
+    container_name: adviza-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - NEXT_PUBLIC_API_URL=http://localhost:4000
+    env_file:
+      - ./adviza-frontend/.env.local
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - adviza-network
+
+  website:
+    build:
+      context: ./adviza-website
+      dockerfile: Dockerfile
+    container_name: adviza-website
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+    networks:
+      - adviza-network
+
+networks:
+  adviza-network:
+    driver: bridge
