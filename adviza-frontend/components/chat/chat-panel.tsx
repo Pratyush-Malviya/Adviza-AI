@@ -896,7 +896,8 @@ export function ChatPanel({
                     }
                   }}
                   placeholder="Ask me anything..."
-                  className="w-full text-xs sm:text-sm text-[#121217] placeholder:text-[#8E847C] bg-transparent border-0 outline-none focus:outline-none focus:ring-0 focus:border-0 shadow-none ring-0 focus-visible:outline-none focus-visible:ring-0"
+                  style={{ outline: "none", boxShadow: "none", border: "none" }}
+                  className="w-full text-xs sm:text-sm text-[#121217] placeholder:text-[#8E847C] bg-transparent border-0 outline-none focus:outline-none focus:ring-0 focus:border-0 shadow-none ring-0 focus-visible:outline-none focus-visible:ring-0 !outline-none !ring-0"
                 />
 
                 {/* Action Bar Inside Input Box */}
@@ -1273,7 +1274,8 @@ export function ChatPanel({
                 }}
                 placeholder={`Ask Adviza (${activeModelObj.shortName})...`}
                 disabled={loading}
-                className="w-full text-xs sm:text-sm text-[#121217] placeholder:text-[#8E847C] bg-transparent border-0 outline-none focus:outline-none focus:ring-0 focus:border-0 shadow-none ring-0 focus-visible:outline-none focus-visible:ring-0"
+                style={{ outline: "none", boxShadow: "none", border: "none" }}
+                className="w-full text-xs sm:text-sm text-[#121217] placeholder:text-[#8E847C] bg-transparent border-0 outline-none focus:outline-none focus:ring-0 focus:border-0 shadow-none ring-0 focus-visible:outline-none focus-visible:ring-0 !outline-none !ring-0"
               />
 
               <div className="flex items-center justify-between pt-2 border-t border-[#FAF5F0]">
