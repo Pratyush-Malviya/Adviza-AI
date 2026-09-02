@@ -307,9 +307,18 @@ export function ChatPanel({
     };
   };
 
-  // Auto-scroll to latest message
+  // Auto-scroll to latest message without blocking animations or freezing during stream
+  const lastScrollTimeRef = useRef(0);
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const now = Date.now();
+    if (loading) {
+      if (now - lastScrollTimeRef.current >= 120) {
+        lastScrollTimeRef.current = now;
+        messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
+      }
+    } else {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages, loading, statusMessage]);
 
   const handleStartNewChat = () => {
@@ -628,14 +637,30 @@ export function ChatPanel({
 
       // Persist messages in local storage asynchronously (non-blocking)
       if (targetSessionId) {
-        setTimeout(() => {
-          setMessages((latest) => {
+        try {
+          const finalAssistantMsg: ChatMessage = {
+            id: assistantMsgId,
+            role: "assistant",
+            content: assistantText,
+            timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            citations: searchCitations.length > 0 ? searchCitations : undefined,
+            isDeepResearch: deepResearch,
+            isWebSearch: webSearch,
+            executedResults: executedResults.length > 0 ? executedResults : undefined,
+            missingConnectors: missingConnectors.length > 0 ? missingConnectors : undefined,
+            hitlPrompts: hitlPrompts.length > 0 ? hitlPrompts : undefined,
+          };
+          const rawExisting = localStorage.getItem("adviza_chat_msg_" + targetSessionId);
+          let existingMsgs: ChatMessage[] = [];
+          if (rawExisting) {
             try {
-              localStorage.setItem("adviza_chat_msg_" + targetSessionId, JSON.stringify(latest));
+              existingMsgs = JSON.parse(rawExisting);
             } catch {}
-            return latest;
-          });
-        }, 80);
+          }
+          const filtered = existingMsgs.filter((m) => m.id !== userMsg.id && m.id !== assistantMsgId);
+          const toSave = [...filtered, userMsg, finalAssistantMsg];
+          localStorage.setItem("adviza_chat_msg_" + targetSessionId, JSON.stringify(toSave));
+        } catch {}
       }
     } catch (err) {
       console.error("Chat orchestration error:", err);

@@ -41,18 +41,11 @@ export const MarkdownContent = React.memo(MarkdownContentComponent);
 // ---------------------------------------------------------------------------
 
 function normalizeMarkdown(raw: string): string {
+  if (!raw) return "";
   return raw
     // Replace em dashes and en dashes
     .replace(/[\u2014\u2015]/g, " - ")
     .replace(/[\u2013]/g, "-")
-    // Remove asterisks
-    .replace(/\*{1,3}/g, "")
-    // Insert newlines before headings if jammed against previous sentences (e.g. "stack.### What would")
-    .replace(/([^\n])\s*(#{1,6}\s+)/g, "$1\n\n$2")
-    // Insert newlines before bullet points if jammed against previous sentences (e.g. "today?- 📊 Portfolio")
-    .replace(/([^\n])\s*([•\-\*]\s+)/g, "$1\n\n$2")
-    // Insert newlines before numbered list items if jammed
-    .replace(/([^\n])\s*(\d+\.\s+)/g, "$1\n\n$2")
     // Normalize unicode bullets
     .replace(/^[•●▪]\s+/gm, "- ");
 }
@@ -71,40 +64,42 @@ type BlockType =
   | { type: "paragraph"; text: string };
 
 function parseMarkdownBlocks(raw: string): BlockType[] {
+  if (!raw) return [];
   const lines = raw.split(/\r?\n/);
   const blocks: BlockType[] = [];
   let i = 0;
 
   while (i < lines.length) {
+    const prevI = i;
     const line = lines[i];
     const trimmed = line.trim();
 
-    // Empty line
+    // 1. Empty line
     if (!trimmed) {
       i++;
       continue;
     }
 
-    // Horizontal Divider (--- or *** or ___)
+    // 2. Horizontal Divider (--- or *** or ___)
     if (/^(\-{3,}|\*{3,}|_{3,})$/.test(trimmed)) {
       blocks.push({ type: "divider" });
       i++;
       continue;
     }
 
-    // Headings (### Title)
-    const headingMatch = line.match(/^(#{1,6})\s+(.*)$/);
-    if (headingMatch) {
+    // 3. Headings (# Title, ## Title, ### Title)
+    const headingMatch = trimmed.match(/^(#{1,6})\s*(.*)$/);
+    if (headingMatch && headingMatch[2]) {
       blocks.push({
         type: "heading",
-        level: headingMatch[1].length,
+        level: Math.min(headingMatch[1].length, 3),
         text: headingMatch[2],
       });
       i++;
       continue;
     }
 
-    // Code Block (```lang)
+    // 4. Code Block (```lang ... ```)
     if (trimmed.startsWith("```")) {
       const lang = trimmed.slice(3).trim() || "text";
       const codeLines: string[] = [];
@@ -113,7 +108,9 @@ function parseMarkdownBlocks(raw: string): BlockType[] {
         codeLines.push(lines[i]);
         i++;
       }
-      i++; // skip closing ```
+      if (i < lines.length && lines[i].trim().startsWith("```")) {
+        i++; // skip closing ```
+      }
       blocks.push({
         type: "code",
         language: lang,
@@ -122,7 +119,7 @@ function parseMarkdownBlocks(raw: string): BlockType[] {
       continue;
     }
 
-    // Callout / Blockquote (> [!NOTE] or > Text)
+    // 5. Callout / Blockquote (> [!NOTE] or > Text)
     if (trimmed.startsWith(">")) {
       const calloutLines: string[] = [];
       while (i < lines.length && lines[i].trim().startsWith(">")) {
@@ -149,15 +146,15 @@ function parseMarkdownBlocks(raw: string): BlockType[] {
       blocks.push({
         type: "callout",
         alertType,
-        text: cleanText,
+        text: cleanText || fullCallout,
       });
       continue;
     }
 
-    // Markdown Table (| Col 1 | Col 2 |)
-    if (trimmed.startsWith("|") && trimmed.endsWith("|")) {
+    // 6. Markdown Table (| Col 1 | Col 2 |)
+    if (trimmed.startsWith("|")) {
       const tableLines: string[] = [];
-      while (i < lines.length && lines[i].trim().startsWith("|") && lines[i].trim().endsWith("|")) {
+      while (i < lines.length && lines[i].trim().startsWith("|")) {
         tableLines.push(lines[i].trim());
         i++;
       }
@@ -183,10 +180,13 @@ function parseMarkdownBlocks(raw: string): BlockType[] {
 
         blocks.push({ type: "table", headers, rows });
         continue;
+      } else if (tableLines.length === 1) {
+        blocks.push({ type: "paragraph", text: tableLines[0] });
+        continue;
       }
     }
 
-    // Unordered List (- item or * item)
+    // 7. Unordered List (- item or * item)
     if (/^[-*•]\s+/.test(trimmed)) {
       const items: string[] = [];
       while (i < lines.length && /^[-*•]\s+/.test(lines[i].trim())) {
@@ -197,7 +197,7 @@ function parseMarkdownBlocks(raw: string): BlockType[] {
       continue;
     }
 
-    // Ordered List (1. item)
+    // 8. Ordered List (1. item)
     if (/^\d+\.\s+/.test(trimmed)) {
       const items: string[] = [];
       while (i < lines.length && /^\d+\.\s+/.test(lines[i].trim())) {
@@ -208,7 +208,7 @@ function parseMarkdownBlocks(raw: string): BlockType[] {
       continue;
     }
 
-    // Standard Paragraph
+    // 9. Standard Paragraph (accumulate until next block boundary)
     const paragraphLines: string[] = [];
     while (
       i < lines.length &&
@@ -230,6 +230,18 @@ function parseMarkdownBlocks(raw: string): BlockType[] {
         type: "paragraph",
         text: paragraphLines.join(" "),
       });
+    } else {
+      // Guaranteed progress fallback: consume line if it didn't match paragraph loop
+      blocks.push({
+        type: "paragraph",
+        text: trimmed,
+      });
+      i++;
+    }
+
+    // Absolute fail-safe: guarantee loop termination
+    if (i <= prevI) {
+      i = prevI + 1;
     }
   }
 
@@ -485,6 +497,9 @@ function renderFormattedInlineText(text: string): React.ReactNode {
       );
     }
 
+    if (match.index === regex.lastIndex) {
+      regex.lastIndex++;
+    }
     lastIdx = regex.lastIndex;
   }
 

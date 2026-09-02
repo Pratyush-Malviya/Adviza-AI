@@ -58,80 +58,45 @@ export async function POST(req: NextRequest) {
       } catch {}
     }
 
-    // 2. Free Google Gemini API Streaming (If GEMINI_API_KEY is valid)
-    const geminiKey = process.env.GEMINI_API_KEY;
-    if (geminiKey) {
+    // 2. NVIDIA NIM Cloud API Streaming (Fast, Fiduciary Grade)
+    const nvidiaKey = process.env.NVIDIA_API_KEY;
+    if (nvidiaKey && !nvidiaKey.includes("your_")) {
       try {
-        const geminiRes = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?key=${geminiKey}`,
+        const nvidiaModel =
+          modelId === "claude-3-5-sonnet"
+            ? "meta/llama-3.3-70b-instruct"
+            : modelId === "deepseek-v3"
+            ? "deepseek-ai/deepseek-r1"
+            : process.env.NVIDIA_MODEL || "moonshotai/kimi-k3";
+
+        const nvidiaRes = await fetch(
+          process.env.NVIDIA_BASE_URL || "https://integrate.api.nvidia.com/v1/chat/completions",
           {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${nvidiaKey}`,
+            },
             body: JSON.stringify({
-              contents: [
+              model: nvidiaModel,
+              messages: [
                 {
-                  role: "user",
-                  parts: [
-                    {
-                      text: `You are Adviza AI, an Enterprise Chief of Staff and Fiduciary Wealth Operating System for Registered Investment Advisors (RIAs). Always give structured, institutional-grade responses with clear headers, bullet points, and SEC/FINRA compliance awareness. Do NOT use asterisks (*) and do NOT use em dashes.\n\nUser Request: ${message}`,
-                    },
-                  ],
+                  role: "system",
+                  content:
+                    "You are Adviza AI, an Enterprise Chief of Staff and Fiduciary Wealth Operating System for Registered Investment Advisors (RIAs). Provide clean, structured, institutional-grade responses with clear headers, bullet points, and SEC/FINRA compliance awareness. Avoid unnecessary asterisks.",
                 },
+                { role: "user", content: message },
               ],
+              stream: true,
+              max_tokens: 2048,
+              temperature: 0.6,
             }),
-            signal: AbortSignal.timeout(2500),
+            signal: AbortSignal.timeout(6000),
           }
         );
 
-        if (geminiRes.ok && geminiRes.body) {
-          const encoder = new TextEncoder();
-          const reader = geminiRes.body.getReader();
-          const decoder = new TextDecoder();
-
-          const stream = new ReadableStream({
-            async start(controller) {
-              const sendEvent = (data: Record<string, any>) => {
-                controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
-              };
-
-              sendEvent({
-                status: deepResearch
-                  ? "Synthesizing Deep Fiduciary Research (Gemini 2.0)..."
-                  : "Adviza AI (Gemini 2.0 Flash) Reasoning...",
-              });
-
-              let rawBuffer = "";
-              while (true) {
-                const { value, done } = await reader.read();
-                if (done) break;
-                rawBuffer += decoder.decode(value, { stream: true });
-
-                const matches = rawBuffer.matchAll(/"text":\s*"([^"]+)"/g);
-                for (const match of matches) {
-                  const token = match[1].replace(/\\n/g, "\n").replace(/\\"/g, '"');
-                  if (token) {
-                    sendEvent({ delta: cleanChatText(token) });
-                  }
-                }
-              }
-
-              sendEvent({
-                usage: {
-                  creditsUsedToday: 25,
-                  dailyCreditLimit: 100,
-                  tokensUsedToday: 51200,
-                  promptsCountToday: 6,
-                  percentUsed: 25,
-                  activeModel: "gemini-2.0-flash",
-                  resetAt: new Date(Date.now() + 86400000).toISOString(),
-                },
-              });
-
-              controller.close();
-            },
-          });
-
-          return new Response(stream, {
+        if (nvidiaRes.ok && nvidiaRes.body) {
+          return new Response(nvidiaRes.body, {
             headers: {
               "Content-Type": "text/event-stream",
               "Cache-Control": "no-cache, no-transform",
@@ -140,13 +105,13 @@ export async function POST(req: NextRequest) {
           });
         }
       } catch (err) {
-        console.warn("Gemini fast-fallback to built-in engine:", err);
+        console.warn("NVIDIA NIM fallback to built-in engine:", err);
       }
     }
 
     // 3. Free Groq API Streaming (If GROQ_API_KEY is provided)
     const groqKey = process.env.GROQ_API_KEY;
-    if (groqKey) {
+    if (groqKey && !groqKey.includes("your_")) {
       try {
         const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
           method: "POST",
@@ -211,12 +176,12 @@ export async function POST(req: NextRequest) {
 
         const cleanResponse = cleanChatText(rawResponse);
 
-        // Stream in smooth, high-speed chunks
-        const chunks = cleanResponse.match(/.{1,28}/g) || [cleanResponse];
-
-        for (const chunk of chunks) {
+        // Stream in smooth, word-level chunks (no token tearing)
+        const tokens = cleanResponse.match(/\S+\s*/g) || [cleanResponse];
+        for (let idx = 0; idx < tokens.length; idx += 2) {
+          const chunk = tokens.slice(idx, idx + 2).join("");
           sendEvent({ delta: chunk });
-          await new Promise((r) => setTimeout(r, 6));
+          await new Promise((r) => setTimeout(r, 12));
         }
 
         // Send usage update
