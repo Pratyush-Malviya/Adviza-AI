@@ -35,6 +35,8 @@ import {
   Compass,
   Check,
   Volume2,
+  Globe,
+  FlaskConical,
 } from "lucide-react";
 import { MissingConnectorCard } from "./missing-connector-card";
 import { HITLApprovalCard } from "./hitl-approval-card";
@@ -158,6 +160,12 @@ export function ChatPanel({
 
   // Deep Reasoning / Think Longer state
   const [thinkLonger, setThinkLonger] = useState(false);
+
+  // Deep Research state
+  const [deepResearch, setDeepResearch] = useState(false);
+
+  // Web Search state
+  const [webSearch, setWebSearch] = useState(false);
 
   // Voice recording simulation / web speech
   const [isListening, setIsListening] = useState(false);
@@ -353,8 +361,19 @@ export function ChatPanel({
     if ((!rawQuery && selectedFiles.length === 0) || loading) return;
 
     let query = rawQuery;
+    const directives: string[] = [];
     if (thinkLonger && !textToSend) {
-      query = `[Deep Reasoning Mode: Elaborate and perform step-by-step fiduciary audit analysis]\n${rawQuery}`;
+      directives.push("[Deep Reasoning Mode: Elaborate and perform step-by-step fiduciary audit analysis]");
+    }
+    if (deepResearch && !textToSend) {
+      directives.push("[Deep Research Mode: Perform comprehensive, multi-angle fiduciary and market investigation with detailed data points, structured breakdown, and citations]");
+    }
+    if (webSearch && !textToSend) {
+      directives.push("[Live Web Search: Gather current live web intelligence, recent market updates, and regulatory filings]");
+    }
+
+    if (directives.length > 0) {
+      query = `${directives.join("\n")}\n\n${rawQuery}`;
     }
 
     const fileNames = selectedFiles.map((f) => f.name).join(", ");
@@ -373,7 +392,13 @@ export function ChatPanel({
     setInput("");
     setSelectedFiles([]);
     setLoading(true);
-    setStatusMessage("Adviza OS Orchestrating...");
+    setStatusMessage(
+      deepResearch
+        ? "Conducting Deep Fiduciary Research..."
+        : webSearch
+        ? "Searching Live Web & Market Feeds..."
+        : "Adviza OS Orchestrating..."
+    );
     isSendingRef.current = true;
 
     const ambient = getAmbientContext();
@@ -384,7 +409,7 @@ export function ChatPanel({
       // Create session on server if this is a new conversation
       if (!targetSessionId) {
         try {
-          const title = query.slice(0, 36) || "Wealth Advisory Session";
+          const title = rawQuery.slice(0, 36) || "Wealth Advisory Session";
           const res = await fetch("/api/ai/chat-sessions", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -415,7 +440,7 @@ export function ChatPanel({
             sessionsList = [
               {
                 id: targetSessionId,
-                title: query.slice(0, 36) || "Wealth Advisory Session",
+                title: rawQuery.slice(0, 36) || "Wealth Advisory Session",
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
               },
@@ -436,6 +461,8 @@ export function ChatPanel({
           modelId: selectedModel,
           sessionId: targetSessionId,
           ambientContext: ambient,
+          deepResearch,
+          webSearch,
         }),
       });
 
@@ -816,7 +843,7 @@ export function ChatPanel({
 
                 {/* Action Bar Inside Input Box */}
                 <div className="flex items-center justify-between pt-2 border-t border-[#FAF5F0]">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     {/* Attach File Button */}
                     <button
                       type="button"
@@ -833,12 +860,43 @@ export function ChatPanel({
                       onClick={() => setThinkLonger(!thinkLonger)}
                       className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition ${
                         thinkLonger
-                          ? "bg-amber-100 text-amber-800 border border-amber-300"
+                          ? "bg-amber-100 text-amber-800 border border-amber-300 shadow-2xs"
                           : "bg-[#FAF5F0] hover:bg-[#F2ECE4] text-[#5A544E] border border-[#EADBCE]"
                       }`}
+                      title={thinkLonger ? "Deep Reasoning Active" : "Enable Deep Reasoning"}
                     >
                       <Lightbulb className={`w-3.5 h-3.5 ${thinkLonger ? "text-amber-600 fill-amber-500" : "text-[#8E847C]"}`} />
                       <span>Think Longer</span>
+                    </button>
+
+                    {/* Deep Research Toggle */}
+                    <button
+                      type="button"
+                      onClick={() => setDeepResearch(!deepResearch)}
+                      className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition ${
+                        deepResearch
+                          ? "bg-indigo-100 text-indigo-800 border border-indigo-300 shadow-2xs"
+                          : "bg-[#FAF5F0] hover:bg-[#F2ECE4] text-[#5A544E] border border-[#EADBCE]"
+                      }`}
+                      title={deepResearch ? "Deep Research Active (Multi-source evidence synthesis)" : "Enable Deep Research"}
+                    >
+                      <FlaskConical className={`w-3.5 h-3.5 ${deepResearch ? "text-indigo-600 fill-indigo-500/20 animate-pulse" : "text-[#8E847C]"}`} />
+                      <span>Deep Research</span>
+                    </button>
+
+                    {/* Web Search Toggle */}
+                    <button
+                      type="button"
+                      onClick={() => setWebSearch(!webSearch)}
+                      className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition ${
+                        webSearch
+                          ? "bg-sky-100 text-sky-800 border border-sky-300 shadow-2xs"
+                          : "bg-[#FAF5F0] hover:bg-[#F2ECE4] text-[#5A544E] border border-[#EADBCE]"
+                      }`}
+                      title={webSearch ? "Live Web Search Active" : "Enable Live Web Search"}
+                    >
+                      <Globe className={`w-3.5 h-3.5 ${webSearch ? "text-sky-600" : "text-[#8E847C]"}`} />
+                      <span>Web Search</span>
                     </button>
                   </div>
 
@@ -1121,7 +1179,7 @@ export function ChatPanel({
               />
 
               <div className="flex items-center justify-between pt-2 border-t border-[#FAF5F0]">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 flex-wrap">
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
@@ -1136,12 +1194,41 @@ export function ChatPanel({
                     onClick={() => setThinkLonger(!thinkLonger)}
                     className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition ${
                       thinkLonger
-                        ? "bg-amber-100 text-amber-800 border border-amber-300"
+                        ? "bg-amber-100 text-amber-800 border border-amber-300 shadow-2xs"
                         : "bg-[#FAF5F0] hover:bg-[#F2ECE4] text-[#5A544E] border border-[#EADBCE]"
                     }`}
+                    title={thinkLonger ? "Deep Reasoning Active" : "Enable Deep Reasoning"}
                   >
                     <Lightbulb className={`w-3.5 h-3.5 ${thinkLonger ? "text-amber-600 fill-amber-500" : "text-[#8E847C]"}`} />
                     <span>Think Longer</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setDeepResearch(!deepResearch)}
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition ${
+                      deepResearch
+                        ? "bg-indigo-100 text-indigo-800 border border-indigo-300 shadow-2xs"
+                        : "bg-[#FAF5F0] hover:bg-[#F2ECE4] text-[#5A544E] border border-[#EADBCE]"
+                    }`}
+                    title={deepResearch ? "Deep Research Active (Multi-source evidence synthesis)" : "Enable Deep Research"}
+                  >
+                    <FlaskConical className={`w-3.5 h-3.5 ${deepResearch ? "text-indigo-600 fill-indigo-500/20 animate-pulse" : "text-[#8E847C]"}`} />
+                    <span>Deep Research</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setWebSearch(!webSearch)}
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition ${
+                      webSearch
+                        ? "bg-sky-100 text-sky-800 border border-sky-300 shadow-2xs"
+                        : "bg-[#FAF5F0] hover:bg-[#F2ECE4] text-[#5A544E] border border-[#EADBCE]"
+                    }`}
+                    title={webSearch ? "Live Web Search Active" : "Enable Live Web Search"}
+                  >
+                    <Globe className={`w-3.5 h-3.5 ${webSearch ? "text-sky-600" : "text-[#8E847C]"}`} />
+                    <span>Web Search</span>
                   </button>
                 </div>
 
