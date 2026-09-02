@@ -848,7 +848,7 @@ export function ChatPanel({
 
             {/* Central Floating Elevated Input Box (Hero Mode) */}
             <div className="w-full max-w-xl space-y-2">
-              <div className="bg-white rounded-3xl border border-[#EADBCE] shadow-xl p-3.5 sm:p-4 space-y-3 transition-all focus-within:border-rose-400 focus-within:ring-2 focus-within:ring-rose-400/20">
+              <div className="bg-white rounded-3xl border border-[#EADBCE] shadow-sm hover:shadow-md p-3.5 sm:p-4 space-y-3 transition-all focus-within:border-[#C4B5A5] focus-within:ring-2 focus-within:ring-[#EADBCE]/50">
                 {/* Selected Files Preview Wrap */}
                 {selectedFiles.length > 0 && (
                   <div className="flex flex-wrap gap-2 pb-1">
@@ -896,7 +896,7 @@ export function ChatPanel({
                     }
                   }}
                   placeholder="Ask me anything..."
-                  className="w-full text-xs sm:text-sm text-[#121217] placeholder:text-[#8E847C] bg-transparent focus:outline-none"
+                  className="w-full text-xs sm:text-sm text-[#121217] placeholder:text-[#8E847C] bg-transparent border-0 outline-none focus:outline-none focus:ring-0 focus:border-0 shadow-none ring-0"
                 />
 
                 {/* Action Bar Inside Input Box */}
@@ -1254,7 +1254,7 @@ export function ChatPanel({
             )}
 
             {/* Elevated Input Card */}
-            <div className="bg-white rounded-3xl border border-[#EADBCE] shadow-lg p-3 sm:p-3.5 space-y-2 transition-all focus-within:border-rose-400 focus-within:ring-2 focus-within:ring-rose-400/20">
+            <div className="bg-white rounded-3xl border border-[#EADBCE] shadow-sm hover:shadow-md p-3 sm:p-3.5 space-y-2 transition-all focus-within:border-[#C4B5A5] focus-within:ring-2 focus-within:ring-[#EADBCE]/50">
               <input
                 type="text"
                 value={input}
@@ -1273,7 +1273,7 @@ export function ChatPanel({
                 }}
                 placeholder={`Ask Adviza (${activeModelObj.shortName})...`}
                 disabled={loading}
-                className="w-full text-xs sm:text-sm text-[#121217] placeholder:text-[#8E847C] bg-transparent focus:outline-none"
+                className="w-full text-xs sm:text-sm text-[#121217] placeholder:text-[#8E847C] bg-transparent border-0 outline-none focus:outline-none focus:ring-0 focus:border-0 shadow-none ring-0"
               />
 
               <div className="flex items-center justify-between pt-2 border-t border-[#FAF5F0]">
