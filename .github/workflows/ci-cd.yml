@@ -51,6 +51,14 @@ jobs:
     needs: test-and-build
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
+    env:
+      AWS_ROLE_ARN: ${{ secrets['AWS_ROLE_ARN'] }}
+      AWS_ACCESS_KEY_ID: ${{ secrets['AWS_ACCESS_KEY_ID'] }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets['AWS_SECRET_ACCESS_KEY'] }}
+      AWS_REGION: ${{ secrets['AWS_REGION'] || 'us-east-1' }}
+      ECR_REPOSITORY: ${{ secrets['ECR_REPOSITORY'] || 'adviza-backend' }}
+      ECS_CLUSTER: ${{ secrets['ECS_CLUSTER'] || 'production-adviza-cluster' }}
+      ECS_SERVICE: ${{ secrets['ECS_SERVICE'] || 'production-adviza-service' }}
 
     steps:
       - name: Checkout Code
@@ -58,9 +66,6 @@ jobs:
 
       - name: Verify AWS Deployment Configuration
         id: check-aws
-        env:
-          AWS_ROLE_ARN: ${{ secrets['AWS_ROLE_ARN'] }}
-          AWS_ACCESS_KEY_ID: ${{ secrets['AWS_ACCESS_KEY_ID'] }}
         run: |
           if [ -n "$AWS_ROLE_ARN" ] || [ -n "$AWS_ACCESS_KEY_ID" ]; then
             echo "configured=true" >> $GITHUB_OUTPUT
@@ -73,11 +78,11 @@ jobs:
         if: steps.check-aws.outputs.configured == 'true'
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets['AWS_ROLE_ARN'] }}
-          aws-access-key-id: ${{ secrets['AWS_ACCESS_KEY_ID'] }}
-          aws-secret-access-key: ${{ secrets['AWS_SECRET_ACCESS_KEY'] }}
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
           role-session-name: AdvizaGitHubDeploySession
-          aws-region: ${{ secrets['AWS_REGION'] || 'us-east-1' }}
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
         if: steps.check-aws.outputs.configured == 'true'
@@ -88,7 +93,6 @@ jobs:
         if: steps.check-aws.outputs.configured == 'true'
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ${{ secrets['ECR_REPOSITORY'] || 'adviza-backend' }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest ./adviza-backend
@@ -98,4 +102,4 @@ jobs:
       - name: Update ECS Task Definition & Service
         if: steps.check-aws.outputs.configured == 'true'
         run: |
-          aws ecs update-service --cluster ${{ secrets['ECS_CLUSTER'] || 'production-adviza-cluster' }} --service ${{ secrets['ECS_SERVICE'] || 'production-adviza-service' }} --force-new-deployment --region ${{ secrets['AWS_REGION'] || 'us-east-1' }}
+          aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --force-new-deployment --region $AWS_REGION
