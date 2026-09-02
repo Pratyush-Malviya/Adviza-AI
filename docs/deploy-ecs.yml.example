@@ -1,3 +1,6 @@
+# AWS ECS Deployment Workflow (Reference Example)
+# Move this file to .github/workflows/deploy-ecs.yml when you are ready to deploy to AWS ECS.
+
 name: Deploy Backend to AWS ECS
 
 on:
