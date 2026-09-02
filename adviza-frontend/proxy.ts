@@ -2,12 +2,6 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function proxy(request: NextRequest) {
-  return middleware(request);
-}
-
-export default proxy;
-
-export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
   const supabaseUrl =
@@ -48,12 +42,14 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/pricing") ||
     isApiRoute;
 
+  // Protect all dashboard, workflows, agents, meetings, portfolio routes
   if (!user && !isAuthPage && !isPublicPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
     return NextResponse.redirect(url);
   }
 
+  // Prevent authenticated users from accessing login/signup repeatedly
   if (user && isAuthPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
@@ -62,6 +58,8 @@ export async function middleware(request: NextRequest) {
 
   return supabaseResponse;
 }
+
+export default proxy;
 
 export const config = {
   matcher: [

@@ -3,6 +3,7 @@ import cors from '@fastify/cors';
 import sensible from '@fastify/sensible';
 import { env } from './config/env.js';
 import { errorHandler } from './middleware/error.handler.js';
+import { rateLimitGuard } from './middleware/rate-limit.guard.js';
 import { healthRoutes } from './modules/health/health.routes.js';
 import { memoryRoutes } from './modules/memory/memory.routes.js';
 import { chatRoutes } from './modules/chat/chat.routes.js';
@@ -19,6 +20,7 @@ async function bootstrap() {
     logger: {
       level: env.NODE_ENV === 'production' ? 'info' : 'debug',
     },
+    trustProxy: true,
   });
 
   // Global plugins
@@ -33,9 +35,23 @@ async function bootstrap() {
       'https://adviza.ai',
       'https://www.adviza.ai',
       'https://app.adviza.ai',
+      'https://adviza-ai.vercel.app',
     ].filter(Boolean),
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  });
+
+  // Security Headers Hook
+  fastify.addHook('onRequest', async (req, reply) => {
+    reply.header('X-Content-Type-Options', 'nosniff');
+    reply.header('X-Frame-Options', 'DENY');
+    reply.header('X-XSS-Protection', '1; mode=block');
+    reply.header('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
+    reply.header('Referrer-Policy', 'strict-origin-when-cross-origin');
+    reply.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    
+    // Apply Rate Limiting
+    await rateLimitGuard(req, reply);
   });
 
   // Global error handling
