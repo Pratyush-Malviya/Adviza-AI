@@ -40,6 +40,11 @@ export function MarkdownContent({ content, className = "" }: MarkdownContentProp
 
 function normalizeMarkdown(raw: string): string {
   return raw
+    // Replace em dashes and en dashes
+    .replace(/[\u2014\u2015]/g, " - ")
+    .replace(/[\u2013]/g, "-")
+    // Remove asterisks
+    .replace(/\*{1,3}/g, "")
     // Insert newlines before headings if jammed against previous sentences (e.g. "stack.### What would")
     .replace(/([^\n])\s*(#{1,6}\s+)/g, "$1\n\n$2")
     // Insert newlines before bullet points if jammed against previous sentences (e.g. "today?- 📊 Portfolio")

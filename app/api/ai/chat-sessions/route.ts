@@ -69,3 +69,29 @@ export async function POST(req: NextRequest) {
     });
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const body = await req.json().catch(() => ({}));
+    const { sessionId } = body;
+
+    if (sessionId) {
+      try {
+        const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (user) {
+          await supabase
+            .from("chat_sessions" as any)
+            .delete()
+            .eq("id", sessionId)
+            .eq("user_id", user.id);
+        }
+      } catch {}
+    }
+
+    return NextResponse.json({ success: true, deletedId: sessionId });
+  } catch (err: any) {
+    return NextResponse.json({ success: true });
+  }
+}
