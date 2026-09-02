@@ -524,6 +524,47 @@ export function ChatPanel({
       let missingConnectors: any[] = [];
       let hitlPrompts: any[] = [];
       let buffer = "";
+      let lastRenderTime = 0;
+
+      // Throttle rendering updates to ~25fps (every 40ms) to prevent freezing main thread
+      const syncAssistantMessage = (force = false) => {
+        const now = Date.now();
+        if (force || now - lastRenderTime >= 40) {
+          lastRenderTime = now;
+          if (isFirstChunk) {
+            isFirstChunk = false;
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: assistantMsgId,
+                role: "assistant",
+                content: assistantText,
+                timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+                citations: searchCitations.length > 0 ? searchCitations : undefined,
+                isDeepResearch: deepResearch,
+                isWebSearch: webSearch,
+                executedResults: executedResults.length > 0 ? executedResults : undefined,
+                missingConnectors: missingConnectors.length > 0 ? missingConnectors : undefined,
+                hitlPrompts: hitlPrompts.length > 0 ? hitlPrompts : undefined,
+              },
+            ]);
+          } else {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantMsgId
+                  ? {
+                      ...m,
+                      content: assistantText,
+                      executedResults: executedResults.length > 0 ? executedResults : m.executedResults,
+                      missingConnectors: missingConnectors.length > 0 ? missingConnectors : m.missingConnectors,
+                      hitlPrompts: hitlPrompts.length > 0 ? hitlPrompts : m.hitlPrompts,
+                    }
+                  : m
+              )
+            );
+          }
+        }
+      };
 
       while (true) {
         const { value, done } = await reader.read();
@@ -554,52 +595,22 @@ export function ChatPanel({
 
               if (deltaText) {
                 assistantText += deltaText;
-                if (isFirstChunk) {
-                  isFirstChunk = false;
-                  setMessages((prev) => [
-                    ...prev,
-                    {
-                      id: assistantMsgId,
-                      role: "assistant",
-                      content: assistantText,
-                      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-                      citations: searchCitations.length > 0 ? searchCitations : undefined,
-                      isDeepResearch: deepResearch,
-                      isWebSearch: webSearch,
-                    },
-                  ]);
-                } else {
-                  setMessages((prev) =>
-                    prev.map((m) => (m.id === assistantMsgId ? { ...m, content: assistantText } : m))
-                  );
-                }
+                syncAssistantMessage(false);
               }
 
               if (parsed.executedResults) {
                 executedResults = [...executedResults, ...parsed.executedResults];
-                setMessages((prev) =>
-                  prev.map((m) =>
-                    m.id === assistantMsgId ? { ...m, executedResults: executedResults } : m
-                  )
-                );
+                syncAssistantMessage(false);
               }
 
               if (parsed.missingConnectors) {
                 missingConnectors = [...missingConnectors, ...parsed.missingConnectors];
-                setMessages((prev) =>
-                  prev.map((m) =>
-                    m.id === assistantMsgId ? { ...m, missingConnectors: missingConnectors } : m
-                  )
-                );
+                syncAssistantMessage(false);
               }
 
               if (parsed.hitlPrompts) {
                 hitlPrompts = [...hitlPrompts, ...parsed.hitlPrompts];
-                setMessages((prev) =>
-                  prev.map((m) =>
-                    m.id === assistantMsgId ? { ...m, hitlPrompts: hitlPrompts } : m
-                  )
-                );
+                syncAssistantMessage(false);
               }
 
               if (parsed.usage) {
@@ -612,14 +623,19 @@ export function ChatPanel({
         }
       }
 
-      // Persist messages in local storage for session caching
+      // Final force sync at end of stream
+      syncAssistantMessage(true);
+
+      // Persist messages in local storage asynchronously (non-blocking)
       if (targetSessionId) {
-        setMessages((latest) => {
-          try {
-            localStorage.setItem("adviza_chat_msg_" + targetSessionId, JSON.stringify(latest));
-          } catch {}
-          return latest;
-        });
+        setTimeout(() => {
+          setMessages((latest) => {
+            try {
+              localStorage.setItem("adviza_chat_msg_" + targetSessionId, JSON.stringify(latest));
+            } catch {}
+            return latest;
+          });
+        }, 80);
       }
     } catch (err) {
       console.error("Chat orchestration error:", err);
@@ -661,12 +677,11 @@ export function ChatPanel({
           : "w-full h-full"
       }`}
     >
-      {/* Ambient background glow tints matching Adviza theme */}
-      <div className="absolute top-0 left-0 w-96 h-96 bg-rose-500/5 rounded-full blur-3xl pointer-events-none -z-10" />
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl pointer-events-none -z-10" />
+      {/* Lightweight GPU-friendly ambient background */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_rgba(244,63,94,0.04),transparent_50%),radial-gradient(ellipse_at_bottom_right,_rgba(245,158,11,0.04),transparent_50%)] pointer-events-none -z-10" />
 
       {/* TOP HEADER BAR */}
-      <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-[#EADBCE]/80 bg-white/80 backdrop-blur-md z-20">
+      <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-[#EADBCE]/80 bg-white/95 z-20">
         {/* Left: Model Selector Dropdown */}
         <div className="relative">
           <button

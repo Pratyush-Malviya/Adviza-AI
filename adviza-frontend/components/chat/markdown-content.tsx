@@ -16,7 +16,7 @@ interface MarkdownContentProps {
   className?: string;
 }
 
-export function MarkdownContent({ content, className = "" }: MarkdownContentProps) {
+function MarkdownContentComponent({ content, className = "" }: MarkdownContentProps) {
   if (!content) return null;
 
   // 1. Pre-normalize any compressed/unbroken markdown strings
@@ -33,6 +33,8 @@ export function MarkdownContent({ content, className = "" }: MarkdownContentProp
     </div>
   );
 }
+
+export const MarkdownContent = React.memo(MarkdownContentComponent);
 
 // ---------------------------------------------------------------------------
 // Pre-Normalization of Raw Markdown Strings
