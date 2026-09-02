@@ -23,6 +23,9 @@ import {
   Cpu,
   Flame,
   Info,
+  Paperclip,
+  Image as ImageIcon,
+  File as FileIcon,
 } from "lucide-react";
 import { MissingConnectorCard } from "./missing-connector-card";
 import { HITLApprovalCard } from "./hitl-approval-card";
@@ -130,6 +133,10 @@ export function ChatPanel({
   // Model Selector state
   const [selectedModel, setSelectedModel] = useState<string>("claude-3-5-sonnet");
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
+
+  // File Upload state
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Daily Credit Usage state
   const [usageStats, setUsageStats] = useState<DailyUsageStats>({
@@ -802,13 +809,65 @@ export function ChatPanel({
 
       {/* Input Area */}
       <div className="p-3.5 sm:p-4 border-t border-[#EADBCE] bg-white">
+        {selectedFiles.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {selectedFiles.map((file, idx) => (
+              <div
+                key={idx}
+                className="flex items-center gap-2 px-2.5 py-1.5 bg-[#FAF5F0] border border-[#EADBCE] rounded-lg text-xs"
+              >
+                {file.type.startsWith("image/") ? (
+                  <ImageIcon className="w-3.5 h-3.5 text-rose-500" />
+                ) : (
+                  <FileIcon className="w-3.5 h-3.5 text-amber-500" />
+                )}
+                <span className="max-w-[120px] truncate text-[#121217] font-medium">{file.name}</span>
+                <button
+                  onClick={() => {
+                    const newFiles = [...selectedFiles];
+                    newFiles.splice(idx, 1);
+                    setSelectedFiles(newFiles);
+                  }}
+                  className="text-[#8E847C] hover:text-rose-500 transition ml-1"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
         <form
           onSubmit={(e) => {
             e.preventDefault();
             handleSendMessage();
+            // Clear files after sending
+            setSelectedFiles([]);
           }}
           className="flex items-center gap-2"
         >
+          <input
+            type="file"
+            multiple
+            className="hidden"
+            ref={fileInputRef}
+            onChange={(e) => {
+              if (e.target.files) {
+                const filesArray = Array.from(e.target.files);
+                setSelectedFiles((prev) => [...prev, ...filesArray]);
+              }
+              // Reset input so the same file can be selected again if needed
+              if (fileInputRef.current) fileInputRef.current.value = "";
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="p-2.5 text-[#8E847C] hover:text-[#121217] bg-[#FAF5F0] hover:bg-[#EADBCE] rounded-2xl transition shrink-0"
+            title="Attach Document or Image"
+          >
+            <Paperclip className="w-4 h-4" />
+          </button>
+
           <input
             type="text"
             value={input}
@@ -819,7 +878,7 @@ export function ChatPanel({
           />
           <button
             type="submit"
-            disabled={!input.trim() || loading}
+            disabled={(!input.trim() && selectedFiles.length === 0) || loading}
             className="p-2.5 bg-gradient-to-tr from-rose-500 to-amber-500 hover:opacity-90 disabled:opacity-40 text-white rounded-2xl shadow-sm transition shrink-0"
           >
             <Send className="w-4 h-4" />
