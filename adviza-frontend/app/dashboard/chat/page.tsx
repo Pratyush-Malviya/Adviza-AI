@@ -17,7 +17,7 @@ function ChatContent() {
   };
 
   return (
-    <div className="w-full h-[calc(100vh-130px)] min-h-[550px] transition-all duration-300">
+    <div className="w-full h-[calc(100dvh-5.25rem)] md:h-[calc(100vh-130px)] transition-all duration-300">
       <ChatPanel
         sessionId={sessionId}
         onSessionCreated={handleSessionCreated}

@@ -669,7 +669,7 @@ export function ChatPanel({
 
   return (
     <div
-      className={`flex flex-col bg-white rounded-3xl border border-[#EADBCE] shadow-xl overflow-hidden relative transition-all duration-300 ${
+      className={`flex flex-col bg-white rounded-2xl sm:rounded-3xl border border-[#EADBCE] shadow-xl overflow-hidden relative transition-all duration-300 ${
         isFloating
           ? isExpanded
             ? "w-[580px] h-[780px] max-h-[90vh]"
@@ -681,20 +681,21 @@ export function ChatPanel({
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_rgba(244,63,94,0.04),transparent_50%),radial-gradient(ellipse_at_bottom_right,_rgba(245,158,11,0.04),transparent_50%)] pointer-events-none -z-10" />
 
       {/* TOP HEADER BAR */}
-      <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-[#EADBCE]/80 bg-white/95 z-20">
+      <div className="flex items-center justify-between px-3 sm:px-6 py-2.5 sm:py-3.5 border-b border-[#EADBCE]/80 bg-white/95 z-20">
         {/* Left: Model Selector Dropdown */}
         <div className="relative">
           <button
             onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
-            className="flex items-center gap-2.5 px-3 py-1.5 rounded-2xl bg-[#FAF5F0] hover:bg-[#F2ECE4] border border-[#EADBCE] text-xs font-bold text-[#121217] transition shadow-2xs group"
+            className="flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-3 py-1.5 rounded-2xl bg-[#FAF5F0] hover:bg-[#F2ECE4] border border-[#EADBCE] text-xs font-bold text-[#121217] transition shadow-2xs group"
           >
-            <div className="w-5 h-5 rounded-full bg-[#121217] flex items-center justify-center text-white text-[10px] shadow-xs">
+            <div className="w-5 h-5 rounded-full bg-[#121217] flex items-center justify-center text-white text-[10px] shadow-xs shrink-0">
               <Sparkles className="w-3 h-3 text-rose-400" />
             </div>
-            <span className="font-heading font-extrabold text-xs tracking-tight">
-              {activeModelObj.name}
+            <span className="font-heading font-extrabold text-xs tracking-tight truncate max-w-[110px] sm:max-w-none">
+              <span className="sm:hidden">{activeModelObj.shortName}</span>
+              <span className="hidden sm:inline">{activeModelObj.name}</span>
             </span>
-            <ChevronDown className="w-3.5 h-3.5 text-[#8E847C] group-hover:text-[#121217] transition-transform" />
+            <ChevronDown className="w-3.5 h-3.5 text-[#8E847C] group-hover:text-[#121217] transition-transform shrink-0" />
           </button>
 
           {/* Model Selection Dropdown Menu */}
@@ -738,7 +739,7 @@ export function ChatPanel({
         </div>
 
         {/* Right: Daily Limits, Share, Copy Link, New Chat */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3">
           {/* Daily Limits Meter Pill */}
           <div className="relative">
             <button
@@ -787,7 +788,7 @@ export function ChatPanel({
           <div className="relative">
             <button
               onClick={() => setShowOptionsMenu(!showOptionsMenu)}
-              className="p-2 rounded-2xl text-[#8E847C] hover:text-[#121217] hover:bg-[#FAF5F0] border border-transparent hover:border-[#EADBCE] transition"
+              className="p-1.5 sm:p-2 rounded-2xl text-[#8E847C] hover:text-[#121217] hover:bg-[#FAF5F0] border border-transparent hover:border-[#EADBCE] transition"
               title="More Options"
             >
               <MoreHorizontal className="w-4 h-4" />
@@ -808,7 +809,7 @@ export function ChatPanel({
           {/* Copy Shareable Link */}
           <button
             onClick={handleCopyShareLink}
-            className="p-2 rounded-2xl text-[#8E847C] hover:text-[#121217] hover:bg-[#FAF5F0] border border-[#EADBCE] transition shadow-2xs"
+            className="p-1.5 sm:p-2 rounded-2xl text-[#8E847C] hover:text-[#121217] hover:bg-[#FAF5F0] border border-[#EADBCE] transition shadow-2xs"
             title="Copy Chat Link"
           >
             {copiedLink ? <Check className="w-4 h-4 text-emerald-600" /> : <Link2 className="w-4 h-4" />}
@@ -826,38 +827,38 @@ export function ChatPanel({
           {/* New Chat Button */}
           <button
             onClick={handleStartNewChat}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-2xl bg-gradient-to-tr from-rose-500 to-amber-500 hover:opacity-90 text-white text-xs font-bold shadow-sm transition group"
+            className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-2xl bg-gradient-to-tr from-rose-500 to-amber-500 hover:opacity-90 text-white text-xs font-bold shadow-sm transition group"
           >
-            <span>New Chat</span>
+            <span className="hidden xs:inline sm:inline">New Chat</span>
             <Sparkles className="w-3.5 h-3.5 transition-transform group-hover:rotate-12" />
           </button>
         </div>
       </div>
 
       {/* MAIN CHAT SCROLL AREA */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-6 space-y-5 scrollbar-thin">
+      <div className="flex-1 overflow-y-auto px-3 sm:px-8 py-4 sm:py-6 space-y-4 sm:space-y-5 scrollbar-thin">
         {/* HERO / STARTER SCREEN (Matching Reference Design) */}
         {messages.length === 0 ? (
-          <div className="min-h-[500px] flex flex-col items-center justify-center text-center max-w-2xl mx-auto py-6 space-y-6">
+          <div className="min-h-0 sm:min-h-[500px] flex flex-col items-center justify-center text-center max-w-2xl mx-auto py-2 sm:py-6 space-y-4 sm:space-y-6">
             {/* Center Orbital Glowing Graphic */}
-            <div className="relative flex items-center justify-center">
-              <div className="w-24 h-24 rounded-full border border-dashed border-rose-300/60 animate-spin-slow flex items-center justify-center">
+            <div className="relative flex items-center justify-center scale-75 sm:scale-100 my-1 sm:my-0">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border border-dashed border-rose-300/60 animate-spin-slow flex items-center justify-center">
                 <div className="w-2.5 h-2.5 rounded-full bg-rose-500 absolute -top-1" />
                 <div className="w-2.5 h-2.5 rounded-full bg-amber-500 absolute -bottom-1" />
               </div>
-              <div className="w-16 h-16 rounded-full bg-[#121217] flex items-center justify-center text-white shadow-2xl absolute transition-transform hover:scale-105">
-                <div className="w-8 h-8 rounded-full border-2 border-white/80 flex items-center justify-center">
-                  <div className="w-3.5 h-3.5 rounded-full bg-gradient-to-tr from-rose-500 to-amber-500" />
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#121217] flex items-center justify-center text-white shadow-2xl absolute transition-transform hover:scale-105">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-white/80 flex items-center justify-center">
+                  <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-gradient-to-tr from-rose-500 to-amber-500" />
                 </div>
               </div>
             </div>
 
             {/* Title & Subtitle */}
-            <div className="space-y-2.5">
-              <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#121217] tracking-tight max-w-xl mx-auto leading-tight">
+            <div className="space-y-1.5 sm:space-y-2.5 px-2">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-heading font-extrabold text-[#121217] tracking-tight max-w-xl mx-auto leading-tight">
                 Unleash AI with Adviza Smarter Ideas and Insights at your Fingertips
               </h1>
-              <p className="text-xs sm:text-sm text-[#8E847C] max-w-md mx-auto leading-relaxed">
+              <p className="text-[11px] sm:text-xs md:text-sm text-[#8E847C] max-w-md mx-auto leading-relaxed">
                 Turn imagination into impact with Adviza's AI built to unlock endless possibilities and
                 shape your ideas into intelligent results.
               </p>
@@ -914,17 +915,17 @@ export function ChatPanel({
                   }}
                   placeholder="Ask me anything..."
                   style={{ outline: "none", boxShadow: "none", border: "none" }}
-                  className="w-full text-xs sm:text-sm text-[#121217] placeholder:text-[#8E847C] bg-transparent border-0 outline-none focus:outline-none focus:ring-0 focus:border-0 shadow-none ring-0 focus-visible:outline-none focus-visible:ring-0 !outline-none !ring-0"
+                  className="w-full text-base sm:text-sm text-[#121217] placeholder:text-[#8E847C] bg-transparent border-0 outline-none focus:outline-none focus:ring-0 focus:border-0 shadow-none ring-0 focus-visible:outline-none focus-visible:ring-0 !outline-none !ring-0"
                 />
 
                 {/* Action Bar Inside Input Box */}
-                <div className="flex items-center justify-between pt-2 border-t border-[#FAF5F0]">
-                  <div className="flex items-center gap-1.5 flex-wrap">
+                <div className="flex items-center justify-between pt-2 border-t border-[#FAF5F0] gap-1">
+                  <div className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar py-0.5 max-w-[calc(100vw-115px)] sm:max-w-none flex-nowrap sm:flex-wrap shrink min-w-0">
                     {/* Attach File Button */}
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="p-1.5 rounded-xl text-[#8E847C] hover:text-[#121217] hover:bg-[#FAF5F0] transition"
+                      className="p-1.5 rounded-xl text-[#8E847C] hover:text-[#121217] hover:bg-[#FAF5F0] transition shrink-0"
                       title="Attach Image or Document"
                     >
                       <Plus className="w-4 h-4" />
@@ -934,7 +935,7 @@ export function ChatPanel({
                     <button
                       type="button"
                       onClick={() => setThinkLonger(!thinkLonger)}
-                      className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition ${
+                      className={`flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full text-xs font-semibold transition shrink-0 ${
                         thinkLonger
                           ? "bg-amber-100 text-amber-800 border border-amber-300 shadow-2xs"
                           : "bg-[#FAF5F0] hover:bg-[#F2ECE4] text-[#5A544E] border border-[#EADBCE]"
@@ -942,14 +943,15 @@ export function ChatPanel({
                       title={thinkLonger ? "Deep Reasoning Active" : "Enable Deep Reasoning"}
                     >
                       <Lightbulb className={`w-3.5 h-3.5 ${thinkLonger ? "text-amber-600 fill-amber-500" : "text-[#8E847C]"}`} />
-                      <span>Think Longer</span>
+                      <span className="hidden sm:inline">Think Longer</span>
+                      <span className="sm:hidden">Think</span>
                     </button>
 
                     {/* Deep Research Toggle */}
                     <button
                       type="button"
                       onClick={() => setDeepResearch(!deepResearch)}
-                      className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition ${
+                      className={`flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full text-xs font-semibold transition shrink-0 ${
                         deepResearch
                           ? "bg-indigo-100 text-indigo-800 border border-indigo-300 shadow-2xs"
                           : "bg-[#FAF5F0] hover:bg-[#F2ECE4] text-[#5A544E] border border-[#EADBCE]"
@@ -957,14 +959,15 @@ export function ChatPanel({
                       title={deepResearch ? "Deep Research Active (Multi-source evidence synthesis)" : "Enable Deep Research"}
                     >
                       <FlaskConical className={`w-3.5 h-3.5 ${deepResearch ? "text-indigo-600 fill-indigo-500/20 animate-pulse" : "text-[#8E847C]"}`} />
-                      <span>Deep Research</span>
+                      <span className="hidden sm:inline">Deep Research</span>
+                      <span className="sm:hidden">Research</span>
                     </button>
 
                     {/* Web Search Toggle */}
                     <button
                       type="button"
                       onClick={() => setWebSearch(!webSearch)}
-                      className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition ${
+                      className={`flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full text-xs font-semibold transition shrink-0 ${
                         webSearch
                           ? "bg-sky-100 text-sky-800 border border-sky-300 shadow-2xs"
                           : "bg-[#FAF5F0] hover:bg-[#F2ECE4] text-[#5A544E] border border-[#EADBCE]"
@@ -972,11 +975,12 @@ export function ChatPanel({
                       title={webSearch ? "Live Web Search Active" : "Enable Live Web Search"}
                     >
                       <Globe className={`w-3.5 h-3.5 ${webSearch ? "text-sky-600" : "text-[#8E847C]"}`} />
-                      <span>Web Search</span>
+                      <span className="hidden sm:inline">Web Search</span>
+                      <span className="sm:hidden">Web</span>
                     </button>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                     {/* Voice Dictation Button */}
                     <button
                       type="button"
@@ -1094,17 +1098,17 @@ export function ChatPanel({
             {messages.map((m) => (
               <div
                 key={m.id}
-                className={`flex gap-3.5 ${m.role === "user" ? "justify-end" : "justify-start"}`}
+                className={`flex gap-2 sm:gap-3.5 ${m.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 {m.role === "assistant" && (
-                  <div className="w-8 h-8 rounded-2xl bg-[#121217] flex items-center justify-center text-white shadow-xs shrink-0 mt-0.5">
-                    <Sparkles className="w-4 h-4 text-rose-400" />
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-xl sm:rounded-2xl bg-[#121217] flex items-center justify-center text-white shadow-xs shrink-0 mt-0.5">
+                    <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-rose-400" />
                   </div>
                 )}
 
-                <div className={`max-w-[90%] sm:max-w-[85%] space-y-2.5`}>
+                <div className={`max-w-[95%] sm:max-w-[85%] space-y-2`}>
                   {m.role === "user" ? (
-                    <div className="p-4 rounded-3xl leading-relaxed text-xs sm:text-sm bg-[#121217] text-white rounded-tr-xs shadow-sm space-y-2">
+                    <div className="p-3 sm:p-4 rounded-2xl sm:rounded-3xl leading-relaxed text-xs sm:text-sm bg-[#121217] text-white rounded-tr-xs shadow-sm space-y-2">
                       {/* Active Prompt Mode Badges */}
                       {(m.isDeepResearch || m.isWebSearch || m.thinkLonger || (m.attachedFiles && m.attachedFiles.length > 0)) && (
                         <div className="flex flex-wrap items-center gap-1.5 pb-1 border-b border-zinc-700/60">
@@ -1138,7 +1142,7 @@ export function ChatPanel({
                       <div className="text-[10px] text-zinc-400 text-right">{m.timestamp}</div>
                     </div>
                   ) : (
-                    <div className="p-4 sm:p-5 rounded-3xl bg-[#FAF5F0] text-[#121217] border border-[#EADBCE] rounded-tl-xs shadow-2xs space-y-3">
+                    <div className="p-3 sm:p-5 rounded-2xl sm:rounded-3xl bg-[#FAF5F0] text-[#121217] border border-[#EADBCE] rounded-tl-xs shadow-2xs space-y-3">
                       {/* Enterprise Markdown Rendered Content */}
                       <MarkdownContent content={m.content} />
 
@@ -1240,8 +1244,8 @@ export function ChatPanel({
 
       {/* DOCKED BOTTOM INPUT BAR (Active Chat Mode) */}
       {messages.length > 0 && (
-        <div className="p-4 border-t border-[#EADBCE] bg-white/95 backdrop-blur-md z-20">
-          <div className="max-w-3xl mx-auto space-y-2">
+        <div className="p-2 sm:p-4 border-t border-[#EADBCE] bg-white/95 backdrop-blur-md z-20">
+          <div className="max-w-3xl mx-auto space-y-1.5 sm:space-y-2">
             {/* File Previews */}
             {selectedFiles.length > 0 && (
               <div className="flex flex-wrap gap-2 pb-1">
@@ -1272,7 +1276,7 @@ export function ChatPanel({
             )}
 
             {/* Elevated Input Card */}
-            <div className="bg-white rounded-3xl border border-[#EADBCE] shadow-sm hover:shadow-md p-3 sm:p-3.5 space-y-2.5 transition-all">
+            <div className="bg-white rounded-2xl sm:rounded-3xl border border-[#EADBCE] shadow-sm hover:shadow-md p-2.5 sm:p-3.5 space-y-2 sm:space-y-2.5 transition-all">
               <input
                 type="text"
                 value={input}
@@ -1292,15 +1296,15 @@ export function ChatPanel({
                 placeholder={`Ask Adviza (${activeModelObj.shortName})...`}
                 disabled={loading}
                 style={{ outline: "none", boxShadow: "none", border: "none" }}
-                className="w-full text-xs sm:text-sm text-[#121217] placeholder:text-[#8E847C] bg-transparent border-0 outline-none focus:outline-none focus:ring-0 focus:border-0 shadow-none ring-0 focus-visible:outline-none focus-visible:ring-0 !outline-none !ring-0"
+                className="w-full text-base sm:text-sm text-[#121217] placeholder:text-[#8E847C] bg-transparent border-0 outline-none focus:outline-none focus:ring-0 focus:border-0 shadow-none ring-0 focus-visible:outline-none focus-visible:ring-0 !outline-none !ring-0"
               />
 
-              <div className="flex items-center justify-between pt-2 border-t border-[#FAF5F0]">
-                <div className="flex items-center gap-1.5 flex-wrap">
+              <div className="flex items-center justify-between pt-2 border-t border-[#FAF5F0] gap-1">
+                <div className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar py-0.5 max-w-[calc(100vw-115px)] sm:max-w-none flex-nowrap sm:flex-wrap shrink min-w-0">
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="p-1.5 rounded-xl text-[#8E847C] hover:text-[#121217] hover:bg-[#FAF5F0] transition"
+                    className="p-1.5 rounded-xl text-[#8E847C] hover:text-[#121217] hover:bg-[#FAF5F0] transition shrink-0"
                     title="Attach Image or Document"
                   >
                     <Plus className="w-4 h-4" />
@@ -1309,7 +1313,7 @@ export function ChatPanel({
                   <button
                     type="button"
                     onClick={() => setThinkLonger(!thinkLonger)}
-                    className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition ${
+                    className={`flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full text-xs font-semibold transition shrink-0 ${
                       thinkLonger
                         ? "bg-amber-100 text-amber-800 border border-amber-300 shadow-2xs"
                         : "bg-[#FAF5F0] hover:bg-[#F2ECE4] text-[#5A544E] border border-[#EADBCE]"
@@ -1317,13 +1321,14 @@ export function ChatPanel({
                     title={thinkLonger ? "Deep Reasoning Active" : "Enable Deep Reasoning"}
                   >
                     <Lightbulb className={`w-3.5 h-3.5 ${thinkLonger ? "text-amber-600 fill-amber-500" : "text-[#8E847C]"}`} />
-                    <span>Think Longer</span>
+                    <span className="hidden sm:inline">Think Longer</span>
+                    <span className="sm:hidden">Think</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setDeepResearch(!deepResearch)}
-                    className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition ${
+                    className={`flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full text-xs font-semibold transition shrink-0 ${
                       deepResearch
                         ? "bg-indigo-100 text-indigo-800 border border-indigo-300 shadow-2xs"
                         : "bg-[#FAF5F0] hover:bg-[#F2ECE4] text-[#5A544E] border border-[#EADBCE]"
@@ -1331,13 +1336,14 @@ export function ChatPanel({
                     title={deepResearch ? "Deep Research Active (Multi-source evidence synthesis)" : "Enable Deep Research"}
                   >
                     <FlaskConical className={`w-3.5 h-3.5 ${deepResearch ? "text-indigo-600 fill-indigo-500/20 animate-pulse" : "text-[#8E847C]"}`} />
-                    <span>Deep Research</span>
+                    <span className="hidden sm:inline">Deep Research</span>
+                    <span className="sm:hidden">Research</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setWebSearch(!webSearch)}
-                    className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition ${
+                    className={`flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full text-xs font-semibold transition shrink-0 ${
                       webSearch
                         ? "bg-sky-100 text-sky-800 border border-sky-300 shadow-2xs"
                         : "bg-[#FAF5F0] hover:bg-[#F2ECE4] text-[#5A544E] border border-[#EADBCE]"
@@ -1345,11 +1351,12 @@ export function ChatPanel({
                     title={webSearch ? "Live Web Search Active" : "Enable Live Web Search"}
                   >
                     <Globe className={`w-3.5 h-3.5 ${webSearch ? "text-sky-600" : "text-[#8E847C]"}`} />
-                    <span>Web Search</span>
+                    <span className="hidden sm:inline">Web Search</span>
+                    <span className="sm:hidden">Web</span>
                   </button>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                   <button
                     type="button"
                     onClick={handleToggleVoice}
@@ -1376,7 +1383,7 @@ export function ChatPanel({
             </div>
 
             {/* Disclaimer Footer */}
-            <div className="text-center text-[10px] text-[#8E847C] pt-1">
+            <div className="text-center text-[10px] text-[#8E847C] pt-0.5 sm:pt-1">
               Adviza generates AI-based answers. Review key details for accuracy.
             </div>
           </div>
