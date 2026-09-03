@@ -1,55 +1,41 @@
 import { MarketingNavbar } from "@/components/marketing/navbar";
-import { SpecHero } from "@/components/marketing/spec-hero";
-import { SpecLogoStrip } from "@/components/marketing/spec-logo-strip";
-import { SpecFeatures } from "@/components/marketing/spec-features";
-import { SpecDashboardShowcase } from "@/components/marketing/spec-dashboard-showcase";
-import { SpecStatistics } from "@/components/marketing/spec-statistics";
-import { SpecSolutions } from "@/components/marketing/spec-solutions";
-import { SpecCta } from "@/components/marketing/spec-cta";
+import { ContiantHeroExact } from "@/components/marketing/contiant-hero-exact";
+import { ContiantPartnersExact } from "@/components/marketing/contiant-partners-exact";
+import { ContiantDarkSectionExact } from "@/components/marketing/contiant-dark-section-exact";
+import { ContiantPowerGridExact } from "@/components/marketing/contiant-powergrid-exact";
+import { ContiantSandSectionExact } from "@/components/marketing/contiant-sand-section-exact";
 import { MarketingFooter } from "@/components/marketing/footer";
-import {
-  getWebsiteContent,
-  AnnouncementBannerContent,
-} from "@/lib/cms/content";
 
 export const metadata = {
-  title: "Adviza AI | Autonomous Execution for Wealth Advisory",
+  title: "Adviza | Instant Intelligence with Wealth Advisory",
   description:
-    "AI agents that prepare client meeting dossiers, capture ambient audio minutes, calculate portfolio drift, and seal SEC/FINRA compliance records in real time.",
+    "Our advanced AI technology and fiduciary guardrails provide a safe and reliable way to prepare meetings, rebalance portfolios, and seal audit records.",
 };
 
-export default async function HomePage() {
-  const banner = await getWebsiteContent<AnnouncementBannerContent>("announcement_banner");
-
+export default function HomePage() {
   return (
-    <div className="min-h-screen bg-[#FFFFFF] text-[#111827] flex flex-col selection:bg-[#4F6EF7] selection:text-white">
-      {/* 1. Navbar */}
-      <MarketingNavbar banner={banner} />
+    <div className="min-h-screen bg-white text-[#1C242D] flex flex-col selection:bg-[#7935FF] selection:text-white">
+      {/* Top Header matching Contiant */}
+      <MarketingNavbar />
 
       <main className="flex-1">
-        {/* 2. Hero Section (2-Column with 72px Headline & Floating Dashboard) */}
-        <SpecHero />
+        {/* Section 1: Hero matching Screenshot 1 */}
+        <ContiantHeroExact />
 
-        {/* 3. Client Logos (Infinite scrolling marquee strip) */}
-        <SpecLogoStrip />
+        {/* Section 2: Partner Strip matching Screenshot 2 */}
+        <ContiantPartnersExact />
 
-        {/* 4. Features (Alternating Image-Content / Content-Image Blocks) */}
-        <SpecFeatures />
+        {/* Section 3: Deep Slate Mega-Container matching Screenshot 3 */}
+        <ContiantDarkSectionExact />
 
-        {/* 5. Product Dashboard Showcase (Large mockup with tabs and soft shadows) */}
-        <SpecDashboardShowcase />
+        {/* Section 4: One Advisory Power Grid matching Screenshot 4 */}
+        <ContiantPowerGridExact />
 
-        {/* 6. Statistics Section (4-column metric cards with hover lift) */}
-        <SpecStatistics />
-
-        {/* 7. Solutions (3-column cards with tailored advisory segments) */}
-        <SpecSolutions />
-
-        {/* 8. Call To Action (Dark #0F172A section with soft blue radial glow) */}
-        <SpecCta />
+        {/* Section 5: Warm Sand / Peach Mega-Container matching Screenshot 5 */}
+        <ContiantSandSectionExact />
       </main>
 
-      {/* 9. Footer (Dark #0F172A 4-column layout with copyright bar) */}
+      {/* Footer */}
       <MarketingFooter />
     </div>
   );
