@@ -35,21 +35,87 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isAuthPage = request.nextUrl.pathname.startsWith("/auth");
-  const isApiRoute = request.nextUrl.pathname.startsWith("/api");
+  const { pathname } = request.nextUrl;
+  const isAuthPage = pathname.startsWith("/auth");
+  const isApiRoute = pathname.startsWith("/api");
   const isPublicPage =
-    request.nextUrl.pathname === "/" ||
-    request.nextUrl.pathname.startsWith("/pricing") ||
+    pathname === "/" ||
+    pathname.startsWith("/pricing") ||
     isApiRoute;
 
-  // Protect all dashboard, workflows, agents, meetings, portfolio routes
+  // ── 1. SUPER ADMIN GUARD (/super-admin/*) ────────────────────────────────
+  if (pathname.startsWith("/super-admin") && !pathname.startsWith("/super-admin/login")) {
+    // a. IP Allowlist (enforced in production when list is configured)
+    const allowlistEnv = process.env.SUPER_ADMIN_IP_ALLOWLIST ?? "";
+    const allowlist = allowlistEnv.split(",").map((s) => s.trim()).filter(Boolean);
+    if (process.env.NODE_ENV === "production" && allowlist.length > 0) {
+      const clientIP =
+        request.headers.get("x-forwarded-for") ??
+        request.headers.get("x-real-ip") ??
+        "0.0.0.0";
+      const cleanIP = clientIP.split(",")[0].trim();
+      const allowed = allowlist.some((entry) => {
+        if (entry.includes("/")) {
+          const [network] = entry.split("/");
+          return network.split(".").slice(0, 3).join(".") === cleanIP.split(".").slice(0, 3).join(".");
+        }
+        return cleanIP === entry;
+      });
+      if (!allowed) {
+        return new NextResponse("Forbidden", { status: 403 });
+      }
+    }
+
+    // b. Platform admin session cookie
+    const SUPER_ADMIN_COOKIE = "adviza_platform_admin_session";
+    const SESSION_MAX_AGE_S = parseInt(process.env.SUPER_ADMIN_SESSION_MAX_AGE ?? "3600", 10);
+    const raw = request.cookies.get(SUPER_ADMIN_COOKIE)?.value;
+    let sessionValid = false;
+    if (raw) {
+      try {
+        const session = JSON.parse(Buffer.from(raw, "base64").toString("utf-8"));
+        if (session?.adminId && session?.mfaVerified) {
+          const age = (Date.now() - (session.issuedAt ?? 0)) / 1000;
+          sessionValid = age < SESSION_MAX_AGE_S;
+        }
+      } catch { /* invalid cookie */ }
+    }
+    if (!sessionValid) {
+      const loginUrl = new URL("/super-admin/login", request.url);
+      loginUrl.searchParams.set("callbackUrl", pathname);
+      const res = NextResponse.redirect(loginUrl);
+      res.headers.set("X-Frame-Options", "DENY");
+      return res;
+    }
+
+    // c. Security headers
+    const res = NextResponse.next({ request });
+    res.headers.set("X-Frame-Options", "DENY");
+    res.headers.set("X-Content-Type-Options", "nosniff");
+    return res;
+  }
+
+  // ── 2. ORG ADMIN GUARD (/org-admin/*) ───────────────────────────────────
+  if (pathname.startsWith("/org-admin")) {
+    if (!user) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/auth/login";
+      return NextResponse.redirect(url);
+    }
+    // Role check deferred to requireOrgAdmin() in layout (avoids extra DB query per-request)
+    const res = supabaseResponse;
+    res.headers.set("X-Frame-Options", "DENY");
+    res.headers.set("X-Content-Type-Options", "nosniff");
+    return res;
+  }
+
+  // ── 3. STANDARD SUPABASE AUTH (/dashboard/*, etc.) ──────────────────────
   if (!user && !isAuthPage && !isPublicPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
     return NextResponse.redirect(url);
   }
 
-  // Prevent authenticated users from accessing login/signup repeatedly
   if (user && isAuthPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";

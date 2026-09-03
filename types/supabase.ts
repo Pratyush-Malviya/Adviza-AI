@@ -21,6 +21,24 @@ export interface Database {
           stripe_subscription_id: string | null;
           meetings_used: number;
           meetings_limit: number;
+          // Admin panel columns
+          max_users: number;
+          max_clients: number;
+          max_workflows: number;
+          max_ai_requests_per_month: number;
+          ai_requests_used_this_month: number;
+          subscription_status: "active" | "past_due" | "cancelled" | "trialing" | "paused" | "suspended";
+          trial_ends_at: string | null;
+          billing_email: string | null;
+          regulatory_profile: Record<string, string>;
+          onboarding_completed: boolean;
+          suspended_at: string | null;
+          suspension_reason: string | null;
+          custom_domain: string | null;
+          cs_owner: string | null;
+          cs_notes: string | null;
+          default_model_id: string | null;
+          ai_user_quota_override: number | null;
           created_at: string;
           updated_at: string;
         };
@@ -33,6 +51,23 @@ export interface Database {
           stripe_subscription_id?: string | null;
           meetings_used?: number;
           meetings_limit?: number;
+          max_users?: number;
+          max_clients?: number;
+          max_workflows?: number;
+          max_ai_requests_per_month?: number;
+          ai_requests_used_this_month?: number;
+          subscription_status?: "active" | "past_due" | "cancelled" | "trialing" | "paused" | "suspended";
+          trial_ends_at?: string | null;
+          billing_email?: string | null;
+          regulatory_profile?: Record<string, string>;
+          onboarding_completed?: boolean;
+          suspended_at?: string | null;
+          suspension_reason?: string | null;
+          custom_domain?: string | null;
+          cs_owner?: string | null;
+          cs_notes?: string | null;
+          default_model_id?: string | null;
+          ai_user_quota_override?: number | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -45,10 +80,74 @@ export interface Database {
           stripe_subscription_id?: string | null;
           meetings_used?: number;
           meetings_limit?: number;
+          max_users?: number;
+          max_clients?: number;
+          max_workflows?: number;
+          max_ai_requests_per_month?: number;
+          ai_requests_used_this_month?: number;
+          subscription_status?: "active" | "past_due" | "cancelled" | "trialing" | "paused" | "suspended";
+          trial_ends_at?: string | null;
+          billing_email?: string | null;
+          regulatory_profile?: Record<string, string>;
+          onboarding_completed?: boolean;
+          suspended_at?: string | null;
+          suspension_reason?: string | null;
+          custom_domain?: string | null;
+          cs_owner?: string | null;
+          cs_notes?: string | null;
+          default_model_id?: string | null;
+          ai_user_quota_override?: number | null;
           created_at?: string;
           updated_at?: string;
         };
         Relationships: [];
+      };
+      org_invitations: {
+        Row: {
+          id: string;
+          firm_id: string;
+          invited_by: string;
+          email: string;
+          role: "advisor" | "ops" | "compliance";
+          token: string;
+          status: "pending" | "accepted" | "expired" | "revoked";
+          expires_at: string;
+          accepted_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          firm_id: string;
+          invited_by: string;
+          email: string;
+          role?: "advisor" | "ops" | "compliance";
+          token?: string;
+          status?: "pending" | "accepted" | "expired" | "revoked";
+          expires_at?: string;
+          accepted_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          firm_id?: string;
+          invited_by?: string;
+          email?: string;
+          role?: "advisor" | "ops" | "compliance";
+          token?: string;
+          status?: "pending" | "accepted" | "expired" | "revoked";
+          expires_at?: string;
+          accepted_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "org_invitations_firm_id_fkey";
+            columns: ["firm_id"];
+            isOneToOne: false;
+            referencedRelation: "firms";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       profiles: {
         Row: {
@@ -328,6 +427,7 @@ export interface Database {
           entity_id: string;
           metadata: Json;
           ip_address: string | null;
+          sha256_hash: string | null;
           created_at: string;
         };
         Insert: {
@@ -339,6 +439,7 @@ export interface Database {
           entity_id: string;
           metadata?: Json;
           ip_address?: string | null;
+          sha256_hash?: string | null;
           created_at?: string;
         };
         Update: {
@@ -350,6 +451,7 @@ export interface Database {
           entity_id?: string;
           metadata?: Json;
           ip_address?: string | null;
+          sha256_hash?: string | null;
           created_at?: string;
         };
         Relationships: [
