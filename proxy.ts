@@ -50,6 +50,7 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith("/terms") ||
     pathname.startsWith("/refund-policy") ||
     pathname.startsWith("/payment") ||
+    pathname.startsWith("/super-admin/login") ||
     isApiRoute;
 
   // ── 1. SUPER ADMIN GUARD (/super-admin/*) ────────────────────────────────
