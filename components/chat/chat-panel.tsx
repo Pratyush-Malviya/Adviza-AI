@@ -53,7 +53,7 @@ export interface ModelOption {
   id: string;
   name: string;
   shortName: string;
-  provider: "AWS Bedrock" | "NVIDIA NIM" | "Anthropic" | "DeepSeek";
+  provider: "AWS Bedrock" | "NVIDIA NIM" | "Anthropic" | "DeepSeek" | "Google Cloud";
   badge: string;
   description: string;
   icon: string;
@@ -100,6 +100,16 @@ export const CHAT_MODELS: ModelOption[] = [
     description: "Open quantitative reasoning and numerical portfolio analysis.",
     icon: "🧠",
     multiplier: 1.2,
+  },
+  {
+    id: "gemini-2.5-flash",
+    name: "Google Gemini 2.5 Flash",
+    shortName: "Gemini 2.5 Flash",
+    provider: "Google Cloud",
+    badge: "Multimodal AI",
+    description: "Google's ultra-fast multimodal intelligence engine with 1M token context window.",
+    icon: "✨",
+    multiplier: 1.0,
   },
 ];
 
@@ -506,6 +516,12 @@ export function ChatPanel({
         } catch {}
       }
 
+      // Prepare multi-turn history (last 8 messages)
+      const chatHistory = messages.slice(-8).map((m) => ({
+        role: m.role,
+        content: m.content,
+      }));
+
       // Stream response using SSE
       const response = await fetch("/api/chat/stream", {
         method: "POST",
@@ -515,6 +531,7 @@ export function ChatPanel({
           modelId: selectedModel,
           sessionId: targetSessionId,
           ambientContext: ambient,
+          history: chatHistory,
           deepResearch,
           webSearch,
         }),
@@ -862,36 +879,27 @@ export function ChatPanel({
 
       {/* MAIN CHAT SCROLL AREA */}
       <div className="flex-1 overflow-y-auto px-3 sm:px-8 py-4 sm:py-6 space-y-4 sm:space-y-5 scrollbar-thin">
-        {/* HERO / STARTER SCREEN (Matching Reference Design) */}
+        {/* HERO / STARTER SCREEN (Clean Executive Interface) */}
         {messages.length === 0 ? (
-          <div className="min-h-0 sm:min-h-[500px] flex flex-col items-center justify-center text-center max-w-2xl mx-auto py-2 sm:py-6 space-y-4 sm:space-y-6">
-            {/* Center Orbital Glowing Graphic */}
-            <div className="relative flex items-center justify-center scale-75 sm:scale-100 my-1 sm:my-0">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border border-dashed border-rose-300/60 animate-spin-slow flex items-center justify-center">
-                <div className="w-2.5 h-2.5 rounded-full bg-rose-500 absolute -top-1" />
-                <div className="w-2.5 h-2.5 rounded-full bg-amber-500 absolute -bottom-1" />
+          <div className="flex-1 flex flex-col items-center justify-center text-center max-w-2xl mx-auto py-8 sm:py-12 px-3 space-y-6">
+            {/* Elegant Header Emblem */}
+            <div className="flex flex-col items-center space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#121217] via-[#26201D] to-[#121217] border border-[#EADBCE] shadow-sm flex items-center justify-center text-white transition-transform hover:scale-105">
+                <Sparkles className="w-5 h-5 text-amber-400" />
               </div>
-              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#121217] flex items-center justify-center text-white shadow-2xl absolute transition-transform hover:scale-105">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-white/80 flex items-center justify-center">
-                  <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-gradient-to-tr from-rose-500 to-amber-500" />
-                </div>
+              <div className="space-y-1.5 px-2">
+                <h1 className="text-2xl sm:text-3xl font-heading font-bold text-[#121217] tracking-tight">
+                  How can Adviza assist you today?
+                </h1>
+                <p className="text-xs sm:text-sm text-[#8E847C] max-w-md mx-auto leading-relaxed">
+                  Real-time portfolio intelligence, automated workflows, and meeting dossiers.
+                </p>
               </div>
             </div>
 
-            {/* Title & Subtitle */}
-            <div className="space-y-1.5 sm:space-y-2.5 px-2">
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-heading font-extrabold text-[#121217] tracking-tight max-w-xl mx-auto leading-tight">
-                Unleash AI with Adviza Smarter Ideas and Insights at your Fingertips
-              </h1>
-              <p className="text-[11px] sm:text-xs md:text-sm text-[#8E847C] max-w-md mx-auto leading-relaxed">
-                Turn imagination into impact with Adviza's AI built to unlock endless possibilities and
-                shape your ideas into intelligent results.
-              </p>
-            </div>
-
-            {/* Central Floating Elevated Input Box (Hero Mode) */}
-            <div className="w-full max-w-xl space-y-2">
-              <div className="bg-white rounded-3xl border border-[#EADBCE] shadow-sm hover:shadow-md p-3.5 sm:p-4 space-y-3 transition-all">
+            {/* Central Floating Elevated Input Box */}
+            <div className="w-full max-w-xl space-y-3.5">
+              <div className="bg-white rounded-2xl border border-[#EADBCE] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_28px_-4px_rgba(0,0,0,0.07)] p-3.5 sm:p-4 space-y-3 transition-all">
                 {/* Selected Files Preview Wrap */}
                 {selectedFiles.length > 0 && (
                   <div className="flex flex-wrap gap-2 pb-1">
@@ -938,19 +946,19 @@ export function ChatPanel({
                       setSelectedFiles((prev) => [...prev, ...filesArray]);
                     }
                   }}
-                  placeholder="Ask me anything..."
+                  placeholder="Ask about clients, drift analysis, upcoming meetings, or draft a memo..."
                   style={{ outline: "none", boxShadow: "none", border: "none" }}
-                  className="w-full text-base sm:text-sm text-[#121217] placeholder:text-[#8E847C] bg-transparent border-0 outline-none focus:outline-none focus:ring-0 focus:border-0 shadow-none ring-0 focus-visible:outline-none focus-visible:ring-0 !outline-none !ring-0"
+                  className="w-full text-base sm:text-sm text-[#121217] placeholder:text-[#A0958C] bg-transparent border-0 outline-none focus:outline-none focus:ring-0 focus:border-0 shadow-none ring-0 focus-visible:outline-none focus-visible:ring-0 !outline-none !ring-0"
                 />
 
                 {/* Action Bar Inside Input Box */}
-                <div className="flex items-center justify-between pt-2 border-t border-[#FAF5F0] gap-1">
-                  <div className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar py-0.5 max-w-[calc(100vw-115px)] sm:max-w-none flex-nowrap sm:flex-wrap shrink min-w-0">
+                <div className="flex items-center justify-between pt-2 border-t border-[#FAF5F0] gap-2">
+                  <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 max-w-[calc(100vw-115px)] sm:max-w-none flex-nowrap sm:flex-wrap shrink min-w-0">
                     {/* Attach File Button */}
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="p-1.5 rounded-xl text-[#8E847C] hover:text-[#121217] hover:bg-[#FAF5F0] transition shrink-0"
+                      className="p-1.5 rounded-lg text-[#8E847C] hover:text-[#121217] hover:bg-[#FAF5F0] transition shrink-0"
                       title="Attach Image or Document"
                     >
                       <Plus className="w-4 h-4" />
@@ -960,57 +968,54 @@ export function ChatPanel({
                     <button
                       type="button"
                       onClick={() => setThinkLonger(!thinkLonger)}
-                      className={`flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full text-xs font-semibold transition shrink-0 ${
+                      className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition shrink-0 ${
                         thinkLonger
-                          ? "bg-amber-100 text-amber-800 border border-amber-300 shadow-2xs"
-                          : "bg-[#FAF5F0] hover:bg-[#F2ECE4] text-[#5A544E] border border-[#EADBCE]"
+                          ? "bg-amber-50 text-amber-800 border border-amber-300 shadow-2xs"
+                          : "text-[#7D736A] hover:text-[#121217] hover:bg-[#FAF5F0] border border-transparent hover:border-[#EADBCE]"
                       }`}
                       title={thinkLonger ? "Deep Reasoning Active" : "Enable Deep Reasoning"}
                     >
-                      <Lightbulb className={`w-3.5 h-3.5 ${thinkLonger ? "text-amber-600 fill-amber-500" : "text-[#8E847C]"}`} />
-                      <span className="hidden sm:inline">Think Longer</span>
-                      <span className="sm:hidden">Think</span>
+                      <Lightbulb className={`w-3.5 h-3.5 ${thinkLonger ? "text-amber-600 fill-amber-500/20" : "text-[#8E847C]"}`} />
+                      <span>Think Longer</span>
                     </button>
 
                     {/* Deep Research Toggle */}
                     <button
                       type="button"
                       onClick={() => setDeepResearch(!deepResearch)}
-                      className={`flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full text-xs font-semibold transition shrink-0 ${
+                      className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition shrink-0 ${
                         deepResearch
-                          ? "bg-indigo-100 text-indigo-800 border border-indigo-300 shadow-2xs"
-                          : "bg-[#FAF5F0] hover:bg-[#F2ECE4] text-[#5A544E] border border-[#EADBCE]"
+                          ? "bg-indigo-50 text-indigo-800 border border-indigo-300 shadow-2xs"
+                          : "text-[#7D736A] hover:text-[#121217] hover:bg-[#FAF5F0] border border-transparent hover:border-[#EADBCE]"
                       }`}
-                      title={deepResearch ? "Deep Research Active (Multi-source evidence synthesis)" : "Enable Deep Research"}
+                      title={deepResearch ? "Deep Research Active" : "Enable Deep Research"}
                     >
-                      <FlaskConical className={`w-3.5 h-3.5 ${deepResearch ? "text-indigo-600 fill-indigo-500/20 animate-pulse" : "text-[#8E847C]"}`} />
-                      <span className="hidden sm:inline">Deep Research</span>
-                      <span className="sm:hidden">Research</span>
+                      <FlaskConical className={`w-3.5 h-3.5 ${deepResearch ? "text-indigo-600 fill-indigo-500/20" : "text-[#8E847C]"}`} />
+                      <span>Deep Research</span>
                     </button>
 
                     {/* Web Search Toggle */}
                     <button
                       type="button"
                       onClick={() => setWebSearch(!webSearch)}
-                      className={`flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full text-xs font-semibold transition shrink-0 ${
+                      className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition shrink-0 ${
                         webSearch
-                          ? "bg-sky-100 text-sky-800 border border-sky-300 shadow-2xs"
-                          : "bg-[#FAF5F0] hover:bg-[#F2ECE4] text-[#5A544E] border border-[#EADBCE]"
+                          ? "bg-sky-50 text-sky-800 border border-sky-300 shadow-2xs"
+                          : "text-[#7D736A] hover:text-[#121217] hover:bg-[#FAF5F0] border border-transparent hover:border-[#EADBCE]"
                       }`}
                       title={webSearch ? "Live Web Search Active" : "Enable Live Web Search"}
                     >
                       <Globe className={`w-3.5 h-3.5 ${webSearch ? "text-sky-600" : "text-[#8E847C]"}`} />
-                      <span className="hidden sm:inline">Web Search</span>
-                      <span className="sm:hidden">Web</span>
+                      <span>Web Search</span>
                     </button>
                   </div>
 
-                  <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                  <div className="flex items-center gap-1.5 shrink-0">
                     {/* Voice Dictation Button */}
                     <button
                       type="button"
                       onClick={handleToggleVoice}
-                      className={`p-1.5 rounded-xl transition ${
+                      className={`p-1.5 rounded-lg transition ${
                         isListening
                           ? "bg-rose-50 text-rose-600 animate-pulse"
                           : "text-[#8E847C] hover:text-[#121217] hover:bg-[#FAF5F0]"
@@ -1025,7 +1030,7 @@ export function ChatPanel({
                       type="button"
                       onClick={() => handleSendMessage()}
                       disabled={(!input.trim() && selectedFiles.length === 0) || loading}
-                      className="w-8 h-8 rounded-full bg-gradient-to-tr from-rose-500 to-amber-500 hover:opacity-90 disabled:opacity-40 text-white flex items-center justify-center shadow-sm transition shrink-0"
+                      className="w-8 h-8 rounded-xl bg-[#121217] hover:bg-[#2A2421] disabled:opacity-30 text-white flex items-center justify-center shadow-xs transition-all hover:scale-105 shrink-0"
                     >
                       <ArrowUp className="w-4 h-4" />
                     </button>
@@ -1033,88 +1038,60 @@ export function ChatPanel({
                 </div>
               </div>
 
-              {/* Docked Announcement Ribbon (Matching Reference Design) */}
-              <div className="px-4 py-2 bg-gradient-to-r from-rose-50 via-amber-50 to-orange-50 border border-[#EADBCE] rounded-2xl flex items-center justify-between text-xs shadow-2xs">
-                <div className="flex items-center gap-2 font-medium text-[#121217]">
-                  <span>🎉</span>
-                  <span className="text-[11px] sm:text-xs">
-                    Multi-Model Routing & Code Analysis added to boost your workflow.
-                  </span>
-                </div>
-                <button
-                  onClick={() => handleSendMessage("Show me your fiduciary workflow and multi-model capabilities")}
-                  className="font-bold text-amber-700 hover:text-amber-800 flex items-center gap-1 shrink-0 text-[11px]"
-                >
-                  <span>Explore Now</span>
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              {/* Quick Action Prompt Pills */}
-              <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+              {/* Clean Curated Action Cards (2x2 Grid) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-left pt-1">
                 <button
                   onClick={() =>
-                    handleSendMessage(
-                      "Help me draft a comprehensive fiduciary wealth review email for our client Sarah Jenkins."
-                    )
+                    handleSendMessage("Audit our client portfolio asset allocation drift against target benchmarks.")
                   }
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-white hover:bg-[#FAF5F0] border border-[#EADBCE] text-xs font-semibold text-[#5A544E] hover:text-[#121217] transition shadow-2xs"
+                  className="p-3 rounded-xl bg-white/90 hover:bg-white border border-[#EADBCE]/80 hover:border-[#D0C0B0] shadow-2xs hover:shadow-xs transition-all group cursor-pointer"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-rose-500" />
-                  <span>Help me write</span>
+                  <div className="flex items-center gap-2 mb-1">
+                    <TrendingUp className="w-4 h-4 text-amber-600 group-hover:scale-110 transition-transform" />
+                    <span className="font-semibold text-xs text-[#121217]">Portfolio Drift</span>
+                  </div>
+                  <p className="text-[11px] text-[#8E847C] line-clamp-1">Audit asset allocations vs benchmarks</p>
                 </button>
 
                 <button
                   onClick={() =>
-                    handleSendMessage("Audit our portfolio asset allocation drift against the 60/40 benchmark.")
+                    handleSendMessage("Prepare a comprehensive client briefing dossier ahead of today's review meeting.")
                   }
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-white hover:bg-[#FAF5F0] border border-[#EADBCE] text-xs font-semibold text-[#5A544E] hover:text-[#121217] transition shadow-2xs"
+                  className="p-3 rounded-xl bg-white/90 hover:bg-white border border-[#EADBCE]/80 hover:border-[#D0C0B0] shadow-2xs hover:shadow-xs transition-all group cursor-pointer"
                 >
-                  <TrendingUp className="w-3.5 h-3.5 text-amber-500" />
-                  <span>Portfolio Analysis</span>
+                  <div className="flex items-center gap-2 mb-1">
+                    <FileText className="w-4 h-4 text-indigo-600 group-hover:scale-110 transition-transform" />
+                    <span className="font-semibold text-xs text-[#121217]">Meeting Dossier</span>
+                  </div>
+                  <p className="text-[11px] text-[#8E847C] line-clamp-1">Synthesize client notes & holdings</p>
                 </button>
 
                 <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-white hover:bg-[#FAF5F0] border border-[#EADBCE] text-xs font-semibold text-[#5A544E] hover:text-[#121217] transition shadow-2xs"
+                  onClick={() =>
+                    handleSendMessage("What are my open action items and pending fiduciary follow-ups?")
+                  }
+                  className="p-3 rounded-xl bg-white/90 hover:bg-white border border-[#EADBCE]/80 hover:border-[#D0C0B0] shadow-2xs hover:shadow-xs transition-all group cursor-pointer"
                 >
-                  <ImageIcon className="w-3.5 h-3.5 text-emerald-500" />
-                  <span>Analyze Image</span>
+                  <div className="flex items-center gap-2 mb-1">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform" />
+                    <span className="font-semibold text-xs text-[#121217]">Action Items</span>
+                  </div>
+                  <p className="text-[11px] text-[#8E847C] line-clamp-1">Track priority tasks and deadlines</p>
                 </button>
 
                 <button
-                  onClick={() => setShowMoreActions(!showMoreActions)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-white hover:bg-[#FAF5F0] border border-[#EADBCE] text-xs font-semibold text-[#5A544E] hover:text-[#121217] transition shadow-2xs"
+                  onClick={() =>
+                    handleSendMessage("Summarize the status and recent runs of all active workflows.")
+                  }
+                  className="p-3 rounded-xl bg-white/90 hover:bg-white border border-[#EADBCE]/80 hover:border-[#D0C0B0] shadow-2xs hover:shadow-xs transition-all group cursor-pointer"
                 >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>See More</span>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Zap className="w-4 h-4 text-rose-600 group-hover:scale-110 transition-transform" />
+                    <span className="font-semibold text-xs text-[#121217]">Active Workflows</span>
+                  </div>
+                  <p className="text-[11px] text-[#8E847C] line-clamp-1">Monitor automated onboarding & reviews</p>
                 </button>
               </div>
-
-              {/* Expanded Action Shortcuts */}
-              {showMoreActions && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 animate-in fade-in zoom-in-95 duration-150">
-                  <button
-                    onClick={() =>
-                      handleSendMessage("Prepare a comprehensive briefing dossier for Sarah Jenkins ahead of today's meeting.")
-                    }
-                    className="p-2.5 rounded-2xl bg-white hover:bg-[#FAF5F0] border border-[#EADBCE] text-left text-xs text-[#5A544E] hover:text-[#121217] transition shadow-2xs"
-                  >
-                    <div className="font-bold text-[#121217]">Client Meeting Dossier</div>
-                    <div className="text-[10px] text-[#8E847C]">Summarize recent notes and holdings</div>
-                  </button>
-
-                  <button
-                    onClick={() =>
-                      handleSendMessage("Perform SEC & FINRA fiduciary compliance audit on recent client communications.")
-                    }
-                    className="p-2.5 rounded-2xl bg-white hover:bg-[#FAF5F0] border border-[#EADBCE] text-left text-xs text-[#5A544E] hover:text-[#121217] transition shadow-2xs"
-                  >
-                    <div className="font-bold text-[#121217]">Compliance Audit</div>
-                    <div className="text-[10px] text-[#8E847C]">Flag high-risk fiduciary language</div>
-                  </button>
-                </div>
-              )}
             </div>
           </div>
         ) : (
@@ -1324,12 +1301,12 @@ export function ChatPanel({
                 className="w-full text-base sm:text-sm text-[#121217] placeholder:text-[#8E847C] bg-transparent border-0 outline-none focus:outline-none focus:ring-0 focus:border-0 shadow-none ring-0 focus-visible:outline-none focus-visible:ring-0 !outline-none !ring-0"
               />
 
-              <div className="flex items-center justify-between pt-2 border-t border-[#FAF5F0] gap-1">
-                <div className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar py-0.5 max-w-[calc(100vw-115px)] sm:max-w-none flex-nowrap sm:flex-wrap shrink min-w-0">
+              <div className="flex items-center justify-between pt-2 border-t border-[#FAF5F0] gap-2">
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 max-w-[calc(100vw-115px)] sm:max-w-none flex-nowrap sm:flex-wrap shrink min-w-0">
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="p-1.5 rounded-xl text-[#8E847C] hover:text-[#121217] hover:bg-[#FAF5F0] transition shrink-0"
+                    className="p-1.5 rounded-lg text-[#8E847C] hover:text-[#121217] hover:bg-[#FAF5F0] transition shrink-0"
                     title="Attach Image or Document"
                   >
                     <Plus className="w-4 h-4" />
@@ -1338,54 +1315,51 @@ export function ChatPanel({
                   <button
                     type="button"
                     onClick={() => setThinkLonger(!thinkLonger)}
-                    className={`flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full text-xs font-semibold transition shrink-0 ${
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition shrink-0 ${
                       thinkLonger
-                        ? "bg-amber-100 text-amber-800 border border-amber-300 shadow-2xs"
-                        : "bg-[#FAF5F0] hover:bg-[#F2ECE4] text-[#5A544E] border border-[#EADBCE]"
+                        ? "bg-amber-50 text-amber-800 border border-amber-300 shadow-2xs"
+                        : "text-[#7D736A] hover:text-[#121217] hover:bg-[#FAF5F0] border border-transparent hover:border-[#EADBCE]"
                     }`}
                     title={thinkLonger ? "Deep Reasoning Active" : "Enable Deep Reasoning"}
                   >
-                    <Lightbulb className={`w-3.5 h-3.5 ${thinkLonger ? "text-amber-600 fill-amber-500" : "text-[#8E847C]"}`} />
-                    <span className="hidden sm:inline">Think Longer</span>
-                    <span className="sm:hidden">Think</span>
+                    <Lightbulb className={`w-3.5 h-3.5 ${thinkLonger ? "text-amber-600 fill-amber-500/20" : "text-[#8E847C]"}`} />
+                    <span>Think Longer</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setDeepResearch(!deepResearch)}
-                    className={`flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full text-xs font-semibold transition shrink-0 ${
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition shrink-0 ${
                       deepResearch
-                        ? "bg-indigo-100 text-indigo-800 border border-indigo-300 shadow-2xs"
-                        : "bg-[#FAF5F0] hover:bg-[#F2ECE4] text-[#5A544E] border border-[#EADBCE]"
+                        ? "bg-indigo-50 text-indigo-800 border border-indigo-300 shadow-2xs"
+                        : "text-[#7D736A] hover:text-[#121217] hover:bg-[#FAF5F0] border border-transparent hover:border-[#EADBCE]"
                     }`}
                     title={deepResearch ? "Deep Research Active (Multi-source evidence synthesis)" : "Enable Deep Research"}
                   >
-                    <FlaskConical className={`w-3.5 h-3.5 ${deepResearch ? "text-indigo-600 fill-indigo-500/20 animate-pulse" : "text-[#8E847C]"}`} />
-                    <span className="hidden sm:inline">Deep Research</span>
-                    <span className="sm:hidden">Research</span>
+                    <FlaskConical className={`w-3.5 h-3.5 ${deepResearch ? "text-indigo-600 fill-indigo-500/20" : "text-[#8E847C]"}`} />
+                    <span>Deep Research</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setWebSearch(!webSearch)}
-                    className={`flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full text-xs font-semibold transition shrink-0 ${
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition shrink-0 ${
                       webSearch
-                        ? "bg-sky-100 text-sky-800 border border-sky-300 shadow-2xs"
-                        : "bg-[#FAF5F0] hover:bg-[#F2ECE4] text-[#5A544E] border border-[#EADBCE]"
+                        ? "bg-sky-50 text-sky-800 border border-sky-300 shadow-2xs"
+                        : "text-[#7D736A] hover:text-[#121217] hover:bg-[#FAF5F0] border border-transparent hover:border-[#EADBCE]"
                     }`}
                     title={webSearch ? "Live Web Search Active" : "Enable Live Web Search"}
                   >
                     <Globe className={`w-3.5 h-3.5 ${webSearch ? "text-sky-600" : "text-[#8E847C]"}`} />
-                    <span className="hidden sm:inline">Web Search</span>
-                    <span className="sm:hidden">Web</span>
+                    <span>Web Search</span>
                   </button>
                 </div>
 
-                <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                <div className="flex items-center gap-1.5 shrink-0">
                   <button
                     type="button"
                     onClick={handleToggleVoice}
-                    className={`p-1.5 rounded-xl transition ${
+                    className={`p-1.5 rounded-lg transition ${
                       isListening
                         ? "bg-rose-50 text-rose-600 animate-pulse"
                         : "text-[#8E847C] hover:text-[#121217] hover:bg-[#FAF5F0]"
@@ -1399,7 +1373,7 @@ export function ChatPanel({
                     type="button"
                     onClick={() => handleSendMessage()}
                     disabled={(!input.trim() && selectedFiles.length === 0) || loading}
-                    className="w-8 h-8 rounded-full bg-gradient-to-tr from-rose-500 to-amber-500 hover:opacity-90 disabled:opacity-40 text-white flex items-center justify-center shadow-sm transition shrink-0"
+                    className="w-8 h-8 rounded-xl bg-[#121217] hover:bg-[#2A2421] disabled:opacity-30 text-white flex items-center justify-center shadow-xs transition-all hover:scale-105 shrink-0"
                   >
                     <ArrowUp className="w-4 h-4" />
                   </button>
