@@ -127,6 +127,11 @@ export function MarketingFooter() {
                 </Link>
               </li>
               <li>
+                <Link href="/refund-policy" className="hover:text-white transition">
+                  Refund & Cancellation Policy
+                </Link>
+              </li>
+              <li>
                 <Link href="/super-admin/login" className="text-zinc-600 hover:text-zinc-400 transition text-[11px]">
                   Platform Operator Login
                 </Link>

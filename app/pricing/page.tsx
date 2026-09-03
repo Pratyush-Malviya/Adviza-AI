@@ -16,6 +16,7 @@ import {
   Building,
   CheckCircle2,
 } from "lucide-react";
+import { RazorpayPaymentButton } from "@/components/payment/razorpay-checkout";
 
 export default function PricingPage() {
   const [annual, setAnnual] = useState(true);
@@ -202,12 +203,20 @@ export default function PricingPage() {
                 </li>
               </ul>
             </div>
-            <Link
-              href={`/auth/signup?plan=pro&seats=${seats}`}
-              className="w-full text-center py-3 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold transition shadow-xs"
-            >
-              Start 14-Day Firm Trial
-            </Link>
+            <div className="space-y-2 pt-2">
+              <RazorpayPaymentButton
+                planId="pro"
+                amount={proTotal * 85}
+                label={`Instant Checkout (₹${(proTotal * 85).toLocaleString()}/mo)`}
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs sm:text-sm transition shadow-sm cursor-pointer"
+              />
+              <Link
+                href={`/auth/signup?plan=pro&seats=${seats}`}
+                className="w-full block text-center py-2 text-xs font-semibold text-zinc-400 hover:text-white transition"
+              >
+                Or Start 14-Day Free Trial →
+              </Link>
+            </div>
           </div>
 
           {/* Enterprise RIA Card */}
@@ -248,12 +257,20 @@ export default function PricingPage() {
                 </li>
               </ul>
             </div>
-            <Link
-              href="/contact?plan=enterprise"
-              className="w-full text-center py-3 rounded-xl bg-[#121217] hover:bg-zinc-800 text-white text-xs font-bold transition shadow-xs"
-            >
-              Contact Enterprise Sales
-            </Link>
+            <div className="space-y-2 pt-2">
+              <RazorpayPaymentButton
+                planId="enterprise"
+                amount={enterpriseTotal * 85}
+                label={`Subscribe Enterprise (₹${(enterpriseTotal * 85).toLocaleString()}/mo)`}
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#121217] hover:bg-zinc-800 text-white font-bold text-xs sm:text-sm transition shadow-sm cursor-pointer"
+              />
+              <Link
+                href="/contact?plan=enterprise"
+                className="w-full block text-center py-2 text-xs font-semibold text-[#7A726A] hover:text-[#121217] transition"
+              >
+                Contact Enterprise Sales Desk →
+              </Link>
+            </div>
           </div>
         </div>
       </section>

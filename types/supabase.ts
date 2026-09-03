@@ -704,6 +704,62 @@ export interface Database {
         };
         Relationships: [];
       };
+      payments: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          firm_id: string;
+          order_id: string;
+          payment_id: string | null;
+          amount: number;
+          currency: string;
+          plan: string;
+          status: "created" | "paid" | "failed" | "refunded";
+          gateway: string;
+          webhook_payload: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          firm_id: string;
+          order_id: string;
+          payment_id?: string | null;
+          amount: number;
+          currency?: string;
+          plan: string;
+          status?: "created" | "paid" | "failed" | "refunded";
+          gateway?: string;
+          webhook_payload?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          firm_id?: string;
+          order_id?: string;
+          payment_id?: string | null;
+          amount?: number;
+          currency?: string;
+          plan?: string;
+          status?: "created" | "paid" | "failed" | "refunded";
+          gateway?: string;
+          webhook_payload?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "payments_firm_id_fkey";
+            columns: ["firm_id"];
+            isOneToOne: false;
+            referencedRelation: "firms";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       user_memories: {
         Row: {
           id: string;
