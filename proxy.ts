@@ -40,7 +40,14 @@ export async function proxy(request: NextRequest) {
   const isApiRoute = pathname.startsWith("/api");
   const isPublicPage =
     pathname === "/" ||
+    pathname.startsWith("/platform") ||
+    pathname.startsWith("/security") ||
     pathname.startsWith("/pricing") ||
+    pathname.startsWith("/case-studies") ||
+    pathname.startsWith("/about") ||
+    pathname.startsWith("/contact") ||
+    pathname.startsWith("/privacy") ||
+    pathname.startsWith("/terms") ||
     isApiRoute;
 
   // ── 1. SUPER ADMIN GUARD (/super-admin/*) ────────────────────────────────

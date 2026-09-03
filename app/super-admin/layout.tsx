@@ -4,7 +4,7 @@ import Link from "next/link";
 import {
   LayoutDashboard, Building2, Users, CreditCard, Cpu,
   Flag, ShieldCheck, Activity, BarChart2, Lock,
-  Settings, LogOut, Zap,
+  Settings, LogOut, Zap, Globe,
 } from "lucide-react";
 
 const NAV_SECTIONS = [
@@ -12,6 +12,7 @@ const NAV_SECTIONS = [
     { href: "/super-admin",               icon: LayoutDashboard, label: "Dashboard" },
     { href: "/super-admin/organizations", icon: Building2,       label: "Organizations" },
     { href: "/super-admin/users",         icon: Users,           label: "Users" },
+    { href: "/super-admin/website-content", icon: Globe,         label: "Website CMS" },
   ]},
   { label: "Commerce", items: [
     { href: "/super-admin/billing",       icon: CreditCard,      label: "Billing & Payments" },
