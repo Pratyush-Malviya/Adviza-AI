@@ -15,10 +15,30 @@ import {
   CheckCircle,
 } from "lucide-react";
 
-export const metadata = {
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
   title: "RIA Case Studies & Measurable ROI | Adviza AI",
   description:
     "Discover how leading wealth management firms save 6.2 hours per advisor weekly, eliminate manual CRM documentation, and achieve 100% exam-ready compliance with Adviza AI.",
+  alternates: {
+    canonical: "/case-studies",
+  },
+  openGraph: {
+    title: "RIA Case Studies & Measurable ROI | Adviza AI",
+    description:
+      "Discover how leading wealth management firms save 6.2 hours per advisor weekly and eliminate manual CRM documentation with Adviza AI.",
+    url: "https://adviza.ai/case-studies",
+    type: "website",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Adviza AI Case Studies" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "RIA Case Studies & Measurable ROI | Adviza AI",
+    description:
+      "See how wealth management firms save 6.2 hours weekly per advisor with Adviza AI.",
+    images: ["/og-image.png"],
+  },
 };
 
 export default async function CaseStudiesPage() {

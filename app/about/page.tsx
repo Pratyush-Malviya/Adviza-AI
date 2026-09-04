@@ -14,10 +14,30 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
-export const metadata = {
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
   title: "About Adviza AI | Fiduciary Mission & Regulatory Philosophy",
   description:
     "Learn about Adviza's mission to empower fiduciary wealth managers with deterministic execution, tamper-proof compliance, and ambient meeting intelligence.",
+  alternates: {
+    canonical: "/about",
+  },
+  openGraph: {
+    title: "About Adviza AI | Fiduciary Mission & Regulatory Philosophy",
+    description:
+      "Learn about Adviza's mission to empower fiduciary wealth managers with deterministic execution, tamper-proof compliance, and ambient meeting intelligence.",
+    url: "https://adviza.ai/about",
+    type: "website",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "About Adviza AI" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "About Adviza AI | Fiduciary Mission & Regulatory Philosophy",
+    description:
+      "Learn about Adviza's mission to empower fiduciary wealth managers with deterministic execution and tamper-proof compliance.",
+    images: ["/og-image.png"],
+  },
 };
 
 export default async function AboutPage() {

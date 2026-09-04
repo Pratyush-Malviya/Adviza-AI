@@ -20,10 +20,30 @@ import {
   Check,
 } from "lucide-react";
 
-export const metadata = {
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
   title: "Platform & Execution Architecture | Adviza AI",
   description:
     "Explore Adviza's Agentic Execution Architecture for wealth managers: Pre-Meeting Briefings, Ambient Audio Scribe, Deterministic Portfolio Drift Sandbox, and CCO Compliance Guard.",
+  alternates: {
+    canonical: "/platform",
+  },
+  openGraph: {
+    title: "Platform & Execution Architecture | Adviza AI",
+    description:
+      "Explore Adviza's Agentic Execution Architecture for wealth managers: Pre-Meeting Briefings, Ambient Audio Scribe, and CCO Compliance Guard.",
+    url: "https://adviza.ai/platform",
+    type: "website",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Adviza AI Platform Architecture" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Platform & Execution Architecture | Adviza AI",
+    description:
+      "Explore Adviza's Agentic Execution Architecture for wealth managers and RIAs.",
+    images: ["/og-image.png"],
+  },
 };
 
 export default async function PlatformPage() {

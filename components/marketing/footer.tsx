@@ -35,11 +35,13 @@ export function MarketingFooter() {
               <form onSubmit={(e) => e.preventDefault()} className="flex max-w-sm gap-2">
                 <input
                   type="email"
+                  aria-label="Your work email address"
                   placeholder="advisor@firm.com"
                   className="rounded-full bg-slate-800/80 border border-slate-700 px-4 py-2.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-[#7935FF] w-full"
                 />
                 <button
                   type="submit"
+                  aria-label="Subscribe to Adviza updates"
                   className="btn-contiant-purple px-5 py-2.5 text-xs font-semibold flex-shrink-0"
                 >
                   <span>Join</span>

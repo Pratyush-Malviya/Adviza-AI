@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { Plus_Jakarta_Sans, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -21,13 +22,19 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://adviza.ai";
+
 export const metadata: Metadata = {
   title: {
-    default: "Adviza | AI Execution Workspace for Wealth Advisors",
-    template: "%s | Adviza",
+    default: "Adviza AI | Enterprise AI Operating System for Wealth Management",
+    template: "%s",
   },
   description:
-    "AI agents that handle client briefings, meeting intelligence, and compliance documentation — so your advisors can focus on clients, not admin.",
+    "AI agents that handle client briefings, meeting intelligence, and compliance documentation — so wealth advisors can focus on clients, not admin.",
+  metadataBase: new URL(siteUrl),
+  alternates: {
+    canonical: "/",
+  },
   icons: {
     icon: [
       { url: "/icon.png", type: "image/png" },
@@ -36,7 +43,7 @@ export const metadata: Metadata = {
     apple: "/icon.png",
   },
   keywords: [
-    "Adviza",
+    "Adviza AI",
     "wealth management AI",
     "advisor automation",
     "meeting intelligence",
@@ -44,19 +51,44 @@ export const metadata: Metadata = {
     "compliance automation",
     "RIA software",
     "family office AI",
+    "SEC 204-2 compliance",
+    "FINRA meeting notes",
   ],
   openGraph: {
     type: "website",
-    title: "Adviza — AI for Wealth Management",
+    locale: "en",
+    url: siteUrl,
+    siteName: "Adviza AI",
+    title: "Adviza AI | Enterprise AI Operating System for Wealth Management",
     description:
-      "AI Execution Workspace for Wealth Management Advisors — powered by Amazon Bedrock.",
-    siteName: "Adviza",
+      "AI agents that handle client briefings, meeting intelligence, and compliance documentation — so wealth advisors can focus on clients, not admin.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Adviza AI — Enterprise AI Operating System for Wealth Management",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Adviza — AI for Wealth Management",
+    title: "Adviza AI | Enterprise AI Operating System for Wealth Management",
     description:
-      "AI agents that handle the admin so advisors can focus on clients.",
+      "AI agents that handle client briefings, meeting intelligence, and compliance documentation — so wealth advisors can focus on clients, not admin.",
+    creator: "@adviza_ai",
+    images: ["/og-image.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
 };
 
@@ -65,6 +97,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
 };
+
+const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || "GTM-XXXXXXX";
 
 export default function RootLayout({
   children,
@@ -77,10 +111,33 @@ export default function RootLayout({
       className={`${plusJakarta.variable} ${inter.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
+      <head>
+        <Script
+          id="gtm-script"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+              new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+              j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+              'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+              })(window,document,'script','dataLayer','${GTM_ID}');
+            `,
+          }}
+        />
+      </head>
       <body
         className="font-sans antialiased bg-[#FAF5F0] text-zinc-900 min-h-screen selection:bg-rose-200 selection:text-rose-900"
         suppressHydrationWarning
       >
+        <noscript>
+          <iframe
+            src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+          />
+        </noscript>
         {children}
       </body>
     </html>

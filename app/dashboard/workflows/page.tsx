@@ -461,7 +461,7 @@ export default function WorkflowsLibraryPage() {
       )}
 
       {/* ── Page Header ───────────────────────────────────────────────────── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-[#EADBCE]">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-zinc-200/80">
         <div>
           <div className="flex items-center gap-2.5 mb-1.5">
             <div className="w-9 h-9 rounded-2xl bg-violet-50 border border-violet-100 flex items-center justify-center text-violet-600">
@@ -479,7 +479,7 @@ export default function WorkflowsLibraryPage() {
         <div className="flex items-center gap-2.5">
           <button
             onClick={handleNewWorkflow}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white border border-[#EADBCE] text-[#121217] text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2.5 bg-white border border-zinc-200/80 text-[#121217] text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Blank Canvas
@@ -591,7 +591,7 @@ export default function WorkflowsLibraryPage() {
         ].map((stat) => (
           <div
             key={stat.label}
-            className="bg-white rounded-2xl px-5 py-4 border border-[#EADBCE] shadow-sm flex items-center gap-3"
+            className="bg-white rounded-2xl px-5 py-4 border border-zinc-200/80 shadow-sm flex items-center gap-3"
           >
             <div className="w-9 h-9 rounded-xl bg-[#F7F3EE] flex items-center justify-center">
               {stat.icon}
@@ -612,7 +612,7 @@ export default function WorkflowsLibraryPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search your workflows..."
-            className="w-full pl-9 pr-10 py-2.5 text-base sm:text-sm border border-[#EADBCE] rounded-xl bg-white text-[#121217] placeholder:text-[#9E978F] focus:outline-none focus:ring-2 focus:ring-violet-300"
+            className="w-full pl-9 pr-10 py-2.5 text-base sm:text-sm border border-zinc-200/80 rounded-xl bg-white text-[#121217] placeholder:text-[#9E978F] focus:outline-none focus:ring-2 focus:ring-violet-300"
           />
           {search && (
             <button
@@ -635,7 +635,7 @@ export default function WorkflowsLibraryPage() {
                 "px-3 py-1.5 text-xs font-medium rounded-lg border transition-all cursor-pointer capitalize",
                 statusFilter === s
                   ? "bg-violet-600 text-white border-violet-600"
-                  : "bg-white border-[#EADBCE] text-[#5A544E] hover:border-violet-300"
+                  : "bg-white border-zinc-200/80 text-[#5A544E] hover:border-violet-300"
               )}
             >
               {s === "all" ? "All" : s.charAt(0).toUpperCase() + s.slice(1)}
@@ -643,7 +643,7 @@ export default function WorkflowsLibraryPage() {
           ))}
 
           {/* View toggle */}
-          <div className="flex items-center bg-[#F7F3EE] rounded-lg p-1 border border-[#EADBCE]">
+          <div className="flex items-center bg-[#F7F3EE] rounded-lg p-1 border border-zinc-200/80">
             <button
               onClick={() => setViewMode("grid")}
               className={cn("p-1.5 rounded-md transition-all cursor-pointer", viewMode === "grid" ? "bg-white shadow-sm text-violet-600" : "text-[#8E847C]")}
@@ -691,9 +691,9 @@ export default function WorkflowsLibraryPage() {
       {/* ── AI Modal ──────────────────────────────────────────────────────── */}
       {isAiModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xl border border-[#EADBCE] overflow-hidden">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xl border border-zinc-200/80 overflow-hidden">
             {/* Header */}
-            <div className="px-7 pt-7 pb-5 bg-gradient-to-br from-violet-50 to-rose-50 border-b border-[#EADBCE]">
+            <div className="px-7 pt-7 pb-5 bg-gradient-to-br from-violet-50 to-rose-50 border-b border-zinc-200/80">
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-violet-600 to-rose-500 flex items-center justify-center">
                   <Sparkles className="w-5 h-5 text-white" />
@@ -744,7 +744,7 @@ export default function WorkflowsLibraryPage() {
                     onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleGenerateAndSave(); }}
                     placeholder={SAMPLE_PROMPTS[0]}
                     rows={4}
-                    className="w-full px-4 py-3 text-sm border border-[#EADBCE] rounded-xl bg-white text-[#121217] placeholder:text-[#C5BDB6] focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-violet-300 resize-none"
+                    className="w-full px-4 py-3 text-sm border border-zinc-200/80 rounded-xl bg-white text-[#121217] placeholder:text-[#C5BDB6] focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-violet-300 resize-none"
                   />
                   {aiPrompt.trim() && (
                     <button
@@ -769,7 +769,7 @@ export default function WorkflowsLibraryPage() {
                   <button
                     key={i}
                     onClick={() => setAiPrompt(p)}
-                    className="w-full text-left text-xs text-[#5A544E] bg-[#F7F3EE] hover:bg-violet-50 hover:text-violet-700 px-3 py-2 rounded-lg border border-[#EADBCE] hover:border-violet-200 transition-all cursor-pointer"
+                    className="w-full text-left text-xs text-[#5A544E] bg-[#F7F3EE] hover:bg-violet-50 hover:text-violet-700 px-3 py-2 rounded-lg border border-zinc-200/80 hover:border-violet-200 transition-all cursor-pointer"
                   >
                     {p}
                   </button>
@@ -820,7 +820,7 @@ function WorkflowCard({
     return (
       <div
         onClick={onOpen}
-        className="bg-white border border-[#EADBCE] rounded-2xl px-5 py-4 flex items-center gap-4 hover:border-violet-200 hover:shadow-sm transition-all cursor-pointer group"
+        className="bg-white border border-zinc-200/80 rounded-2xl px-5 py-4 flex items-center gap-4 hover:border-violet-200 hover:shadow-sm transition-all cursor-pointer group"
       >
         <div className="w-9 h-9 rounded-xl bg-violet-50 border border-violet-100 flex items-center justify-center flex-shrink-0">
           {TRIGGER_ICONS[wf.trigger_type ?? ""] ?? <Workflow className="w-4 h-4 text-violet-400" />}
@@ -856,7 +856,7 @@ function WorkflowCard({
   return (
     <div
       onClick={onOpen}
-      className="bg-white border border-[#EADBCE] rounded-2xl p-5 hover:border-violet-200 hover:shadow-md transition-all cursor-pointer group flex flex-col gap-4"
+      className="bg-white border border-zinc-200/80 rounded-2xl p-5 hover:border-violet-200 hover:shadow-md transition-all cursor-pointer group flex flex-col gap-4"
     >
       {/* Top row */}
       <div className="flex items-start justify-between gap-2">
@@ -941,7 +941,7 @@ function ActionButton({
         "p-1.5 rounded-lg border transition-all cursor-pointer text-xs",
         danger
           ? "border-rose-200 text-rose-500 hover:bg-rose-50"
-          : "border-[#EADBCE] text-[#5A544E] hover:bg-violet-50 hover:text-violet-600 hover:border-violet-200"
+          : "border-zinc-200/80 text-[#5A544E] hover:bg-violet-50 hover:text-violet-600 hover:border-violet-200"
       )}
     >
       {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : icon}
@@ -958,7 +958,7 @@ function EmptyState({
   onAI: (prompt?: string) => void;
 }) {
   return (
-    <div className="flex flex-col items-center py-16 px-4 text-center bg-white rounded-3xl border border-[#EADBCE] shadow-sm">
+    <div className="flex flex-col items-center py-16 px-4 text-center bg-white rounded-3xl border border-zinc-200/80 shadow-sm">
       <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-violet-100 to-rose-100 flex items-center justify-center mb-5 shadow-inner">
         <Workflow className="w-8 h-8 text-violet-500" />
       </div>
@@ -969,20 +969,20 @@ function EmptyState({
       <div className="flex items-center gap-3 mb-8">
         <button
           onClick={() => onNew()}
-          className="flex items-center gap-2 px-5 py-2.5 bg-white border border-[#EADBCE] text-[#121217] text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all cursor-pointer"
+          className="flex items-center gap-2 px-5 py-2.5 bg-white border border-zinc-200/80 text-[#121217] text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all cursor-pointer"
         >
           <Plus className="w-4 h-4" /> Blank Canvas
         </button>
       </div>
 
-      <div className="w-full max-w-xl text-left bg-[#F7F3EE] p-5 rounded-2xl border border-[#EADBCE]">
+      <div className="w-full max-w-xl text-left bg-[#F7F3EE] p-5 rounded-2xl border border-zinc-200/80">
         <p className="text-xs font-semibold text-[#5A544E] mb-2.5">💡 Quick AI Generation Ideas (Click to generate):</p>
         <div className="space-y-2">
           {SAMPLE_PROMPTS.map((prompt, i) => (
             <button
               key={i}
               onClick={() => onAI(prompt)}
-              className="w-full text-left text-xs bg-white hover:bg-violet-50 hover:text-violet-700 p-3 rounded-xl border border-[#EADBCE] hover:border-violet-300 transition-all cursor-pointer flex items-center justify-between group"
+              className="w-full text-left text-xs bg-white hover:bg-violet-50 hover:text-violet-700 p-3 rounded-xl border border-zinc-200/80 hover:border-violet-300 transition-all cursor-pointer flex items-center justify-between group"
             >
               <span className="text-[#3D3731] group-hover:text-violet-700 font-medium">{prompt}</span>
               <ArrowRight className="w-3.5 h-3.5 text-[#9E978F] group-hover:text-violet-600 flex-shrink-0 ml-2" />

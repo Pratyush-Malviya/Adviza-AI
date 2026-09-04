@@ -35,46 +35,46 @@ export default async function CompliancePage() {
   };
 
   return (
-    <div className="space-y-8 animate-fade-in max-w-7xl mx-auto">
+    <div className="space-y-6 animate-in fade-in duration-200 max-w-6xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#121217] tracking-tight">Compliance & Audit</h1>
-          <p className="text-sm text-[#7A726A] mt-1">Immutable audit trail and regulatory compliance records (SEC Rule 204-2 & FINRA 4511)</p>
+          <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Compliance & Audit</h1>
+          <p className="text-xs text-zinc-500 mt-1">Immutable audit trail and regulatory compliance records (SEC Rule 204-2 & FINRA 4511)</p>
         </div>
         <ComplianceAuditActions recordsCount={meetings?.length || 0} />
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: "Compliant", value: stats.compliant, color: "text-emerald-700", bg: "bg-emerald-50 border-emerald-100" },
           { label: "Needs Review", value: stats.needsReview, color: "text-amber-800", bg: "bg-amber-50 border-amber-100" },
           { label: "Flagged", value: stats.flagged, color: "text-rose-700", bg: "bg-rose-50 border-rose-100" },
           { label: "Pending", value: stats.pending, color: "text-zinc-700", bg: "bg-zinc-100 border-zinc-200" },
         ].map((s) => (
-          <div key={s.label} className="bg-white rounded-3xl p-6 border border-[#EADBCE] shadow-sm text-center">
-            <div className={`text-4xl font-heading font-extrabold mb-1 ${s.color}`}>{s.value}</div>
-            <div className="text-xs font-bold text-[#8E847C] uppercase tracking-wider">{s.label}</div>
+          <div key={s.label} className="bg-white rounded-xl p-5 border border-zinc-200/80 shadow-2xs text-center">
+            <div className={`text-3xl font-bold mb-1 ${s.color}`}>{s.value}</div>
+            <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">{s.label}</div>
           </div>
         ))}
       </div>
 
       {/* Pending compliance records */}
       {pendingMeetings && pendingMeetings.length > 0 && (
-        <div>
-          <h2 className="text-xs font-heading font-bold text-amber-800 uppercase tracking-wider mb-4 flex items-center gap-2">
+        <div className="space-y-3">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-amber-800 flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-amber-600" />Awaiting Compliance Record ({pendingMeetings.length})
           </h2>
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {pendingMeetings.map((m) => (
               <Link key={m.id} href={`/dashboard/meetings/${m.id}?tab=compliance`}
-                className="bg-white rounded-3xl p-5 border border-amber-200 shadow-sm flex items-center gap-4 hover:shadow-md hover:border-amber-300 transition-all group bg-amber-50/20">
-                <div className="w-10 h-10 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center flex-shrink-0">
-                  <AlertTriangle className="w-5 h-5 text-amber-600" />
+                className="bg-white rounded-xl p-4 border border-amber-200 shadow-2xs flex items-center gap-4 hover:border-amber-300 transition-all group">
+                <div className="w-9 h-9 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center flex-shrink-0">
+                  <AlertTriangle className="w-4 h-4 text-amber-600" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-heading font-bold text-[#121217] text-sm">{(m as { clients?: { full_name: string } }).clients?.full_name}</div>
-                  <div className="text-xs text-[#7A726A] mt-0.5">{m.meeting_type} · {formatDate(m.scheduled_at)}</div>
+                  <div className="font-semibold text-zinc-900 text-sm">{(m as { clients?: { full_name: string } }).clients?.full_name}</div>
+                  <div className="text-xs text-zinc-400 mt-0.5">{m.meeting_type} · {formatDate(m.scheduled_at)}</div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-amber-600 group-hover:translate-x-0.5 transition-transform" />
               </Link>
@@ -85,9 +85,9 @@ export default async function CompliancePage() {
 
       {/* Records */}
       {meetings && meetings.length > 0 && (
-        <div>
-          <h2 className="text-xs font-heading font-bold text-[#8E847C] uppercase tracking-wider mb-4">Compliance Records</h2>
-          <div className="bg-white rounded-3xl border border-[#EADBCE] shadow-sm overflow-hidden divide-y divide-[#EADBCE]/60">
+        <div className="space-y-3">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">Compliance Records</h2>
+          <div className="bg-white rounded-xl border border-zinc-200/80 shadow-2xs overflow-hidden divide-y divide-zinc-100">
             {meetings.map((meeting) => {
               const status = meeting.compliance_status || "pending";
               const config = statusConfig[status] || statusConfig.pending;
@@ -96,17 +96,17 @@ export default async function CompliancePage() {
 
               return (
                 <Link key={meeting.id} href={`/dashboard/meetings/${meeting.id}?tab=compliance`}
-                  className="flex items-center gap-4 px-6 py-4 hover:bg-[#FAF5F0]/60 transition-colors group">
-                  <div className={`w-10 h-10 rounded-2xl border flex items-center justify-center flex-shrink-0 ${config.color}`}>
-                    <Icon className="w-5 h-5" />
+                  className="flex items-center gap-4 px-5 py-3.5 hover:bg-zinc-50/70 transition-colors group">
+                  <div className={`w-9 h-9 rounded-lg border flex items-center justify-center flex-shrink-0 ${config.color}`}>
+                    <Icon className="w-4 h-4" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3">
-                      <span className="font-heading font-bold text-[#121217] text-sm">{(meeting as { clients?: { full_name: string } }).clients?.full_name}</span>
-                      <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${config.color}`}>{config.label}</span>
+                      <span className="font-semibold text-zinc-900 text-sm">{(meeting as { clients?: { full_name: string } }).clients?.full_name}</span>
+                      <span className={`text-[11px] font-medium px-2.5 py-0.5 rounded-full border ${config.color}`}>{config.label}</span>
                     </div>
-                    <div className="flex items-center gap-3 mt-1 text-xs text-[#7A726A]">
-                      {record?.recordId && <span className="font-mono text-rose-600 font-bold">{record.recordId}</span>}
+                    <div className="flex items-center gap-3 mt-1 text-xs text-zinc-400">
+                      {record?.recordId && <span className="font-mono text-zinc-900 font-semibold">{record.recordId}</span>}
                       <span>·</span>
                       <span>{formatDate(meeting.scheduled_at)}</span>
                       <span>·</span>
@@ -134,10 +134,10 @@ export default async function CompliancePage() {
       )}
 
       {!meetings?.length && !pendingMeetings?.length && (
-        <div className="bg-white rounded-3xl border border-[#EADBCE] shadow-sm py-20 text-center">
-          <Shield className="w-10 h-10 text-[#A89E95] mx-auto mb-4" />
-          <h3 className="text-lg font-heading font-bold text-[#121217] mb-2">No compliance records yet</h3>
-          <p className="text-sm text-[#7A726A]">Process meeting transcripts to auto-generate compliance records</p>
+        <div className="bg-white rounded-xl border border-zinc-200/80 shadow-2xs py-16 text-center">
+          <Shield className="w-8 h-8 text-zinc-300 mx-auto mb-3" />
+          <h3 className="text-base font-bold text-zinc-900 mb-1">No compliance records yet</h3>
+          <p className="text-xs text-zinc-500">Process meeting transcripts to auto-generate compliance records</p>
         </div>
       )}
     </div>

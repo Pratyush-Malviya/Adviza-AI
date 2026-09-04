@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /dashboard/
+Disallow: /org-admin/
+Disallow: /super-admin/
+Disallow: /payment/
+Disallow: /auth/callback
+
+Sitemap: https://adviza.ai/sitemap.xml

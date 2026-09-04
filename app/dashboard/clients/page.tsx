@@ -26,54 +26,54 @@ export default async function ClientsPage() {
   };
 
   return (
-    <div className="space-y-8 animate-fade-in max-w-7xl mx-auto">
+    <div className="space-y-6 animate-in fade-in duration-200 max-w-6xl mx-auto">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#121217] tracking-tight">
+          <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
             Clients
           </h1>
-          <p className="text-sm text-[#7A726A] mt-1">
+          <p className="text-xs text-zinc-500 mt-1">
             {clients?.length ?? 0} total client relationships
           </p>
         </div>
         <Link
           href="/dashboard/clients/new"
           id="add-client-btn"
-          className="btn-hero-gradient inline-flex items-center justify-center gap-2 px-5 py-2.5 min-h-[44px] text-white text-sm font-bold rounded-full shadow-md shadow-rose-500/20 transition-transform hover:scale-105"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold rounded-lg shadow-2xs transition-colors cursor-pointer"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-3.5 h-3.5" />
           <span>Add Client</span>
         </Link>
       </div>
 
       {/* Client list */}
-      <div className="bg-white rounded-3xl border border-[#EADBCE] shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl border border-zinc-200/80 shadow-2xs overflow-hidden">
         {clients && clients.length > 0 ? (
           <>
             {/* Mobile Card List (screens < 768px) */}
-            <div className="md:hidden divide-y divide-[#EADBCE]/60">
+            <div className="md:hidden divide-y divide-zinc-100">
               {clients.map((client: Client) => (
                 <Link
                   key={client.id}
                   href={`/dashboard/clients/${client.id}`}
-                  className="p-4 flex items-center justify-between gap-3 hover:bg-[#FAF5F0]/60 transition-colors"
+                  className="p-4 flex items-center justify-between gap-3 hover:bg-zinc-50/70 transition-colors"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-11 h-11 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600 text-xs font-bold shrink-0">
+                    <div className="w-9 h-9 rounded-lg bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-800 text-xs font-semibold shrink-0">
                       {getInitials(client.full_name)}
                     </div>
                     <div className="min-w-0">
-                      <div className="font-heading font-bold text-[#121217] text-sm truncate">
+                      <div className="font-semibold text-zinc-900 text-sm truncate">
                         {client.full_name}
                       </div>
-                      <div className="flex items-center gap-2 flex-wrap text-xs text-[#7A726A] mt-0.5">
-                        <span className="font-bold text-[#121217]">
+                      <div className="flex items-center gap-2 flex-wrap text-xs text-zinc-500 mt-0.5">
+                        <span className="font-semibold text-zinc-900">
                           {client.portfolio_value ? formatCurrency(client.portfolio_value) : "—"}
                         </span>
                         {client.risk_tolerance && (
                           <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold border capitalize ${
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-medium border capitalize ${
                               riskColorMap[client.risk_tolerance] || "text-zinc-700 bg-zinc-100 border-zinc-200"
                             }`}
                           >
@@ -83,7 +83,7 @@ export default async function ClientsPage() {
                       </div>
                     </div>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-[#A89E95] shrink-0" />
+                  <ChevronRight className="w-4 h-4 text-zinc-400 shrink-0" />
                 </Link>
               ))}
             </div>
@@ -92,46 +92,46 @@ export default async function ClientsPage() {
             <div className="hidden md:block overflow-x-auto">
               <div className="min-w-[640px]">
                 {/* Table header */}
-                <div className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-[#EADBCE]/80 bg-[#FAF5F0]/60">
-                  <div className="col-span-4 text-xs font-heading font-bold text-[#8E847C] uppercase tracking-wider">
+                <div className="grid grid-cols-12 gap-4 px-6 py-3.5 border-b border-zinc-200/80 bg-zinc-50/70">
+                  <div className="col-span-4 text-xs font-semibold text-zinc-400 uppercase tracking-wider">
                     Client
                   </div>
-                  <div className="col-span-2 text-xs font-heading font-bold text-[#8E847C] uppercase tracking-wider">
+                  <div className="col-span-2 text-xs font-semibold text-zinc-400 uppercase tracking-wider">
                     Portfolio
                   </div>
-                  <div className="col-span-2 text-xs font-heading font-bold text-[#8E847C] uppercase tracking-wider">
+                  <div className="col-span-2 text-xs font-semibold text-zinc-400 uppercase tracking-wider">
                     Risk Profile
                   </div>
-                  <div className="col-span-3 text-xs font-heading font-bold text-[#8E847C] uppercase tracking-wider">
+                  <div className="col-span-3 text-xs font-semibold text-zinc-400 uppercase tracking-wider">
                     Goals
                   </div>
                   <div className="col-span-1" />
                 </div>
 
                 {/* Rows */}
-                <div className="divide-y divide-[#EADBCE]/60">
+                <div className="divide-y divide-zinc-100">
                   {clients.map((client: Client) => (
                     <Link
                       key={client.id}
                       href={`/dashboard/clients/${client.id}`}
-                      className="grid grid-cols-12 gap-4 px-6 py-4 hover:bg-[#FAF5F0]/60 transition-colors group items-center"
+                      className="grid grid-cols-12 gap-4 px-6 py-3.5 hover:bg-zinc-50/70 transition-colors group items-center"
                     >
                       <div className="col-span-4 flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600 text-xs font-bold flex-shrink-0">
+                        <div className="w-9 h-9 rounded-lg bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-800 text-xs font-semibold flex-shrink-0">
                           {getInitials(client.full_name)}
                         </div>
                         <div>
-                          <div className="font-heading font-bold text-[#121217] text-sm">
+                          <div className="font-semibold text-zinc-900 text-sm">
                             {client.full_name}
                           </div>
                           {client.email && (
-                            <div className="text-xs text-[#7A726A]">{client.email}</div>
+                            <div className="text-xs text-zinc-400">{client.email}</div>
                           )}
                         </div>
                       </div>
 
                       <div className="col-span-2">
-                        <span className="text-sm font-bold text-[#121217]">
+                        <span className="text-sm font-semibold text-zinc-900">
                           {client.portfolio_value
                             ? formatCurrency(client.portfolio_value)
                             : "—"}
@@ -158,13 +158,13 @@ export default async function ClientsPage() {
                           {client.investment_goals?.slice(0, 2).map((goal: string) => (
                             <span
                               key={goal}
-                              className="text-xs px-2.5 py-0.5 bg-[#FAF5F0] border border-[#EADBCE] text-[#5A544E] font-medium rounded-full"
+                              className="text-xs px-2.5 py-0.5 bg-zinc-100 border border-zinc-200 text-zinc-700 font-medium rounded-full"
                             >
                               {goal}
                             </span>
                           ))}
                           {(client.investment_goals?.length ?? 0) > 2 && (
-                            <span className="text-xs text-[#8E847C] font-semibold">
+                            <span className="text-xs text-zinc-400 font-semibold">
                               +{client.investment_goals.length - 2}
                             </span>
                           )}
@@ -172,7 +172,7 @@ export default async function ClientsPage() {
                       </div>
 
                       <div className="col-span-1 flex justify-end">
-                        <ChevronRight className="w-4 h-4 text-[#A89E95] group-hover:text-[#121217] transition-colors" />
+                        <ChevronRight className="w-4 h-4 text-zinc-400 group-hover:text-zinc-800 transition-colors" />
                       </div>
                     </Link>
                   ))}
@@ -181,17 +181,17 @@ export default async function ClientsPage() {
             </div>
           </>
         ) : (
-          <div className="py-20 text-center">
-            <Users className="w-10 h-10 text-[#A89E95] mx-auto mb-4" />
-            <h3 className="text-lg font-heading font-bold text-[#121217] mb-2">No clients yet</h3>
-            <p className="text-sm text-[#7A726A] mb-6">
+          <div className="py-16 text-center">
+            <Users className="w-8 h-8 text-zinc-300 mx-auto mb-3" />
+            <h3 className="text-base font-bold text-zinc-900 mb-1">No clients yet</h3>
+            <p className="text-xs text-zinc-500 mb-5">
               Add your first client to get started with AI-powered briefings
             </p>
             <Link
               href="/dashboard/clients/new"
-              className="btn-hero-gradient inline-flex items-center gap-2 px-6 py-3 min-h-[44px] text-white text-sm font-bold rounded-full shadow-md"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold rounded-lg shadow-2xs"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-3.5 h-3.5" />
               <span>Add First Client</span>
             </Link>
           </div>

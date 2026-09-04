@@ -1,9 +1,26 @@
 import Link from "next/link";
 import { Scale, ArrowLeft, ShieldCheck, AlertCircle } from "lucide-react";
 
-export const metadata = {
-  title: "Terms of Service — Adviza AI",
-  description: "Terms of service and enterprise SaaS license agreement for Adviza AI.",
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Terms of Service | Adviza AI",
+  description:
+    "Enterprise terms of service, acceptable use policies, and software licensing agreement for Adviza AI.",
+  alternates: {
+    canonical: "/terms",
+  },
+  openGraph: {
+    title: "Terms of Service | Adviza AI",
+    description: "Terms of service and enterprise SaaS license agreement for Adviza AI.",
+    url: "https://adviza.ai/terms",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Terms of Service | Adviza AI",
+    description: "Terms of service and enterprise SaaS license agreement for Adviza AI.",
+  },
 };
 
 export default function TermsOfServicePage() {

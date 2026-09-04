@@ -1,9 +1,26 @@
 import Link from "next/link";
 import { Shield, ArrowLeft, Lock, FileText, CheckCircle2 } from "lucide-react";
 
-export const metadata = {
-  title: "Privacy Policy — Adviza AI",
-  description: "Enterprise privacy, fiduciary data isolation, and encryption policies for Adviza AI.",
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy | Adviza AI",
+  description:
+    "Enterprise privacy policy, fiduciary data isolation, zero-LLM retention, and multi-tenant security architecture for Adviza AI.",
+  alternates: {
+    canonical: "/privacy",
+  },
+  openGraph: {
+    title: "Privacy Policy | Adviza AI",
+    description: "Enterprise privacy policy, fiduciary data isolation, and security protocols for Adviza AI.",
+    url: "https://adviza.ai/privacy",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Privacy Policy | Adviza AI",
+    description: "Enterprise privacy policy, fiduciary data isolation, and security protocols for Adviza AI.",
+  },
 };
 
 export default function PrivacyPolicyPage() {

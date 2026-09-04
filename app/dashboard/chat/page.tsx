@@ -31,7 +31,7 @@ export default function ChatDashboardPage() {
   return (
     <Suspense
       fallback={
-        <div className="w-full h-[calc(100vh-130px)] flex items-center justify-center bg-white rounded-3xl border border-[#EADBCE]">
+        <div className="w-full h-[calc(100vh-130px)] flex items-center justify-center bg-white rounded-2xl border border-zinc-200/80">
           <div className="flex items-center gap-2 text-sm font-semibold text-[#8E847C]">
             <Loader2 className="w-4 h-4 animate-spin text-rose-500" />
             <span>Loading Adviza Chat...</span>

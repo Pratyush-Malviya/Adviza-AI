@@ -37,7 +37,7 @@ export function BillingButton({ plan, hasCustomer }: BillingButtonProps) {
     <button
       onClick={handleBilling}
       disabled={loading}
-      className="btn-hero-gradient flex items-center gap-1.5 px-5 py-2.5 disabled:opacity-50 text-white text-sm font-bold rounded-full transition-all cursor-pointer shadow-md shadow-rose-500/20"
+      className="inline-flex items-center gap-1.5 px-3.5 py-2 disabled:opacity-50 text-white text-xs font-semibold rounded-lg bg-zinc-900 hover:bg-zinc-800 transition-all cursor-pointer shadow-2xs"
     >
       {loading ? (
         <>

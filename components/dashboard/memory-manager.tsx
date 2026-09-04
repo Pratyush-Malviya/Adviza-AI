@@ -123,7 +123,7 @@ export function MemoryManager() {
   return (
     <div className="space-y-6">
       {/* Top Banner Card */}
-      <div className="p-6 bg-gradient-to-r from-[#121217] via-[#1E1E26] to-[#121217] rounded-3xl border border-[#EADBCE]/20 text-white shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-6 bg-gradient-to-r from-[#121217] via-[#1E1E26] to-[#121217] rounded-2xl border border-zinc-800 text-white shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1.5 max-w-xl">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center border border-rose-500/30">
@@ -170,7 +170,7 @@ export function MemoryManager() {
       {isAdding && (
         <form
           onSubmit={handleAddMemory}
-          className="p-5 bg-white border border-[#EADBCE] rounded-3xl space-y-4 shadow-sm"
+          className="p-5 bg-white border border-zinc-200/80 rounded-3xl space-y-4 shadow-sm"
         >
           <h4 className="font-bold text-sm text-[#121217]">Add Permanent Memory or Fiduciary Rule</h4>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
@@ -180,7 +180,7 @@ export function MemoryManager() {
                 value={newMemoryText}
                 onChange={(e) => setNewMemoryText(e.target.value)}
                 placeholder="e.g. Always structure municipal bond proposals around 5-year ladder durations"
-                className="w-full px-4 py-2.5 bg-[#FAF5F0] border border-[#EADBCE] rounded-2xl text-xs text-[#121217] placeholder:text-[#8E847C] focus:outline-none focus:ring-1 focus:ring-rose-500"
+                className="w-full px-4 py-2 text-xs bg-white border border-zinc-200 rounded-lg text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-400"
                 required
               />
             </div>
@@ -188,7 +188,7 @@ export function MemoryManager() {
               <select
                 value={newCategory}
                 onChange={(e) => setNewCategory(e.target.value as any)}
-                className="w-full px-3 py-2.5 bg-[#FAF5F0] border border-[#EADBCE] rounded-2xl text-xs text-[#121217] focus:outline-none focus:ring-1 focus:ring-rose-500"
+                className="w-full px-3 py-2 text-xs bg-white border border-zinc-200 rounded-lg text-zinc-900 focus:outline-none focus:border-zinc-400"
               >
                 <option value="preference">Preference</option>
                 <option value="persona">Persona</option>
@@ -203,13 +203,13 @@ export function MemoryManager() {
             <button
               type="button"
               onClick={() => setIsAdding(false)}
-              className="px-4 py-2 text-xs text-[#8E847C] hover:text-[#121217]"
+              className="px-3 py-1.5 text-xs text-zinc-400 hover:text-zinc-800"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-[#121217] hover:bg-[#2A2A35] text-white rounded-xl text-xs font-bold transition shadow-xs"
+              className="px-3.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg text-xs font-semibold transition shadow-2xs"
             >
               Save to Memory
             </button>
@@ -225,10 +225,10 @@ export function MemoryManager() {
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold capitalize whitespace-nowrap transition ${
+              className={`px-3 py-1 rounded-lg text-xs font-medium capitalize whitespace-nowrap transition ${
                 selectedCategory === cat
-                  ? "bg-[#121217] text-white shadow-xs"
-                  : "bg-white border border-[#EADBCE] text-[#5A544E] hover:bg-[#FAF5F0]"
+                  ? "bg-zinc-900 text-white shadow-2xs"
+                  : "bg-white border border-zinc-200 text-zinc-600 hover:bg-zinc-50"
               }`}
             >
               {cat.replace("_", " ")}
@@ -244,7 +244,7 @@ export function MemoryManager() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search recalled memories..."
-            className="w-full pl-9 pr-4 py-2 bg-white border border-[#EADBCE] rounded-2xl text-xs text-[#121217] placeholder:text-[#8E847C] focus:outline-none focus:ring-1 focus:ring-rose-500 shadow-2xs"
+            className="w-full pl-9 pr-4 py-2 bg-white border border-zinc-200/80 rounded-2xl text-xs text-[#121217] placeholder:text-[#8E847C] focus:outline-none focus:ring-1 focus:ring-rose-500 shadow-2xs"
           />
         </form>
       </div>
@@ -263,7 +263,7 @@ export function MemoryManager() {
             return (
               <div
                 key={item.id}
-                className="p-4 bg-white border border-[#EADBCE] rounded-3xl shadow-2xs hover:shadow-sm transition-all space-y-2.5 flex flex-col justify-between"
+                className="p-4 bg-white border border-zinc-200/80 rounded-3xl shadow-2xs hover:shadow-sm transition-all space-y-2.5 flex flex-col justify-between"
               >
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
@@ -285,7 +285,7 @@ export function MemoryManager() {
                   </p>
                 </div>
 
-                <div className="pt-2 border-t border-[#EADBCE]/50 flex items-center justify-between text-[10px] text-[#8E847C]">
+                <div className="pt-2 border-t border-zinc-200/80/50 flex items-center justify-between text-[10px] text-[#8E847C]">
                   <span className="flex items-center gap-1">
                     <Clock className="w-3 h-3" />
                     {item.created_at ? new Date(item.created_at).toLocaleDateString() : "Active"}
@@ -298,9 +298,9 @@ export function MemoryManager() {
             );
           })
         ) : (
-          <div className="col-span-full p-12 bg-white border border-[#EADBCE] rounded-3xl text-center space-y-2">
-            <div className="w-10 h-10 rounded-2xl bg-[#FAF5F0] text-[#8E847C] flex items-center justify-center mx-auto">
-              <Brain className="w-5 h-5" />
+          <div className="col-span-full p-12 bg-white border border-zinc-200/80 rounded-3xl text-center space-y-2">
+            <div className="w-9 h-9 rounded-lg bg-zinc-100 text-zinc-400 flex items-center justify-center mx-auto">
+              <Brain className="w-4 h-4" />
             </div>
             <h4 className="font-bold text-sm text-[#121217]">No Memories Found</h4>
             <p className="text-xs text-[#8E847C] max-w-sm mx-auto">

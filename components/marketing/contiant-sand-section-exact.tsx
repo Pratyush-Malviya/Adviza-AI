@@ -14,8 +14,8 @@ export function ContiantSandSectionExact() {
           <div className="lg:col-span-5 space-y-8 text-left">
             <h2 className="text-4xl sm:text-5xl lg:text-[62px] font-heading font-bold tracking-tight leading-[1.08] text-[#1C242C]">
               Unlock the{" "}
-              <span className="block">power</span>
-              <span className="block">of advisory</span>
+              <span className="block">power of</span>
+              <span className="block">advisory</span>
               <span className="relative inline-block text-[#1C242C]">
                 data
                 {/* Purple Underline matching Screenshot 5 */}
@@ -68,9 +68,9 @@ export function ContiantSandSectionExact() {
                 <div className="w-14 h-14 rounded-full bg-[#1C242C] absolute left-0 top-0" />
                 <div className="w-14 h-14 rounded-full bg-[#1C242C]/30 absolute right-0 bottom-0" />
               </div>
-              <h4 className="text-xl font-heading font-bold text-[#1C242C] mb-1">
+              <h3 className="text-xl font-heading font-bold text-[#1C242C] mb-1">
                 Balance
-              </h4>
+              </h3>
               <p className="text-xs text-[#1C242C]/70">
                 Verify real-time account balances across Schwab & Fidelity.
               </p>
@@ -83,9 +83,9 @@ export function ContiantSandSectionExact() {
                 <div className="w-14 h-14 rounded-full bg-[#1C242C] absolute left-1 top-1" />
                 <div className="w-14 h-14 rounded-bl-full bg-[#1C242C]/30 absolute right-1 bottom-1" />
               </div>
-              <h4 className="text-xl font-heading font-bold text-[#1C242C] mb-1">
+              <h3 className="text-xl font-heading font-bold text-[#1C242C] mb-1">
                 Portfolio Drift
-              </h4>
+              </h3>
               <p className="text-xs text-[#1C242C]/70">
                 Access detailed drift history and tax-loss offset tracking.
               </p>
@@ -100,9 +100,9 @@ export function ContiantSandSectionExact() {
                   <div className="w-8 h-1.5 rounded-full bg-white/30" />
                 </div>
               </div>
-              <h4 className="text-xl font-heading font-bold text-[#1C242C] mb-1">
+              <h3 className="text-xl font-heading font-bold text-[#1C242C] mb-1">
                 Account Details
-              </h4>
+              </h3>
               <p className="text-xs text-[#1C242C]/70">
                 Verify investor suitability and lock in SEC compliance proofs.
               </p>

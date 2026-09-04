@@ -479,7 +479,7 @@ export default function WorkflowEditorPage() {
   return (
     <div className="flex flex-col h-[calc(100vh-5rem)] -mx-6 -mb-6 overflow-hidden">
       {/* ── Top Toolbar ─────────────────────────────────────────────────────── */}
-      <div className="flex items-center gap-2 px-5 py-3 bg-white border-b border-[#EADBCE] flex-shrink-0">
+      <div className="flex items-center gap-2 px-5 py-3 bg-white border-b border-zinc-200/80 flex-shrink-0">
         {/* Back */}
         <Link
           href="/dashboard/workflows"
@@ -690,8 +690,8 @@ export default function WorkflowEditorPage() {
       {/* ── Template Modal ─────────────────────────────────────────────────── */}
       {isTemplateModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl border border-[#EADBCE] overflow-hidden">
-            <div className="flex items-center justify-between px-7 py-5 border-b border-[#EADBCE]">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl border border-zinc-200/80 overflow-hidden">
+            <div className="flex items-center justify-between px-7 py-5 border-b border-zinc-200/80">
               <h3 className="font-heading font-bold text-[#121217]">Load a Template</h3>
               <button onClick={() => setIsTemplateModalOpen(false)} className="p-1.5 rounded-xl hover:bg-[#F7F3EE] text-[#8E847C] cursor-pointer">
                 <X className="w-4 h-4" />
@@ -702,7 +702,7 @@ export default function WorkflowEditorPage() {
                 <button
                   key={tpl.id}
                   onClick={() => handleSelectTemplate(tpl)}
-                  className="text-left bg-[#F7F3EE] border border-[#EADBCE] rounded-2xl p-5 hover:border-violet-300 hover:bg-violet-50 transition-all cursor-pointer"
+                  className="text-left bg-[#F7F3EE] border border-zinc-200/80 rounded-2xl p-5 hover:border-violet-300 hover:bg-violet-50 transition-all cursor-pointer"
                 >
                   <span className="text-[10px] font-semibold text-violet-600 bg-violet-50 px-2 py-0.5 rounded-full border border-violet-100">
                     {tpl.category}
@@ -719,8 +719,8 @@ export default function WorkflowEditorPage() {
       {/* ── AI Generate Modal ──────────────────────────────────────────────── */}
       {isAiModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xl border border-[#EADBCE]">
-            <div className="px-7 pt-7 pb-5 bg-gradient-to-br from-violet-50 to-rose-50 border-b border-[#EADBCE] rounded-t-3xl">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xl border border-zinc-200/80">
+            <div className="px-7 pt-7 pb-5 bg-gradient-to-br from-violet-50 to-rose-50 border-b border-zinc-200/80 rounded-t-3xl">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-violet-600 to-rose-500 flex items-center justify-center">
                   <Sparkles className="w-5 h-5 text-white" />
@@ -765,7 +765,7 @@ export default function WorkflowEditorPage() {
                   onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleGenerateWorkflow(); }}
                   placeholder={SAMPLE_PROMPTS[0]}
                   rows={4}
-                  className="w-full px-4 py-3 text-sm border border-[#EADBCE] rounded-xl bg-white text-[#121217] placeholder:text-[#C5BDB6] focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-violet-300 resize-none"
+                  className="w-full px-4 py-3 text-sm border border-zinc-200/80 rounded-xl bg-white text-[#121217] placeholder:text-[#C5BDB6] focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-violet-300 resize-none"
                 />
                 {aiPrompt.trim() && (
                   <button
@@ -787,7 +787,7 @@ export default function WorkflowEditorPage() {
                   <button
                     key={i}
                     onClick={() => setAiPrompt(p)}
-                    className="w-full text-left text-xs text-[#5A544E] bg-[#F7F3EE] hover:bg-violet-50 hover:text-violet-700 px-3 py-2 rounded-lg border border-[#EADBCE] hover:border-violet-200 transition-all cursor-pointer"
+                    className="w-full text-left text-xs text-[#5A544E] bg-[#F7F3EE] hover:bg-violet-50 hover:text-violet-700 px-3 py-2 rounded-lg border border-zinc-200/80 hover:border-violet-200 transition-all cursor-pointer"
                   >
                     {p}
                   </button>
@@ -830,7 +830,7 @@ function ToolbarBtn({
         "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-xl border transition-all cursor-pointer",
         gradient
           ? "bg-gradient-to-r from-violet-500 to-rose-400 text-white border-transparent shadow-sm hover:shadow"
-          : "bg-white border-[#EADBCE] text-[#5A544E] hover:bg-[#F7F3EE] hover:border-[#D5C9BC]"
+          : "bg-white border-zinc-200/80 text-[#5A544E] hover:bg-[#F7F3EE] hover:border-[#D5C9BC]"
       )}
     >
       {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : icon}

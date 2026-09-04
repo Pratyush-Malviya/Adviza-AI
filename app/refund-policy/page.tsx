@@ -3,10 +3,26 @@ import { MarketingNavbar } from "@/components/marketing/navbar";
 import { MarketingFooter } from "@/components/marketing/footer";
 import { ArrowLeft, ShieldCheck, RefreshCw, Mail, AlertCircle, FileText } from "lucide-react";
 
-export const metadata = {
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
   title: "Refund & Cancellation Policy | Adviza AI",
   description:
     "Adviza AI's SaaS subscription cancellation terms, 14-day free trial, and pro-rata refund policies for registered wealth advisory practices.",
+  alternates: {
+    canonical: "/refund-policy",
+  },
+  openGraph: {
+    title: "Refund & Cancellation Policy | Adviza AI",
+    description: "Adviza AI's SaaS subscription cancellation terms and 14-day free trial policies.",
+    url: "https://adviza.ai/refund-policy",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Refund & Cancellation Policy | Adviza AI",
+    description: "Adviza AI's SaaS subscription cancellation terms and 14-day free trial policies.",
+  },
 };
 
 export default function RefundPolicyPage() {

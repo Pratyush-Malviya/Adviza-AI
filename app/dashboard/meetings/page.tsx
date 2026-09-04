@@ -29,18 +29,18 @@ export default async function MeetingsPage() {
   const past = meetings.filter((m) => m.status !== "scheduled");
 
   return (
-    <div className="space-y-8 animate-fade-in max-w-7xl mx-auto">
+    <div className="space-y-6 animate-in fade-in duration-200 max-w-6xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#121217] tracking-tight">Meetings</h1>
-          <p className="text-sm text-[#7A726A] mt-1">{meetings?.length ?? 0} total · {upcoming.length} upcoming</p>
+          <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Meetings</h1>
+          <p className="text-xs text-zinc-500 mt-1">{meetings?.length ?? 0} total · {upcoming.length} upcoming</p>
         </div>
         <div className="flex items-center flex-wrap gap-2.5 sm:gap-3">
           <SeedDemoButton />
           <SyncCalendarButton />
           <Link href="/dashboard/meetings/new" id="new-meeting-btn"
-            className="btn-hero-gradient inline-flex items-center justify-center gap-2 px-5 py-2.5 min-h-[44px] text-white text-sm font-bold rounded-full shadow-md shadow-rose-500/20 transition-transform hover:scale-105 cursor-pointer">
-            <Plus className="w-4 h-4" />
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold shadow-2xs transition-colors cursor-pointer">
+            <Plus className="w-3.5 h-3.5" />
             <span>New Meeting</span>
           </Link>
         </div>
@@ -48,40 +48,40 @@ export default async function MeetingsPage() {
 
       {/* Upcoming */}
       {upcoming.length > 0 && (
-        <div>
-          <h2 className="text-xs font-heading font-bold text-[#8E847C] uppercase tracking-wider mb-4">Upcoming Meetings</h2>
-          <div className="space-y-3">
+        <div className="space-y-3">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">Upcoming Meetings</h2>
+          <div className="space-y-2.5">
             {upcoming.map((meeting) => {
               const config = STATUS_CONFIG[meeting.status] || STATUS_CONFIG.scheduled;
               return (
                 <Link key={meeting.id} href={`/dashboard/meetings/${meeting.id}`}
-                  className="bg-white rounded-3xl p-4 sm:p-5 border border-[#EADBCE] shadow-sm flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 hover:shadow-md hover:border-[#D8CCC2] transition-all group">
+                  className="bg-white rounded-xl p-4 border border-zinc-200/80 shadow-2xs flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 hover:border-zinc-300 transition-all group">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center flex-shrink-0 text-rose-600">
-                      <Calendar className="w-5 h-5" />
+                    <div className="w-9 h-9 rounded-lg bg-zinc-100 flex items-center justify-center flex-shrink-0 text-zinc-800">
+                      <Calendar className="w-4 h-4" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 sm:gap-3 flex-wrap mb-0.5">
-                        <span className="font-heading font-bold text-[#121217] text-sm sm:text-base">
+                        <span className="font-semibold text-zinc-900 text-sm">
                           {(meeting as { clients?: { full_name: string } }).clients?.full_name}
                         </span>
-                        <span className={`text-[11px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full border ${config.color}`}>
+                        <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full border ${config.color}`}>
                           {config.label}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 sm:gap-3 text-xs text-[#7A726A]" suppressHydrationWarning>
-                        <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{new Date(meeting.scheduled_at).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
-                        <span className="text-[#D8CCC2]">·</span>
+                      <div className="flex items-center gap-2 sm:gap-3 text-xs text-zinc-400" suppressHydrationWarning>
+                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{new Date(meeting.scheduled_at).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
+                        <span>·</span>
                         <span className="capitalize">{meeting.meeting_type}</span>
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between sm:justify-end gap-2 flex-shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#EADBCE]/50">
+                  <div className="flex items-center justify-between sm:justify-end gap-2 flex-shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-zinc-100">
                     {meeting.briefing
-                      ? <span className="flex items-center gap-1 text-[11px] sm:text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 sm:px-3 py-1 rounded-full"><Brain className="w-3.5 h-3.5" />Briefed</span>
-                      : <span className="flex items-center gap-1 text-[11px] sm:text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2.5 sm:px-3 py-1 rounded-full"><Brain className="w-3.5 h-3.5" />No briefing</span>
+                      ? <span className="flex items-center gap-1 text-[11px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full"><Brain className="w-3 h-3" />Briefed</span>
+                      : <span className="flex items-center gap-1 text-[11px] font-medium text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full"><Brain className="w-3 h-3" />No briefing</span>
                     }
-                    <ChevronRight className="w-4 h-4 text-[#A89E95] group-hover:text-[#121217] transition-colors ml-1" />
+                    <ChevronRight className="w-4 h-4 text-zinc-400 group-hover:text-zinc-800 transition-colors ml-1" />
                   </div>
                 </Link>
               );
@@ -92,31 +92,31 @@ export default async function MeetingsPage() {
 
       {/* Past */}
       {past.length > 0 && (
-        <div>
-          <h2 className="text-xs font-heading font-bold text-[#8E847C] uppercase tracking-wider mb-4">Past Meetings</h2>
-          <div className="bg-white rounded-3xl border border-[#EADBCE] shadow-sm overflow-hidden divide-y divide-[#EADBCE]/60">
+        <div className="space-y-3">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">Past Meetings</h2>
+          <div className="bg-white rounded-xl border border-zinc-200/80 shadow-2xs overflow-hidden divide-y divide-zinc-100">
             {past.map((meeting) => {
               const config = STATUS_CONFIG[meeting.status] || STATUS_CONFIG.completed;
               return (
                 <Link key={meeting.id} href={`/dashboard/meetings/${meeting.id}`}
-                  className="flex items-center gap-4 px-6 py-4 hover:bg-[#FAF5F0]/60 transition-colors group">
+                  className="flex items-center gap-4 px-5 py-3.5 hover:bg-zinc-50/70 transition-colors group">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3">
-                      <span className="font-heading font-bold text-[#121217] text-sm">
+                      <span className="font-semibold text-zinc-900 text-sm">
                         {(meeting as { clients?: { full_name: string } }).clients?.full_name}
                       </span>
-                      <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${config.color}`}>
+                      <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full border ${config.color}`}>
                         {config.label}
                       </span>
                     </div>
-                    <div className="flex items-center gap-3 mt-1 text-xs text-[#7A726A]">
+                    <div className="flex items-center gap-3 mt-1 text-xs text-zinc-400">
                       <span>{formatDate(meeting.scheduled_at)}</span>
-                      <span className="text-[#D8CCC2]">·</span>
+                      <span>·</span>
                       <span className="capitalize">{meeting.meeting_type}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 flex-shrink-0">
-                    {meeting.intelligence && <Brain className="w-4 h-4 text-rose-600" />}
+                    {meeting.intelligence && <Brain className="w-4 h-4 text-zinc-700" />}
                     {meeting.compliance_record && (
                       <Shield className={`w-4 h-4 ${
                         meeting.compliance_status === "compliant" ? "text-emerald-600"
@@ -124,7 +124,7 @@ export default async function MeetingsPage() {
                         : "text-amber-600"
                       }`} />
                     )}
-                    <ChevronRight className="w-4 h-4 text-[#A89E95] group-hover:text-[#121217] transition-colors" />
+                    <ChevronRight className="w-4 h-4 text-zinc-400 group-hover:text-zinc-800 transition-colors" />
                   </div>
                 </Link>
               );
@@ -133,17 +133,17 @@ export default async function MeetingsPage() {
         </div>
       )}
 
-      {!meetings || meetings.length === 0 ? (
-        <div className="bg-white rounded-3xl border border-[#EADBCE] shadow-sm py-20 text-center">
-          <Calendar className="w-10 h-10 text-[#A89E95] mx-auto mb-4" />
-          <h3 className="text-lg font-heading font-bold text-[#121217] mb-2">No meetings yet</h3>
-          <p className="text-sm text-[#7A726A] mb-6">Schedule your first meeting and let AI handle the rest</p>
+      {(!meetings || meetings.length === 0) && (
+        <div className="bg-white rounded-xl border border-zinc-200/80 shadow-2xs py-16 text-center">
+          <Calendar className="w-8 h-8 text-zinc-300 mx-auto mb-3" />
+          <h3 className="text-base font-bold text-zinc-900 mb-1">No meetings yet</h3>
+          <p className="text-xs text-zinc-500 mb-5">Schedule your first meeting and let AI handle the rest</p>
           <Link href="/dashboard/meetings/new"
-            className="btn-hero-gradient inline-flex items-center gap-2 px-6 py-3 text-white text-sm font-bold rounded-full shadow-md">
-            <Plus className="w-4 h-4" /><span>Schedule First Meeting</span>
+            className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold rounded-lg shadow-2xs">
+            <Plus className="w-3.5 h-3.5" /><span>Schedule First Meeting</span>
           </Link>
         </div>
-      ) : null}
+      )}
     </div>
   );
 }

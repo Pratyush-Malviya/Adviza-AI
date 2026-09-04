@@ -345,48 +345,47 @@ export function IntegrationsHub() {
       {/* ============================================================ */}
       {/* PRIMARY TOP TABS: CONNECTED TOOLS vs AVAILABLE TOOLS         */}
       {/* ============================================================ */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EADBCE] pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-200/80 pb-4">
         {/* Navigation Tabs */}
-        <div className="flex items-center p-1 bg-[#FAF5F0] rounded-2xl border border-[#EADBCE] w-fit">
+        <div className="flex items-center p-1 bg-zinc-100 rounded-xl border border-zinc-200/80 w-fit">
           <button
             onClick={() => setActiveTab("connected")}
-            className={`flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
               activeTab === "connected"
-                ? "bg-[#121217] text-white shadow-sm"
-                : "text-[#5A544E] hover:text-[#121217]"
+                ? "bg-white text-zinc-900 shadow-2xs"
+                : "text-zinc-500 hover:text-zinc-900"
             }`}
           >
-            <ShieldCheck className={`w-4 h-4 ${activeTab === "connected" ? "text-emerald-400" : "text-[#8E847C]"}`} />
+            <ShieldCheck className={`w-4 h-4 ${activeTab === "connected" ? "text-emerald-500" : "text-zinc-400"}`} />
             <span>Connected Tools</span>
             <span
               className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
                 activeTab === "connected"
-                  ? "bg-emerald-500/20 text-emerald-300"
-                  : "bg-[#EADBCE] text-[#5A544E]"
+                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                  : "bg-zinc-200 text-zinc-600"
               }`}
             >
               {connections.length}
             </span>
           </button>
-
           <button
             onClick={() => {
               setActiveTab("available");
               if (toolkits.length === 0) fetchTools(1, searchQuery, selectedCategory);
             }}
-            className={`flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${
               activeTab === "available"
-                ? "bg-[#121217] text-white shadow-sm"
-                : "text-[#5A544E] hover:text-[#121217]"
+                ? "bg-white text-zinc-900 shadow-2xs font-semibold"
+                : "text-zinc-500 hover:text-zinc-900"
             }`}
           >
-            <Layers className={`w-4 h-4 ${activeTab === "available" ? "text-rose-400" : "text-[#8E847C]"}`} />
-            <span>Available Tools</span>
+            <Grid className={`w-4 h-4 ${activeTab === "available" ? "text-zinc-900" : "text-zinc-400"}`} />
+            <span>App Directory</span>
             <span
               className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
                 activeTab === "available"
-                  ? "bg-rose-500/20 text-rose-300"
-                  : "bg-[#EADBCE] text-[#5A544E]"
+                  ? "bg-zinc-900 text-white"
+                  : "bg-zinc-200 text-zinc-600"
               }`}
             >
               1,400+
@@ -400,7 +399,7 @@ export function IntegrationsHub() {
             <button
               onClick={handleSyncCalendar}
               disabled={syncingCalendar}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white hover:bg-zinc-50 border border-[#EADBCE] text-xs font-semibold text-[#121217] transition shadow-xs disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white hover:bg-zinc-50 border border-zinc-200/80 text-xs font-semibold text-[#121217] transition shadow-xs disabled:opacity-50"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${syncingCalendar ? "animate-spin text-rose-600" : ""}`} />
               <span>{syncingCalendar ? "Syncing..." : "Sync Calendar"}</span>
@@ -408,7 +407,7 @@ export function IntegrationsHub() {
             <button
               onClick={fetchConnections}
               disabled={loadingConnections}
-              className="p-2 rounded-xl bg-white hover:bg-zinc-50 border border-[#EADBCE] text-[#7A726A] hover:text-[#121217] transition shadow-xs"
+              className="p-2 rounded-xl bg-white hover:bg-zinc-50 border border-zinc-200/80 text-[#7A726A] hover:text-[#121217] transition shadow-xs"
               title="Refresh connection status"
             >
               <RefreshCw className={`w-4 h-4 ${loadingConnections ? "animate-spin" : ""}`} />
@@ -431,7 +430,7 @@ export function IntegrationsHub() {
                 value={connectedSearch}
                 onChange={(e) => setConnectedSearch(e.target.value)}
                 placeholder="Filter your connected tools..."
-                className="w-full pl-11 pr-4 py-2.5 rounded-2xl bg-white border border-[#EADBCE] text-xs text-[#121217] focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                className="w-full pl-11 pr-4 py-2.5 rounded-2xl bg-white border border-zinc-200/80 text-xs text-[#121217] focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
               />
             </div>
           )}
@@ -472,7 +471,7 @@ export function IntegrationsHub() {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between pt-3 border-t border-[#EADBCE]/60 text-xs">
+                    <div className="flex items-center justify-between pt-3 border-t border-zinc-200/80/60 text-xs">
                       <span className="text-[#8E847C] font-mono text-[11px] truncate max-w-[170px]">
                         {conn.email || "Active Authorization"}
                       </span>
@@ -496,7 +495,7 @@ export function IntegrationsHub() {
             </div>
           ) : (
             /* Empty Connected Tools State */
-            <div className="bg-white rounded-3xl p-10 border border-dashed border-[#EADBCE] text-center space-y-4">
+            <div className="bg-white rounded-3xl p-10 border border-dashed border-zinc-200/80 text-center space-y-4">
               <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto shadow-sm">
                 <Zap className="w-6 h-6" />
               </div>
@@ -526,7 +525,7 @@ export function IntegrationsHub() {
                       key={quick.slug}
                       onClick={() => handleConnect(quick.slug, quick.name)}
                       disabled={isConnecting}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#FAF5F0] hover:bg-rose-50 border border-[#EADBCE] hover:border-rose-300 rounded-xl text-xs font-semibold text-[#121217] transition shadow-xs disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-zinc-50 border border-zinc-200 hover:border-zinc-300 rounded-lg text-xs font-semibold text-zinc-800 transition shadow-2xs disabled:opacity-50"
                     >
                       {isConnecting ? (
                         <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-600" />
@@ -539,7 +538,7 @@ export function IntegrationsHub() {
                 })}
               </div>
 
-              <div className="pt-4 border-t border-[#EADBCE]/50 max-w-xs mx-auto">
+              <div className="pt-4 border-t border-zinc-200/80/50 max-w-xs mx-auto">
                 <button
                   onClick={() => {
                     setActiveTab("available");
@@ -570,7 +569,7 @@ export function IntegrationsHub() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search 1,400+ tools by name or capability (e.g., Salesforce, Google Drive, DocuSign, Asana)..."
-                className="w-full pl-11 pr-4 py-3 rounded-2xl bg-white border border-[#EADBCE] text-xs text-[#121217] placeholder:text-[#8E847C] focus:outline-none focus:ring-2 focus:ring-rose-500/30 transition shadow-xs"
+                className="w-full pl-11 pr-4 py-3 rounded-2xl bg-white border border-zinc-200/80 text-xs text-[#121217] placeholder:text-[#8E847C] focus:outline-none focus:ring-2 focus:ring-rose-500/30 transition shadow-xs"
               />
               {searchQuery && (
                 <button
@@ -587,10 +586,10 @@ export function IntegrationsHub() {
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition ${
+                  className={`px-3 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition ${
                     selectedCategory === cat.id
-                      ? "bg-[#121217] text-white shadow-xs"
-                      : "bg-white hover:bg-[#FAF5F0] text-[#5A544E] border border-[#EADBCE]"
+                      ? "bg-zinc-900 text-white shadow-2xs"
+                      : "bg-white hover:bg-zinc-50 text-zinc-600 border border-zinc-200"
                   }`}
                 >
                   {cat.label}
@@ -618,7 +617,7 @@ export function IntegrationsHub() {
                     className={`rounded-2xl p-4.5 border transition-all flex flex-col justify-between space-y-3 bg-white ${
                       connected
                         ? "border-emerald-500 ring-1 ring-emerald-400/40 shadow-xs"
-                        : "border-[#EADBCE] hover:border-rose-300 hover:shadow-md"
+                        : "border-zinc-200/80 hover:border-rose-300 hover:shadow-md"
                     }`}
                   >
                     <div className="space-y-2">
@@ -659,7 +658,7 @@ export function IntegrationsHub() {
                       </p>
                     </div>
 
-                    <div className="pt-2 border-t border-[#EADBCE]/50 flex items-center justify-between gap-2">
+                    <div className="pt-2 border-t border-zinc-200/80/50 flex items-center justify-between gap-2">
                       <span className="text-[10px] text-[#8E847C] font-mono">
                         {tool.toolsCount || 1} actions
                       </span>
@@ -702,7 +701,7 @@ export function IntegrationsHub() {
               })}
             </div>
           ) : (
-            <div className="py-12 bg-white rounded-2xl border border-[#EADBCE] text-center space-y-2">
+            <div className="py-12 bg-white rounded-2xl border border-zinc-200/80 text-center space-y-2">
               <p className="text-sm font-bold text-[#121217]">No tools matched your filter</p>
               <p className="text-xs text-[#7A726A]">Try searching for &quot;Calendar&quot;, &quot;Salesforce&quot;, or &quot;Gmail&quot;</p>
             </div>
@@ -710,20 +709,20 @@ export function IntegrationsHub() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between pt-4 border-t border-[#EADBCE]/60">
+            <div className="flex items-center justify-between pt-4 border-t border-zinc-200/80">
               <button
                 onClick={() => {
                   const next = Math.max(1, currentPage - 1);
                   fetchTools(next, searchQuery, selectedCategory);
                 }}
                 disabled={currentPage <= 1 || loadingTools}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white border border-[#EADBCE] text-xs font-semibold text-[#121217] disabled:opacity-40 hover:bg-[#FAF5F0] transition"
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white border border-zinc-200 text-xs font-semibold text-zinc-800 disabled:opacity-40 hover:bg-zinc-50 transition"
               >
                 <ChevronLeft className="w-4 h-4" />
                 <span>Previous</span>
               </button>
 
-              <span className="text-xs text-[#7A726A] font-mono">
+              <span className="text-xs text-zinc-400 font-mono">
                 Page {currentPage} of {totalPages}
               </span>
 
@@ -733,7 +732,7 @@ export function IntegrationsHub() {
                   fetchTools(next, searchQuery, selectedCategory);
                 }}
                 disabled={currentPage >= totalPages || loadingTools}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white border border-[#EADBCE] text-xs font-semibold text-[#121217] disabled:opacity-40 hover:bg-[#FAF5F0] transition"
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white border border-zinc-200 text-xs font-semibold text-zinc-800 disabled:opacity-40 hover:bg-zinc-50 transition"
               >
                 <span>Next</span>
                 <ChevronRight className="w-4 h-4" />

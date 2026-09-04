@@ -77,86 +77,86 @@ export default function NewMeetingPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto animate-fade-in">
-      <div className="flex items-center gap-3 mb-8">
-        <Link href="/dashboard/meetings" className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-white border border-[#EADBCE] flex items-center justify-center text-[#5A544E] hover:text-[#121217] shadow-sm transition-colors cursor-pointer" aria-label="Back to Meetings">
+    <div className="max-w-2xl mx-auto animate-in fade-in duration-200">
+      <div className="flex items-center gap-3 mb-6">
+        <Link href="/dashboard/meetings" className="w-8 h-8 rounded-lg bg-white border border-zinc-200 flex items-center justify-center text-zinc-500 hover:text-zinc-900 shadow-2xs transition-colors cursor-pointer" aria-label="Back to Meetings">
           <ArrowLeft className="w-4 h-4" />
         </Link>
         <div>
-          <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#121217] tracking-tight">New Meeting</h1>
-          <p className="text-sm text-[#7A726A] mt-0.5">Schedule a meeting and activate AI agents</p>
+          <h1 className="text-2xl font-bold tracking-tight text-zinc-900">New Meeting</h1>
+          <p className="text-xs text-zinc-500 mt-0.5">Schedule a meeting and activate AI agents</p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-5">
         {error && (
-          <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-sm font-medium">{error}</div>
+          <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium">{error}</div>
         )}
 
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#EADBCE] shadow-sm space-y-5">
-          <h2 className="text-xs font-heading font-bold text-[#8E847C] uppercase tracking-wider">Meeting Details</h2>
+        <div className="bg-white rounded-xl p-5 sm:p-6 border border-zinc-200/80 shadow-2xs space-y-4">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">Meeting Details</h2>
 
           {/* Client */}
           <div>
-            <label className="block text-xs font-heading font-bold text-[#5A544E] mb-2">
+            <label className="block text-xs font-semibold text-zinc-700 mb-1.5">
               <Users className="inline w-3.5 h-3.5 mr-1" />Client *
             </label>
             <select id="meeting-client" name="client_id" value={form.client_id} onChange={handleChange} required
-              className="w-full px-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] text-base sm:text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors">
+              className="w-full px-3.5 py-2 bg-white border border-zinc-200 rounded-lg text-zinc-900 text-xs focus:outline-none focus:border-zinc-400 transition-colors">
               <option value="">Select a client...</option>
               {clients.map((c) => (
                 <option key={c.id} value={c.id}>{c.full_name}</option>
               ))}
             </select>
             {clients.length === 0 && (
-              <p className="text-xs text-amber-700 mt-2 flex items-center gap-1 font-medium">
-                No clients yet. <Link href="/dashboard/clients/new" className="underline font-bold">Add a client first →</Link>
+              <p className="text-xs text-amber-700 mt-1.5 flex items-center gap-1 font-medium">
+                No clients yet. <Link href="/dashboard/clients/new" className="underline font-semibold">Add a client first →</Link>
               </p>
             )}
           </div>
 
           {/* Meeting Type */}
           <div>
-            <label className="block text-xs font-heading font-bold text-[#5A544E] mb-2">
+            <label className="block text-xs font-semibold text-zinc-700 mb-1.5">
               <FileText className="inline w-3.5 h-3.5 mr-1" />Meeting Type *
             </label>
             <select id="meeting-type" name="meeting_type" value={form.meeting_type} onChange={handleChange} required
-              className="w-full px-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] text-base sm:text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors">
+              className="w-full px-3.5 py-2 bg-white border border-zinc-200 rounded-lg text-zinc-900 text-xs focus:outline-none focus:border-zinc-400 transition-colors">
               {MEETING_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
             </select>
           </div>
 
           {/* Title */}
           <div>
-            <label className="block text-xs font-heading font-bold text-[#5A544E] mb-2">Title (optional)</label>
+            <label className="block text-xs font-semibold text-zinc-700 mb-1.5">Title (optional)</label>
             <input id="meeting-title" name="title" type="text" value={form.title} onChange={handleChange}
-              placeholder="Auto-generated if left blank" className="w-full px-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] placeholder-[#A89E95] text-base sm:text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors" />
+              placeholder="Auto-generated if left blank" className="w-full px-3.5 py-2 bg-white border border-zinc-200 rounded-lg text-zinc-900 placeholder:text-zinc-400 text-xs focus:outline-none focus:border-zinc-400 transition-colors" />
           </div>
 
           {/* Date & Time */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-heading font-bold text-[#5A544E] mb-2">
+              <label className="block text-xs font-semibold text-zinc-700 mb-1.5">
                 <Calendar className="inline w-3.5 h-3.5 mr-1" />Date *
               </label>
               <input id="meeting-date" name="scheduled_at_date" type="date" value={form.scheduled_at_date} onChange={handleChange} required
                 min={new Date().toISOString().split("T")[0]}
-                className="w-full px-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] text-base sm:text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors" />
+                className="w-full px-3.5 py-2 bg-white border border-zinc-200 rounded-lg text-zinc-900 text-xs focus:outline-none focus:border-zinc-400 transition-colors" />
             </div>
 
             <div>
-              <label className="block text-xs font-heading font-bold text-[#5A544E] mb-2">
+              <label className="block text-xs font-semibold text-zinc-700 mb-1.5">
                 <Clock className="inline w-3.5 h-3.5 mr-1" />Time *
               </label>
               <input id="meeting-time" name="scheduled_at_time" type="time" value={form.scheduled_at_time} onChange={handleChange} required
-                className="w-full px-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] text-base sm:text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors" />
+                className="w-full px-3.5 py-2 bg-white border border-zinc-200 rounded-lg text-zinc-900 text-xs focus:outline-none focus:border-zinc-400 transition-colors" />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-heading font-bold text-[#5A544E] mb-2">Duration (minutes)</label>
+            <label className="block text-xs font-semibold text-zinc-700 mb-1.5">Duration (minutes)</label>
             <select id="meeting-duration" name="duration_minutes" value={form.duration_minutes} onChange={handleChange}
-              className="w-full px-4 py-3 bg-[#FAF5F0]/60 border border-[#EADBCE] rounded-xl text-[#121217] text-base sm:text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-colors">
+              className="w-full px-3.5 py-2 bg-white border border-zinc-200 rounded-lg text-zinc-900 text-xs focus:outline-none focus:border-zinc-400 transition-colors">
               {["30", "45", "60", "90", "120"].map((d) => (
                 <option key={d} value={d}>{d} minutes</option>
               ))}
@@ -165,22 +165,26 @@ export default function NewMeetingPage() {
         </div>
 
         {/* AI Info */}
-        <div className="p-5 rounded-3xl bg-rose-50 border border-rose-100 flex items-start gap-3">
-          <Sparkles className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
+        <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200/80 flex items-start gap-3">
+          <Sparkles className="w-4 h-4 text-zinc-700 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm text-rose-900 font-bold mb-1">AI Agents activate automatically</p>
-            <p className="text-xs text-rose-700/80 leading-relaxed">The Client Briefing Agent prepares a full context pack immediately. After the call, upload the transcript to generate intelligence & compliance records.</p>
+            <p className="text-xs text-zinc-900 font-semibold mb-0.5">AI Agents activate automatically</p>
+            <p className="text-xs text-zinc-500 leading-relaxed">The Client Briefing Agent prepares a full context pack immediately. After the call, upload the transcript to generate intelligence & compliance records.</p>
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+        <div className="flex flex-col sm:flex-row gap-3">
           <Link href="/dashboard/meetings"
-            className="flex-1 py-3.5 min-h-[44px] flex items-center justify-center bg-white hover:bg-[#FAF5F0] border border-[#EADBCE] text-[#121217] font-bold rounded-full transition-colors text-center text-sm shadow-sm">
+            className="flex-1 py-2.5 flex items-center justify-center bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-700 font-semibold rounded-lg transition-colors text-center text-xs shadow-2xs">
             Cancel
           </Link>
-          <button id="submit-meeting" type="submit" disabled={loading}
-            className="btn-hero-gradient flex-1 py-3.5 min-h-[44px] disabled:opacity-50 text-white font-bold rounded-full transition-all flex items-center justify-center gap-2 text-sm shadow-md shadow-rose-500/20 cursor-pointer">
-            {loading ? <><Loader2 className="w-4 h-4 animate-spin" /><span>Scheduling...</span></> : <span>Schedule Meeting</span>}
+          <button id="submit-meeting-btn" type="submit" disabled={loading}
+            className="flex-1 py-2.5 flex items-center justify-center gap-2 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 text-white font-semibold rounded-lg shadow-2xs transition-colors cursor-pointer text-xs">
+            {loading ? (
+              <span className="flex items-center gap-2"><Loader2 className="w-3.5 h-3.5 animate-spin" />Scheduling & Generating Briefing...</span>
+            ) : (
+              <span className="flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5" />Schedule & Generate Briefing</span>
+            )}
           </button>
         </div>
       </form>

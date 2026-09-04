@@ -17,10 +17,30 @@ import {
   Download,
 } from "lucide-react";
 
-export const metadata = {
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
   title: "Security, Privacy & Regulatory Compliance | Adviza AI",
   description:
     "Institutional Trust Center: SOC 2 Type II certified, SEC 204-2 and FINRA 17a-4 Books & Records compliance, WORM hash-chain storage, and zero-LLM-training architecture.",
+  alternates: {
+    canonical: "/security",
+  },
+  openGraph: {
+    title: "Security, Privacy & Regulatory Compliance | Adviza AI",
+    description:
+      "Institutional Trust Center: SOC 2 Type II certified, SEC 204-2 and FINRA 17a-4 compliance, WORM hash-chain storage, and zero-LLM-training architecture.",
+    url: "https://adviza.ai/security",
+    type: "website",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Adviza AI Security & Trust" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Security, Privacy & Regulatory Compliance | Adviza AI",
+    description:
+      "Institutional Trust Center: SOC 2 Type II certified, SEC 204-2 and FINRA 17a-4 compliance.",
+    images: ["/og-image.png"],
+  },
 };
 
 export default async function SecurityPage() {
